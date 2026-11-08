@@ -663,10 +663,11 @@ function roundIntro() {
 }
 function showQuestion() {
   if (P.mode === 'place') P.round = P.list[P.idx].type;
-  P.busy = false; renderPlayTop();
+  P.busy = false; PICK = null; renderPlayTop();
   if (P.round === 1) qShoot(); else if (P.mode === 'zh') { if (P.round === 2) zhSpell(); else zhSentence(); } else if (P.round === 2) qSpell(); else qSentence();
 }
 function next() {
+  if (!P || currentScreen !== 'play') return;   // a delayed 'next' after the player already left
   if (P.mode === 'place') { P.idx++; return P.idx >= P.list.length ? placeGroupDone() : showQuestion(); }
   P.idx++;
   if (P.idx >= P.order[P.round].length) { P.round++; if (P.round > 3) return P.mode === 'zh' ? finishZh() : finishSession(); roundIntro(); }
@@ -725,6 +726,21 @@ function exitPlay() {
   if (m === 'lab') { chalId = 'en'; route('chal'); } else if (m === 'zh' || m === 'zhplace') { chalId = 'zh'; route('chal'); } else route('home');
 }
 
+// ---- choose first, then confirm (so a stray tap never answers) ----
+let PICK = null;
+const confirmRow = label => `<div class="confirmrow"><button class="btn big go" id="confirmBtn" disabled>${label}</button><span class="muted small" id="confirmHint">${label === 'Shoot!' || label === 'Check' ? 'Tap your answer first.' : '<span class="zh">\u5148\u9009\u4e00\u4e2a\u7b54\u6848</span>'}</span></div>`;
+function setPick(el, onConfirm) {
+  if (!P || P.busy || !el || el.disabled) return;
+  document.querySelectorAll('.picked').forEach(x => x.classList.remove('picked'));
+  el.classList.add('picked'); PICK = onConfirm;
+  const b = $('#confirmBtn'); if (b) { b.disabled = false; const h = $('#confirmHint'); if (h) h.hidden = true; }
+  SFX.tap();
+}
+function wireConfirm() {
+  const b = $('#confirmBtn'); if (!b) return;
+  b.addEventListener('click', () => { if (!PICK || b.disabled) return; const f = PICK; PICK = null; b.disabled = true; b.parentElement.hidden = true; f(); });
+}
+
 // ---- Round 1: shooting gallery ----
 let targets = [], lastT = 0;
 function qShoot() {
@@ -733,8 +749,10 @@ function qShoot() {
   $('#stage').innerHTML = `${zh ? zhHearBtns() + `<p class="zhhint zh">\u542c\u5230\u7684\u662f\u54ea\u4e2a\u5b57\uff1f <span class="zhword">${[...w.words[0]].map(ch => ch === w.id ? '<i class="zhblank"></i>' : esc(ch)).join('')}</span></p>` : hearBtns(w.w) + cueLine(w)}
    <div class="arena" id="arena"><div class="sun"></div><img class="pxi cloudA" src="${spriteURL('i-cloud', ICONS.cloud)}" alt=""><div class="ground"></div>
      <img class="pxi cannon" id="cannon" src="${spriteURL('i-cannon', ICONS.cannon)}" alt=""><div class="bullet" id="bullet" hidden></div></div>
-   ${zh ? zhAnsBox(w, '点气球，或者按 1–4。按空格键再听一遍。') : '<div class="fb" id="fb" aria-live="polite"><span class="muted">Tap a balloon, or press 1–4. Press space to hear it again.</span></div>' + meaningCard(w)}`;
+   ${confirmRow(zh ? '<span class="zh">\u53d1\u5c04\uff01</span>' : 'Shoot!')}
+   ${zh ? zhAnsBox(w, '先点一个气球（或按 1–4），再按「发射」。按空格键再听一遍。') : '<div class="fb" id="fb" aria-live="polite"><span class="muted">Tap a balloon (or press 1–4), then press Shoot. Space plays the word again.</span></div>' + meaningCard(w)}`;
   if (zh) zhWireHear(w); else wireHear(w);
+  wireConfirm();
   $('#arena').classList.toggle('zharena', zh);
   const arena = $('#arena'); const W = arena.clientWidth;
   const lanes = shuffle([10, 78, 146, 214]);
@@ -746,7 +764,7 @@ function qShoot() {
     arena.appendChild(el);
     const tw = el.offsetWidth;
     const t = { el, txt, i, tw, y: lanes[i], x: Math.random() * Math.max(1, W - tw), vx: reduceMotion ? 0 : (Math.random() < .5 ? -1 : 1) * (22 + Math.random() * 26), ph: Math.random() * 6, frozen: false };
-    el.addEventListener('click', () => shoot(t));
+    el.addEventListener('click', () => setPick(el, () => shoot(t)));
     return t;
   });
   lastT = performance.now(); stopArena(); raf = requestAnimationFrame(tick); tick(lastT);
@@ -835,9 +853,11 @@ function qSentence() {
   $('#stage').innerHTML = `<div class="ask"><button class="btn speak" id="hearS">${icon('speaker', 'spk')} Read it to me</button></div>
    <div class="panel sentence"><p class="sent">${esc(a)}<span class="blank" id="blank">?</span>${esc(b)}</p></div>
    <div class="opts">${opts.map((o, i) => `<button class="btn opt" data-o="${esc(o)}"><b>${i + 1}</b>${esc(o)}</button>`).join('')}</div>
-   <div class="fb" id="fb" aria-live="polite"><span class="muted">Which one fits? Look at the words around the blank.</span></div>${meaningCard(w)}`;
+   ${confirmRow('Check')}
+   <div class="fb" id="fb" aria-live="polite"><span class="muted">Which one fits? Look at the words around the blank, then press Check.</span></div>${meaningCard(w)}`;
+  wireConfirm();
   $('#hearS').addEventListener('click', () => say(w.s.replace('_', 'blank')));
-  document.querySelectorAll('.opt').forEach(btn => btn.addEventListener('click', () => pickOpt(btn)));
+  document.querySelectorAll('.opt').forEach(btn => btn.addEventListener('click', () => setPick(btn, () => pickOpt(btn))));
 }
 function pickOpt(btn) {
   if (P.busy) return; P.busy = true;
@@ -997,9 +1017,11 @@ function renderRoom() {
       h += `<h3>${label}</h3>${own.length ? `<div class="chips">${chip('None', !pet[slot], `data-set="${slot}" data-v=""`)}${own.map(i => chip(i.name, pet[slot] === i.key, `data-set="${slot}" data-v="${i.key}"`)).join('')}</div>` : emptyShop(label.toLowerCase())}`;
     }
   } else if (roomTab === 'home') {
-    h += `<div class="roomhouse"><img src="${imgSrc('house-' + pet.kind)}" alt="" class="${pet.home ? '' : 'shadow'}"><div><h3>${esc(HOUSES[pet.kind])}</h3>
-      <p class="muted small">${pet.home ? `Built! ${esc(pet.name)} lives here in Pet Town.` : `${esc(pet.name)} lives in a cardboard box for now. Build this house in the shop for $${HOUSE_PRICE}.`}</p>
-      ${pet.home ? '' : '<button class="btn small go" data-house="1">Go to the shop</button>'}</div></div>
+    const H = pet.house && HOUSES[pet.house], ownedH = HOUSE_LIST.filter(([k]) => ownsH(k));
+    h += `<div class="roomhouse"><img src="${H ? imgSrc('house-' + H.k) : imgSrc('it-boxbed')}" alt=""><div><h3>${H ? esc(H.name) : 'Cardboard Box'}</h3>
+      <p class="muted small">${H ? `${esc(pet.name)} lives here in Pet Town.` : `${esc(pet.name)} lives in a cardboard box for now. Houses are in the shop.`}</p>
+      <button class="btn small go" data-house="1">House shop</button></div></div>
+      ${ownedH.length ? `<h3>Move to another house you own</h3><div class="chips">${chip('Cardboard Box', !pet.house, 'data-movein=""')}${ownedH.map(([k, name]) => chip(name, pet.house === k, `data-movein="${k}"`)).join('')}</div>` : ''}
       <h3>Inside</h3><p class="muted small">Change the wallpaper and floor, add furniture and drag things where you like.</p><button class="btn go" data-deco="1">Decorate ${esc(pet.name)}'s home</button>`;
   } else if (roomTab === 'food') {
     const foods = Object.keys(FOODS).filter(k => S.food[k] > 0);
@@ -1013,7 +1035,8 @@ function roomClick(e) {
   if (b.dataset.go) { if (b.dataset.go === 'shop') { shopPet = roomIdx; shopTab = roomTab === 'food' ? 'food' : roomTab === 'outfit' ? 'clothes' : 'decor'; } return route(b.dataset.go); }
   if (b.dataset.t) { roomTab = b.dataset.t; return renderRoom(); }
   if (b.dataset.deco) return openDeco(roomIdx);
-  if (b.dataset.house) { shopTab = 'homes'; return route('shop'); }
+  if (b.dataset.house) { shopTab = 'homes'; shopPet = roomIdx; return route('shop'); }
+  if (b.dataset.movein !== undefined && pet) { pet.house = b.dataset.movein || null; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.buddy !== undefined) { S.active = +b.dataset.buddy; hopUntil = performance.now() + 900; save(); SFX.good(); toast(`${pet.name} is your study buddy now!`); return renderRoom(); }
   if (b.dataset.set && pet) { pet[b.dataset.set] = b.dataset.v || null; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.shel && pet) { pet.shelter = b.dataset.shel; save(); SFX.tap(); return renderRoom(); }
@@ -1129,12 +1152,12 @@ function boot() {
   document.addEventListener('keydown', e => {
     if (!$('#modal').hidden) { if (e.key === 'Escape') closeModal(); return; }
     if (!P || currentScreen !== 'play' || e.metaKey || e.ctrlKey || e.altKey) return;
-    if (P.mode === 'zhplace') { if (e.key === ' ') { e.preventDefault(); const it = P.list[P.idx]; if (it) zhSay(it.id, 'call'); return; } if (e.key === 'Enter') { const nb = $('#goRound') || $('#zhPlaceMore'); if (nb) { e.preventDefault(); nb.click(); } return; } if (/^[1-4]$/.test(e.key)) { const b = document.querySelectorAll('.zhplaceopts .zhc')[+e.key - 1]; if (b && !b.disabled) b.click(); } return; }
-    if (P.mode === 'zh') { const zw = P.round <= 3 && P.order[P.round][P.idx] ? ZH_BY[cur().id] : null; if (e.key === ' ' && zw) { e.preventDefault(); zhSay(zw.id, P.round === 3 ? 'blank' : 'call'); return; } if (e.key === 'Enter') { const nb = $('#nextBtn') || $('#goRound'); if (nb) { e.preventDefault(); nb.click(); return; } } zhKeydown(e); return; }
+    if (P.mode === 'zhplace') { if (e.key === ' ') { e.preventDefault(); const it = P.list[P.idx]; if (it) zhSay(it.id, 'call'); return; } if (e.key === 'Enter') { const nb = $('#goRound') || $('#zhPlaceMore') || $('#confirmBtn:not([disabled])'); if (nb) { e.preventDefault(); nb.click(); } return; } if (/^[1-4]$/.test(e.key)) { const b = document.querySelectorAll('.zhplaceopts .zhc')[+e.key - 1]; if (b && !b.disabled) b.click(); } return; }
+    if (P.mode === 'zh') { const zw = P.round <= 3 && P.order[P.round][P.idx] ? ZH_BY[cur().id] : null; if (e.key === ' ' && zw) { e.preventDefault(); zhSay(zw.id, P.round === 3 ? 'blank' : 'call'); return; } if (e.key === 'Enter') { const nb = $('#nextBtn') || $('#goRound') || $('#confirmBtn:not([disabled])'); if (nb) { e.preventDefault(); nb.click(); return; } } zhKeydown(e); return; }
     const w = P.round <= 3 && P.order[P.round][P.idx] ? BY_ID[cur().id] : null;
     if (e.key === ' ' && w) { e.preventDefault(); say(P.round === 3 ? w.s.replace('_', 'blank') : hearText(w)); return; }
-    if (e.key === 'Enter') { const nb = $('#nextBtn') || $('#goRound'); if (nb) { e.preventDefault(); nb.click(); return; } }
-    if (P.round === 1 && /^[1-4]$/.test(e.key) && targets.length) { const t = targets.find(x => x.i === +e.key - 1); if (t) shoot(t); }
+    if (e.key === 'Enter') { const nb = $('#nextBtn') || $('#goRound') || $('#confirmBtn:not([disabled])'); if (nb) { e.preventDefault(); nb.click(); return; } }
+    if (P.round === 1 && /^[1-4]$/.test(e.key) && targets.length) { const t = targets.find(x => x.i === +e.key - 1); if (t) setPick(t.el, () => shoot(t)); }
     else if (P.round === 2 && $('#typed')) { if (e.key === 'Backspace') { e.preventDefault(); typeKey('back'); } else if (e.key === 'Enter') { e.preventDefault(); typeKey('enter'); } else if (/^[a-zA-Z'\u2019]$/.test(e.key)) typeKey(e.key.toLowerCase().replace('\u2019', "'")); }
     else if (P.round === 3 && /^[1-4]$/.test(e.key)) { const o = document.querySelectorAll('.opt')[+e.key - 1]; if (o && !o.disabled) o.click(); }
   });

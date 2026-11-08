@@ -66,9 +66,12 @@ const WALLPAPERS = [['leafy', 'Leafy Cream', 0], ['cream', 'Cream', 12], ['sages
 const FLOORS = [['honeyoak', 'Honey Oak', 0], ['paleash', 'Pale Ash', 15], ['walnut', 'Walnut', 18], ['herringbone', 'Herringbone', 20], ['whitetile', 'White Tile', 15], ['bluetile', 'Blue Tile', 15],
   ['terracotta', 'Terracotta', 15], ['stone', 'Stone', 18], ['mossstone', 'Moss Stone', 20], ['cork', 'Cork', 12], ['pinkcheck', 'Pink Check', 15], ['woven', 'Woven Mat', 15]]
   .map(([k, name, price]) => ({ k, name, price }));
-const HOUSES = { dragon: 'Dragon Castle', dinosaur: 'Fossil Jungle Hut', dog: 'Bone Cottage', cat: 'Kitty Townhouse', turtle: 'Shell Pond House', rabbit: 'Carrot Burrow', pig: 'Piggy Barn',
-  rat: 'Acorn House', monkey: 'Big Treehouse', trex: 'Dino Lodge', snake: 'Swirl House', parrot: 'Tiki Hut', owl: 'Moon Tower' };
-const HOUSE_PRICE = 60;
+// Houses for Pet Town. Any pet can live in any house; once a house is bought, every pet can move in.
+const HOUSE_LIST = [['dog', 'Cozy Cottage', 150], ['pig', 'Red Barn House', 150], ['dinosaur', 'Jungle Hut', 160], ['rabbit', 'Hillside Burrow', 160],
+  ['rat', 'Acorn House', 160], ['cat', 'Garden Townhouse', 170], ['snake', 'Lilac Cottage', 170], ['parrot', 'Tiki Beach Hut', 170],
+  ['trex', 'Stone Lodge', 180], ['turtle', 'Pond Shell House', 180], ['monkey', 'Big Treehouse', 190], ['owl', 'Starlight Tower', 190], ['dragon', 'Crystal Castle', 200]];
+const HOUSES = Object.fromEntries(HOUSE_LIST.map(([k, name, price]) => [k, { k, name, price }]));
+const ownsH = k => !!S.owned['h-' + k];
 const ROOM_SETS = [
   { k: 'forest', name: 'Forest Room', wall: 'forestleaves', floor: 'honeyoak', items: [['hangplant', 130, 0], ['lantern', 560, 0], ['mirror', 330, 220], ['bookshelf', 655, 334], ['monstera', 48, 352], ['hammock', 175, 446], ['sofa', 590, 488], ['roundtable', 420, 380], ['leafrug', 400, 448]] },
   { k: 'cottage', name: 'Cottage Room', wall: 'cream', floor: 'honeyoak', items: [['floralwin', 300, 236], ['bookshelf', 655, 334], ['hangplant', 560, 0], ['roundtable', 520, 392], ['mushlamp', 520, 340], ['bed', 150, 458], ['wovenrug', 400, 446]] },
@@ -85,7 +88,10 @@ const ownsFl = k => { const f = FLOORS.find(x => x.k === k); return !!f && (!f.p
 function defaultRoom() { return { wall: 'leafy', floor: 'honeyoak', items: [{ k: 'plainwin', x: 300, y: 244 }, { k: 'boxbed', x: 150, y: 456 }, { k: 'waterbowl', x: 92, y: 494 }, { k: 'bone', x: 272, y: 482 }] }; }
 // called from migrate() for every pet
 function migrateRoom(p, f) {
-  if (p.shelter && p.shelter !== 'box') p.home = 1;           // anyone who bought a house before gets their pet's new house
+  // a pet that already had a house (old shop, or the one-house-per-kind version) keeps it
+  const hadHouse = (p.shelter && p.shelter !== 'box') || p.home;
+  if (hadHouse && !p.house) { f.owned['h-' + p.kind] = 1; p.house = p.kind; }
+  p.shelter = 'box'; delete p.home;
   if (p.room) return;
   p.room = defaultRoom();
   Object.keys(LEGACY_DECOR).forEach(k => {
@@ -282,15 +288,19 @@ function renderShop() {
   $('#shopTabs').innerHTML = SHOP_TABS.map(([k, n]) => `<button class="tab ${k === shopTab ? 'sel' : ''}" data-t="${k}" aria-pressed="${k === shopTab}">${n}</button>`).join('');
   $('#shopWallet').innerHTML = `You have ${coinAmt(S.coins)}`;
   if (shopPet >= S.pets.length) shopPet = S.active;
-  const perPet = shopTab === 'sets';
+  const perPet = shopTab === 'sets' || shopTab === 'homes';
   $('#shopFor').hidden = !perPet || !S.pets.length;
-  $('#shopFor').innerHTML = `<span>For the room of</span>` + S.pets.map((p, i) => `<button class="petthumb mini ${i === shopPet ? 'sel' : ''}" data-shoppet="${i}" aria-pressed="${i === shopPet}"><img class="pxi" src="${petURL(p)}" alt=""><span>${esc(p.name)}</span></button>`).join('');
+  $('#shopFor').innerHTML = `<span>${shopTab === 'homes' ? 'Moving in' : 'For the room of'}</span>` + S.pets.map((p, i) => `<button class="petthumb mini ${i === shopPet ? 'sel' : ''}" data-shoppet="${i}" aria-pressed="${i === shopPet}"><img class="pxi" src="${petURL(p)}" alt=""><span>${esc(p.name)}</span></button>`).join('');
   const me = S.pets[S.active];
   const note = t => `<p class="muted shopnote">${t}</p>`;
   let h = '';
   if (shopTab === 'homes') {
-    h = note('Every pet can build its very own house in Pet Town.') + `<div class="shopgrid wide">${S.pets.map((p, i) => `<div class="card house ${p.home ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + p.kind)}" alt=""></div>
-      <b>${esc(HOUSES[p.kind] || 'House')}</b><span class="muted small">for ${esc(p.name)} the ${esc(PETS[p.kind].name)}</span>${priceBtn(`data-buy="h:${i}"`, HOUSE_PRICE, p.home, 'Built')}</div>`).join('')}</div>`;
+    const tp = S.pets[shopPet];
+    h = note('Pick any house for your pet. Once you own a house, any of your pets can move into it for free.') + `<div class="shopgrid wide">${HOUSE_LIST.map(([k, name, price]) => {
+      const own = ownsH(k), here = tp && tp.house === k, who = S.pets.filter(p => p.house === k).map(p => p.name);
+      const btn = here ? `<span class="ownedtag">${icon('check')} ${esc(tp.name)} lives here</span>` : own ? `<button class="btn buy go" data-buy="hm:${k}">Move ${tp ? esc(tp.name) : ''} in</button>` : priceBtn(`data-buy="h:${k}"`, price, false);
+      return `<div class="card house ${own ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + k)}" alt=""></div>
+        <b>${esc(name)}</b><span class="muted small">${who.length ? 'Home of ' + esc(who.join(', ')) : own ? 'Yours, empty' : '&nbsp;'}</span>${btn}</div>`; }).join('')}</div>`;
   } else if (shopTab === 'furniture') h = note(`New things go straight into ${me ? esc(me.name) + "'s" : 'your'} home. Use Decorate to move them around.`) + furnCards(FURN_GROUPS.slice(0, 2));
   else if (shopTab === 'decor') h = note(`New things go straight into ${me ? esc(me.name) + "'s" : 'your'} home. Use Decorate to move them around.`) + furnCards(FURN_GROUPS.slice(2));
   else if (shopTab === 'walls') h = `<h2 class="shophead">Wallpaper</h2>${swatchCards(WALLPAPERS, 'w')}<h2 class="shophead">Floors</h2>${swatchCards(FLOORS, 'fl')}`;
@@ -327,9 +337,12 @@ function buy(id) {
 function shopBuy(code) {
   const [kind, k] = code.split(':'), me = S.pets[S.active];
   if (kind === 'h') {
-    const p = S.pets[+k]; if (!p || p.home) return;
-    if (S.coins < HOUSE_PRICE) { toast(`You need $${money(HOUSE_PRICE - S.coins)} more. Play a session to earn coins!`); return; }
-    S.coins -= HOUSE_PRICE; p.home = 1; save(); SFX.fanfare(); renderHud(); toast(`${p.name}'s ${HOUSES[p.kind]} is built! Go see it in Pet Town.`);
+    const H = HOUSES[k], p = S.pets[shopPet]; if (!H || !p || ownsH(k)) return;
+    if (S.coins < H.price) { toast(`You need $${money(H.price - S.coins)} more. Play a session to earn coins!`); return; }
+    S.coins -= H.price; S.owned['h-' + k] = 1; p.house = k; save(); SFX.fanfare(); renderHud(); toast(`${p.name} moved into the ${H.name}! Go see it in Pet Town.`);
+  } else if (kind === 'hm') {
+    const p = S.pets[shopPet]; if (!p || !ownsH(k)) return;
+    p.house = k; save(); SFX.good(); toast(`${p.name} moved into the ${HOUSES[k].name}!`);
   } else if (kind === 's') {
     const st = ROOM_SETS.find(x => x.k === k), tp = S.pets[shopPet]; if (!st || !tp) return;
     const p = setPrice(st); if (S.coins < p) { toast(`You need $${money(p - S.coins)} more. Play a session to earn coins!`); return; }

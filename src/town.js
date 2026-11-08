@@ -29,10 +29,11 @@ function shelterCanvas(key) {
 function drawLotHome(c, L, pet) {
   const w = (L.x1 - L.x0), cx = (L.x0 + L.x1) / 2;
   c.drawImage(SPR['gate-open'], L.lx - 49, L.ly - 24, 100, 47);
-  const img = pet.home ? SPR['house-' + pet.kind] : SPR['it-boxbed'];
+  const has = !!(pet.house && SPR['house-' + pet.house]), img = has ? SPR['house-' + pet.house] : SPR['it-boxbed'];
   if (!img) return;
-  const hw = pet.home ? w * 0.86 : 92, hh = img.height * hw / img.width;
-  c.drawImage(img, cx - hw / 2 + (pet.home ? 0 : -40), L.ly - (pet.home ? 22 : 34) - hh, hw, hh);
+  let hw = has ? w * 0.86 : 92, hh = img.height * hw / img.width;
+  if (has && hh > 175) { hw *= 175 / hh; hh = 175; }
+  c.drawImage(img, cx - hw / 2 + (has ? 0 : -40), L.ly - (has ? 22 : 34) - hh, hw, hh);
 }
 // pets walking around town
 const WALKERS = {};

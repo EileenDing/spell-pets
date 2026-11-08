@@ -25,7 +25,7 @@ function testToolClick(e) {
   if (t === 'unlock') {
     SHOP.forEach(i => { if (!i.legacy && i.cat !== 'food') S.owned[i.id] = 1; });
     FURN_LIST.forEach(f => { S.owned['f-' + f[0]] = 1; }); WALLPAPERS.forEach(w => { S.owned['w-' + w.k] = 1; }); FLOORS.forEach(f => { S.owned['fl-' + f.k] = 1; });
-    PET_ORDER.forEach(k => { S.owned['ltd-' + k] = 1; }); S.pets.forEach(p => { p.home = 1; });
+    PET_ORDER.forEach(k => { S.owned['ltd-' + k] = 1; }); HOUSE_LIST.forEach(([k]) => { S.owned['h-' + k] = 1; }); S.pets.forEach(p => { p.house = p.house || p.kind; });
     Object.keys(FOODS).forEach(k => { S.food[k] = (S.food[k] || 0) + 10; });
     toast('Everything in the shop is unlocked, every house is built, and every limited skin is yours.');
   }

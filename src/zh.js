@@ -279,17 +279,19 @@ function zhSentence() {
   const parts = w.s.split(w.id);
   $('#stage').innerHTML = `<div class="ask"><button class="btn speak" id="hearS">${icon('speaker', 'spk')} <span class="zh">读给我听</span></button></div>
     <div class="panel sentence zh"><p class="sent zhsent">${parts.map(esc).join('<span class="blank zhb">？</span>')}</p></div>
-    ${zhAnsBox(w, '哪个字放进去最合适？')}
-    <div class="opts zhopts">${opts.map((o, i) => `<button class="btn opt zh" data-o="${esc(o)}"><b>${i + 1}</b>${esc(o)}</button>`).join('')}</div>`;
+    ${zhAnsBox(w, '哪个字放进去最合适？选好以后按「确定」。')}
+    <div class="opts zhopts">${opts.map((o, i) => `<button class="btn opt zh" data-o="${esc(o)}"><b>${i + 1}</b>${esc(o)}</button>`).join('')}</div>
+    ${confirmRow('<span class="zh">确定</span>')}`;
   $('#hearS').addEventListener('click', () => zhSay(w.id, 'blank'));
-  document.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => {
+  wireConfirm();
+  document.querySelectorAll('.opt').forEach(b => b.addEventListener('click', () => setPick(b, () => {
     if (P.busy) return; P.busy = true;
     const ok = b.dataset.o === w.id; mark(ok);
     document.querySelectorAll('.zhb').forEach(x => { x.textContent = w.id; x.classList.add('filled'); });
     document.querySelectorAll('.opt').forEach(x => { x.disabled = true; if (x.dataset.o === w.id) x.classList.add('right'); else if (x === b) x.classList.add('wrong'); });
     zhSay(w.id, 'full');
     zhDone(ok, ok ? '选对了！' : `应该是「${esc(w.id)}」。`);
-  }));
+  })));
 }
 function finishZh() {
   stopArena();
@@ -326,7 +328,7 @@ function finishZh() {
   setTimeout(() => { if (zhPendingReward() || LTD_QUEUE.length) claimRewards(() => { chalId = 'zh'; route('chal'); }); }, 900);
 }
 function zhKeydown(e) {
-  if (P.round === 1 && /^[1-4]$/.test(e.key) && targets.length) { const t = targets.find(x => x.i === +e.key - 1); if (t) shoot(t); return; }
+  if (P.round === 1 && /^[1-4]$/.test(e.key) && targets.length) { const t = targets.find(x => x.i === +e.key - 1); if (t) setPick(t.el, () => shoot(t)); return; }
   if (P.round === 2 && $('#pyTyped')) {
     if (e.key === 'Backspace') { e.preventDefault(); zhKey('back'); }
     else if (e.key === 'Enter') { e.preventDefault(); zhKey('enter'); }
@@ -361,14 +363,15 @@ function zhPlacePartIntro() {
   $('#goRound').addEventListener('click', zhPlaceQ); $('#goRound').focus();
 }
 function zhPlaceQ() {
-  P.busy = false; zhPlaceTop();
+  P.busy = false; PICK = null; zhPlaceTop();
   const it = P.list[P.idx], w = ZH_BY[it.id], opts = shuffle([w.id, ...w.d.slice(0, 3)]);
   $('#stage').innerHTML = `${zhHearBtns()}
     <p class="muted center zh">第${ZH_NUM[it.lv]}级 · 听到的是哪个字？</p>
     <div class="zhopts zhplaceopts">${opts.map(c => `<button class="btn zhc" data-c="${c}">${c}</button>`).join('')}</div>
+    ${confirmRow('<span class="zh">确定</span>')}
     <div class="fb" id="fb" aria-live="polite"></div>`;
-  zhWireHear(w);
-  document.querySelectorAll('.zhplaceopts .zhc').forEach(b => b.addEventListener('click', () => zhPlacePick(b)));
+  zhWireHear(w); wireConfirm();
+  document.querySelectorAll('.zhplaceopts .zhc').forEach(b => b.addEventListener('click', () => setPick(b, () => zhPlacePick(b))));
   setTimeout(() => zhSay(w.id, 'call'), 250);
 }
 function zhPlacePick(btn) {
@@ -376,7 +379,7 @@ function zhPlacePick(btn) {
   const it = P.list[P.idx], ok = btn.dataset.c === it.id;
   P.res[it.id][0] = ok; ok ? SFX.good() : SFX.bad(); zhPlaceTop();
   document.querySelectorAll('.zhplaceopts .zhc').forEach(b => { b.disabled = true; if (b.dataset.c === it.id) b.classList.add('right'); else if (b === btn) b.classList.add('wrong'); });
-  setTimeout(zhPlaceNext, ok ? 700 : 1300);
+  const me = P; setTimeout(() => { if (P === me) zhPlaceNext(); }, ok ? 700 : 1300);
 }
 function zhPlaceNext() {
   const it = P.list[P.idx]; P.idx++;
