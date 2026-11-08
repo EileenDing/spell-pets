@@ -4,7 +4,7 @@
 // so the game code runs unchanged. Every path the game uses lives under families/<FAMILY>/.
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, browserLocalPersistence, setPersistence } from 'firebase/auth';
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, onSnapshot, query, limit } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, onSnapshot, query, limit, serverTimestamp } from 'firebase/firestore';
 
 const CFG = window.FIREBASE_CONFIG;
 const OWNER_UID = window.SPELLPETS_OWNER;
@@ -94,6 +94,8 @@ onAuthStateChanged(auth, async u => {
   showGate('<p>Loading your family’s players…</p>');
   try { await getDocs(query(collection(fs, ...seg('profiles')), limit(1))); }
   catch (e) { if (e && e.code === 'permission-denied') { notMemberScreen(u); return; } }
+  // the family document itself (easy to find in the Firebase console; later it also lists the kids' own accounts)
+  if (u.uid === OWNER_UID) setDoc(doc(fs, 'families', FAMILY), { parent: u.uid, parentName: u.displayName || '', lastSignIn: serverTimestamp() }, { merge: true }).catch(() => {});
   hideGate(); resolveReady();
 });
 
