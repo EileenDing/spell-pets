@@ -1,0 +1,100 @@
+object|objekt,obgect,objeck|A strange _ was floating in the lake.|object,objects,objected,objection||a thing you can see or touch; also to disagree|The magnet pulls any metal {object}.
+minimum|minimun,minimim,minnimum|You need a _ of five players to start.|minimum,minimal,minimize,minimums||the smallest amount allowed|The {minimum} age for this ride is eight.
+stunt|stunnt,stuntt,stunte|The rider did a cool _ on his bike.|stunt,stunts,stunted,stuntman||a daring or tricky action done to impress people|Don't try that {stunt} at home.
+episode|episod,epasode,episoad|We watched one _ of the show.|episode,episodes,episodic,epilogue||one part of a TV series or story|The last {episode} had a surprise ending.
+margin|margen,marjin,marjen|Leave a _ on the left side of the page.|margin,margins,marginal,marginally||the empty space at the edge of a page|She drew stars in the {margin}.
+critical|critacal,critikal,kritical|It is _ to wear a life jacket in a canoe.|critical,critic,critically,criticize||very important; or finding fault|Water is {critical} for all living things.
+goose|goos,gooce,guse|A _ honked at us by the pond.|goose,geese,gooses,goosey||a large water bird with a long neck|The Canada {goose} flies south in fall.
+idol|idoll,ydol,idal|The singer is my sister's _.|idol,idols,idolize,idle|The rock star is a teen _.|someone people admire very much|The hockey player is my {idol}.
+garage|garrage,garaje,garag|We keep our bikes in the _.|garage,garages,garaged,garbage||a building for keeping a car|Dad fixed the door of the {garage}.
+spider|spidder,spidar,spieder|A _ spun a web in the corner.|spider,spiders,spidery,spied||a small animal with eight legs that spins webs|The {spider} caught a fly.
+metre/meter|meetre,metter,mettre|My desk is about one _ wide.|metre,metres,metric,meter||a unit for measuring length, about one big step|The shelf is one {metre} wide.
+decline|decliine,declien,dekline|Sadly, I must _ your invitation.|decline,declines,declined,declining||to say no politely; or to go down|The number of bees is starting to {decline}.
+cite|cyte,cight,sitte|You must _ the book you used in your report.|cite,cites,cited,citation|Remember to _ your sources.|to name where your facts came from|Always {cite} the website you used.
+mole|moal,mowl,moale|A _ dug tunnels under the lawn.|mole,moles,molar,mold||a small furry animal that lives underground|The {mole} has tiny eyes.
+export|exporrt,expourt,ekspert|Farmers here _ wheat to other countries.|export,exports,exported,exporting||to send goods to sell in another country|Many countries {export} maple syrup.
+focused|focussd,fokused,focust|She stayed _ on her homework.|focused,focus,focuses,focusing||paying close attention to one thing|The goalie was {focused} on the puck.
+surge|surje,surdge,sirge|There was a _ of water when the dam opened.|surge,surges,surged,surging||a sudden strong rush|A {surge} of fans ran onto the field.
+outfit|outfitt,owtfit,outfitte|She wore a new _ to the party.|outfit,outfits,outfitted,outfitter||a set of clothes worn together|My Halloween {outfit} is a pirate.
+routine|rutine,routeen,routin|Brushing my teeth is part of my bedtime _.|routine,routines,routinely,route||the usual way you do things each day|My morning {routine} starts at seven.
+cycle|cicle,sycle,cykle|The water _ moves water from sea to sky and back.|cycle,cycles,cycled,cycling||a series of events that repeats; to ride a bike|A frog's life {cycle} begins with an egg.
+outcome|outcom,owtcome,outcum|Nobody knew the _ of the game until the end.|outcome,outcomes,outcast,income||the result of something|The {outcome} of the vote was close.
+dwarf|dwarff,dwoarf,dworf|Pluto is called a _ planet.|dwarf,dwarfs,dwarfed,dwarfish||very small; a small being in fairy tales|The {dwarf} tree fits in a pot.
+marvel|marvle,marvul,marvl|We stopped to _ at the northern lights.|marvel,marvels,marvelled,marvellous||to be filled with wonder|Kids {marvel} at the dinosaur bones.
+medicine|medisine,medecine,medicin|Take your _ after breakfast.|medicine,medicines,medical,medicinal||something you take to get better when sick|The {medicine} tasted like cherries.
+background|backround,backgrownd,bakground|There are mountains in the _ of the photo.|background,backgrounds,backward,backgrounded||the part of a picture behind the main thing|A blue sky is in the {background}.
+survey|survay,servey,survei|Our class did a _ about favourite snacks.|survey,surveys,surveyed,surveying||a set of questions asked to many people|The {survey} showed that most kids like pizza.
+annual|anual,annuel,annyual|The school has an _ fun fair every June.|annual,annually,annuals,annul||happening once every year|Our {annual} family trip is to the lake.
+adapt|addapt,adaptt,adabt|Animals must _ to cold winters.|adapt,adapts,adapted,adaptation||to change to fit a new situation|Polar bears {adapt} well to the cold.
+aisle|aile,aisel,aisile|The cereal is in the third _.|aisle,aisles,isle,I'll|Walk down the _ of the grocery store.|a walkway between rows of seats or shelves|The bride walked down the {aisle}.
+brace|brase,braice,braes|I wear a _ on my sore wrist.|brace,braces,braced,bracing||something that holds a part steady; to get ready for a hit|Hold on and {brace} yourself for the big wave!
+closet|closit,clozet,closset|Hang your coat in the _.|closet,closets,closed,closely||a small room or cupboard for storing clothes|The vacuum is in the hall {closet}.
+aspect|aspekt,asspect,aspeck|Teamwork is an important _ of hockey.|aspect,aspects,expect,respect||one part or side of something|The best {aspect} of camp is the lake.
+benefit|benifit,benefet,benafit|One _ of exercise is a healthy heart.|benefit,benefits,benefited,beneficial||something good that helps you|One {benefit} of reading is learning new words.
+jungle|jungel,jungul,jungal|Monkeys swing through the _.|jungle,jungles,jingle,jumble||a thick, hot forest|Tigers hunt in the {jungle}.
+resume|resoome,rezume,resum|After lunch we will _ the game.|resume,resumes,resumed,resuming||to start again after a break|The movie will {resume} after the ads.
+behaviour/behavior|behaveyour,behavoir,behavour|The puppy's _ got better after training.|behaviour,behave,behaved,behaving||the way someone acts|Good {behaviour} earns a gold star.
+prime|priem,pryme,primme|Seven is a _ number.|prime,primes,primary,primed||most important; a number only divisible by 1 and itself|The {prime} minister gave a speech.
+brutal|brutle,brootal,brutel|The winter was _ with lots of cold days.|brutal,brutally,brute,brutality||very harsh or cruel|The climb was {brutal} in the heat.
+musical|musicle,musacal,musickal|Our school put on a _ about pirates.|musical,music,musician,musically||a show with singing; to do with music|She has a {musical} family.
+vision|vishun,visoin,vizion|The eye doctor checked my _.|vision,visions,visual,visible||the ability to see; an idea of the future|Cats have good {vision} at night.
+neutral|nutral,neutrel,newtral|Switzerland stayed _ in the war.|neutral,neutrally,neutrality,natural||not taking sides|Beige is a {neutral} colour.
+require|requir,requier,reqwire|Does every bike _ a bell?|require,requires,required,requirement||to need something|Plants {require} sunlight.
+theory|theery,theorey,theary|Scientists tested the _ with an experiment.|theory,theories,theorize,theoretical||an idea that tries to explain something|My {theory} is that the dog ate it.
+bog|bogg,boog,bawg|Our boots got stuck in the muddy _.|bog,bogs,bogged,boggy||soft, wet ground|Cranberries grow in a {bog}.
+vehicle|vehical,veicle,vehicel|A fire truck is an emergency _.|vehicle,vehicles,vehicular,vehement||something that carries people or things, like a car|Every {vehicle} must stop at a red light.
+century|centurey,sentury,centery|One _ is one hundred years.|century,centuries,centennial,central||a period of one hundred years|That house is over a {century} old.
+balance|balence,ballence,balanse|Can you _ on one foot?|balance,balances,balanced,balancing||to stay steady without falling|I can {balance} a book on my head.
+rely|relie,reli,relly|You can _ on me to help.|rely,relies,relied,reliable||to trust or depend on|We {rely} on the bus to get to school.
+develop|develope,devlop,divelop|Tadpoles will slowly _ into frogs.|develop,develops,developed,development||to grow or change over time|Babies {develop} quickly in their first year.
+advantage|advantige,adventage,advantadge|Being tall is an _ in basketball.|advantage,advantages,advanced,advantageous||something that helps you do better|Our team had the home {advantage}.
+savage|savige,savadge,savege|The storm was _ and tore off the roof.|savage,savagely,savages,salvage||wild, fierce and violent|A {savage} wind knocked down trees.
+delayed|delaid,delayd,dilayed|Our flight was _ by the snowstorm.|delayed,delay,delays,delaying||happening later than planned|The game was {delayed} by rain.
+agenda|ajenda,agendah,agnda|The first item on the meeting _ is the field trip.|agenda,agendas,agent,agency||a list of things to do or talk about|What is on the {agenda} today?
+assume|asume,assoome,assum|Don't _ you know the answer before reading.|assume,assumes,assumed,assumption||to believe something without proof|I {assume} you finished your homework.
+afford|aford,affourd,afforde|We can't _ a new car this year.|afford,affords,afforded,affordable||to have enough money for something|I can {afford} this toy with my savings.
+restore|restor,ristore,restoure|Workers will _ the old church.|restore,restores,restored,restoration||to bring back to how it was before|They {restore} old paintings at the museum.
+register|registor,regester,rejister|You must _ for soccer by May.|register,registers,registered,registration||to sign up officially|Parents {register} kids for school in spring.
+vary|varry,vairy,varey|Prices can _ from store to store.|vary,varies,varied,variety||to be different or to change|The colours of leaves {vary} in fall.
+resolve|resolv,rezolve,resolf|The two friends tried to _ their fight.|resolve,resolves,resolved,resolution||to settle or solve a problem|We {resolve} problems by talking calmly.
+comments|coments,commints,commentz|The teacher wrote nice _ on my story.|comments,comment,commented,commentary||things you say or write to give an opinion|The {comments} on my drawing were kind.
+diamond|dimond,diamon,dyamond|The ring had a sparkling _.|diamond,diamonds,demand,diameter||a very hard, clear, shiny gem|A baseball field is shaped like a {diamond}.
+mutual|mutuel,mutural,mutchual|Sam and I are _ friends of Ava.|mutual,mutually,mutuality,mutant||shared by two or more people|We have a {mutual} love of comics.
+property|propperty,propertie,proparty|This land is private _.|property,properties,proper,propriety||something that belongs to someone|Please don't damage school {property}.
+thrive|thrieve,thryve,thriv|Cactus plants can _ in hot, dry places.|thrive,thrives,thrived,thriving||to grow strong and do well|Fish {thrive} in clean water.
+lecture|lectur,lecsure,lekture|The professor gave a _ on volcanoes.|lecture,lectures,lectured,lecturer||a talk given to teach people|Mom gave me a {lecture} about my messy room.
+fantastic|fantastik,fantastick,fantasic|The fireworks were _!|fantastic,fantasy,fantastically,fanatic||amazing; wonderful|We had a {fantastic} time at the zoo.
+stomach|stomache,stumach,stomick|My _ hurts from eating too much candy.|stomach,stomachs,stomachache,stomached||the body part where food goes after you swallow|My {stomach} is growling.
+grease|greese,greace,griese|There was _ on Dad's hands from fixing the bike.|grease,greasy,greased,greases|Wipe the _ off the pan.|thick oil or fat|The pan was full of bacon {grease}.
+combine|combien,combyne,cumbine|_ the flour and sugar in a bowl.|Combine,Combines,Combined,Combining||to mix or join together|We {combine} red and blue to make purple.
+precise|precize,presise,preciese|A ruler helps you make _ measurements.|precise,precisely,precision,precious||exact and careful|Give me the {precise} time, please.
+retreat|retreet,retreate,retrete|The army had to _.|retreat,retreats,retreated,retreating||to move back or away|The turtle will {retreat} into its shell.
+option|opshun,opsion,optoin|You have one more _ on the menu.|option,options,optional,opinion||a choice|Walking is a healthy {option}.
+exciting|exsiting,excitting,exciteing|The last minute of the game was very _.|exciting,excited,excite,excitement||making you feel thrilled|Going to Canada's Wonderland is {exciting}.
+superb|superbe,soopurb,supperb|The chef made a _ meal.|superb,superbly,super,suburb||excellent; very good|The view from the top was {superb}.
+access|acess,axcess,accses|You need a password to _ the game.|access,accessed,accessible,excess||a way to get in or use something|The cabin has {access} to the lake.
+yacht|yaht,yatch,yot|A big white _ sailed across the bay.|yacht,yachts,yachting,yachtsman||a large boat used for fun or racing|The rich man owned a {yacht}.
+advance|advanse,adavnce,advence|Win this game to _ to the next level.|advance,advances,advanced,advancement||to move forward|Our team will {advance} to the finals.
+finance|finanse,fynance,finnance|My aunt works in _ at a bank.|finance,finances,financial,financed||the management of money|She studied {finance} in university.
+guardian|gardian,guardien,guardain|A parent or _ must sign the form.|guardian,guardians,guard,guarded||a person who takes care of and protects someone|My grandma is my {guardian}.
+entitled|entiteld,intitled,entitlled|Everyone is _ to their own opinion.|entitled,entitle,entitles,title||having the right to something; given a title|The book is {entitled} "The Lost Bear."
+reign|raign,reighn,raigne|The king's _ lasted forty years.|reign,reigns,reigned,rain|Queen Victoria had a long _.|the time a king or queen rules|During her {reign}, the queen visited Canada.
+vast|vaast,vasst,vasd|The Arctic is a _ and cold place.|vast,vastly,vastness,vase||very large in size|A {vast} forest covers the north.
+bundle|bundel,bundal,bunndle|She carried a _ of sticks for the fire.|bundle,bundles,bundled,bungle||a group of things tied or wrapped together|The baby was a {bundle} of joy.
+engineer|enginear,engeneer,enjineer|An _ designed the new bridge.|engineer,engineers,engineering,engine||a person who designs and builds machines or structures|My mom is an {engineer}.
+graduate|graduat,gradjuate,gradiate|My brother will _ from high school in June.|graduate,graduates,graduated,graduation||to finish school and get a diploma|She will {graduate} next year.
+function|funkshun,funtion,fuction|What is the _ of the heart?|function,functions,functional,functioned||the job something does|The {function} of the roots is to drink water.
+progress|progres,prograss,progrees|You have made great _ in math.|progress,progressed,progression,process||moving forward or getting better|I can see my {progress} on the chart.
+basic|basik,basick,basec|First, learn the _ rules of chess.|basic,basics,basically,base||simple and needed first|Bread is a {basic} food.
+hostile|hostyle,hostil,hosstile|The cat gave the new dog a _ look.|hostile,hostility,hostel,host|The _ crowd booed the other team.|unfriendly and angry|The wasps were {hostile} when we got close.
+shoulder|sholder,shoalder,shoulther|The parrot sat on his _.|shoulder,shoulders,shouldered,should||the part of your body where your arm joins|She put a bag over her {shoulder}.
+orbit|orbbit,orbet,orbitt|The moon takes about a month to _ Earth.|orbit,orbits,orbited,orbital||to travel in a circle around a planet or star|Satellites {orbit} high above us.
+cultural|culturel,cultral,kultural|The festival had many _ events.|cultural,culture,cultures,culturally||to do with the customs and arts of a group|Our school has a {cultural} fair.
+ourselves|ourselfs,ourselvs,ourselfes|We made the pizza by _.|ourselves,ourself,yourselves,themselves||us, and no one else|We cleaned the room {ourselves}.
+landscape|landskape,lanscape,landscap|The prairie _ is flat and wide.|landscape,landscapes,landscaped,landscaping||the view of land around you|She painted a winter {landscape}.
+rumour/rumor|roomour,rumer,rumoure|Don't spread a _ unless you know it's true.|rumour,rumours,rumoured,humour||a story passed around that may not be true|The {rumour} about a snow day was false.
+previous|previus,preveous,prevous|The _ owner left a cat in the house.|previous,previously,precious,previews||the one that came before|I liked the {previous} book better.
+preserve|preserv,presurve,prezerve|We use albums to _ old photos.|preserve,preserves,preserved,preservation||to keep safe from harm or change|Salt helps {preserve} food.
+credit|creddit,credet,kredit|She got _ for her great idea.|credit,credits,credited,creditor||praise for doing something; money you can borrow|Give him {credit} for trying.
+harvest|harvist,harvust,harvast|Farmers will _ the pumpkins next week.|harvest,harvests,harvested,harvesting||to gather crops when they are ready|We {harvest} apples in the fall.
+presence|presense,prezence,presance|Your _ is required at the assembly.|presence,present,presents,presently||being in a place|We felt the {presence} of a bear nearby.

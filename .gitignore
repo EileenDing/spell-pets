@@ -1,0 +1,5 @@
+src/firebase/node_modules/
+src/firebase/shim.bundle.js
+src/spell-pets.html
+src/.font/
+__pycache__/

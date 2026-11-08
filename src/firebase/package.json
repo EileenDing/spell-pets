@@ -1,0 +1,1 @@
+{ "name": "spell-pets-firebase-build", "private": true, "dependencies": { "firebase": "13.2.0", "esbuild": "^0.25.0" } }
