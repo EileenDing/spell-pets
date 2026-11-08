@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // One family per parent account. The family id is the parent's Google account id.
+    // Family members (later: the kids' own accounts) are listed in families/<id>.members.
+    match /families/{fid} {
+      function signedIn() { return request.auth != null; }
+      function isParent() { return signedIn() && request.auth.uid == fid; }
+      function isMember() {
+        return isParent() || (signedIn()
+          && exists(/databases/$(database)/documents/families/$(fid))
+          && request.auth.uid in get(/databases/$(database)/documents/families/$(fid)).data.get('members', []));
+      }
+      allow read: if isMember();
+      allow write: if isParent();
+      // players' progress: every family member can play and save
+      match /profiles/{pid} {
+        allow read, write: if isMember();
+      }
+      // Test profile and developer password: parent only
+      match /dev/{docId} {
+        allow read, write: if isParent();
+      }
+    }
+  }
+}
