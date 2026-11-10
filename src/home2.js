@@ -85,7 +85,7 @@ const HOUSE_LIST = [
   ['rabbit', 'rabbit', 'Bunny Burrow', 160], ['clover', 'rabbit', 'Clover Burrow', 185], ['carrot', 'rabbit', 'Carrot House', 180], ['bunnyhop', 'rabbit', 'Bunny Hop House', 195],
   ['rat', 'rat', 'Acorn House', 160], ['seedsilo', 'rat', 'Seed Silo', 190], ['wheelshop', 'rat', 'Wheel Workshop', 215], ['tunnel', 'rat', 'Tunnel Home', 230],
   ['parrot', 'parrot', 'Tiki Hut', 170], ['feather', 'parrot', 'Rainbow Feather House', 225], ['beakbay', 'parrot', 'Beak Bay House', 205], ['echo', 'parrot', 'Echo House', 215],
-  ['owl', 'owl', 'Moon Tower', 170], ['moonlib', 'owl', 'Moon Library', 205], ['hollowoak', 'owl', 'Hollow Oak House', 190], ['observatory', 'owl', 'Silent Flight Observatory', 220]
+  ['owl', 'owl', 'Moon Tower', 190], ['moonlib', 'owl', 'Moon Library', 225], ['hollowoak', 'owl', 'Hollow Oak House', 210], ['observatory', 'owl', 'Silent Flight Observatory', 240]
 ];
 const HOUSES = Object.fromEntries(HOUSE_LIST.map(([k, kind, name, price]) => [k, { k, kind, name, price, fee: Math.round(price * Math.min(0.10, Math.max(0.05, 0.05 + 0.05 * (price - 150) / 90))) }]));
 const ownsH = k => !!S.owned['h-' + k];
