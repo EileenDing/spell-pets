@@ -115,6 +115,12 @@ function migrateRoom(p, f) {
   if (p.house && !HOUSES[p.house]) p.house = null;
   if (p.house && HOUSES[p.house].kind !== p.kind) f.owned['hu-' + p.house] = 1;   // already living in another animal's house: keeps it, no fee
   p.shelter = 'box'; delete p.home;
+  if (p.room && !p.room.scene && typeof SET_ROOMS !== 'undefined') {
+    const st = SET_ROOMS.find(x => x.k === p.room.wall);
+    if (st && p.room.items.filter(i => st.items.some(([k]) => k === i.k)).length >= 3) {
+      p.room.scene = st.k; p.room.items = p.room.items.filter(i => !st.items.some(([k]) => k === i.k) && i.k !== 'waterbowl'); f.owned['set-' + st.k] = 1;
+    }
+  }
   if (p.room) return;
   p.room = defaultRoom();
   Object.keys(LEGACY_DECOR).forEach(k => {
@@ -211,6 +217,10 @@ function roomBg(wall, floor) {
   const c = document.createElement('canvas'); c.width = ROOM_W; c.height = ROOM_H; const x = c.getContext('2d');
   const wt = tileCanvas('wall-' + wall, wall === 'leafy' ? 0.9 : 1.15), ft = tileCanvas('floor-' + floor, 1.05);
   x.fillStyle = wt ? x.createPattern(wt, 'repeat') : '#f6e7c8'; x.fillRect(0, 0, ROOM_W, WALL_Y);
+  if (wt) {                                              // soften the wallpaper pattern: wash it with its own average colour
+    const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(wt, 0, 0, 1, 1);
+    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.3 : 0.6})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+  }
   x.save(); x.translate(0, WALL_Y); x.fillStyle = ft ? x.createPattern(ft, 'repeat') : '#d9a066'; x.fillRect(0, 0, ROOM_W, ROOM_H - WALL_Y); x.restore();
   let g = x.createLinearGradient(0, 14, 0, 110); g.addColorStop(0, 'rgba(70,40,15,.22)'); g.addColorStop(1, 'rgba(70,40,15,0)'); x.fillStyle = g; x.fillRect(0, 14, ROOM_W, 100);
   g = x.createLinearGradient(0, WALL_Y - 60, 0, WALL_Y); g.addColorStop(0, 'rgba(70,40,15,0)'); g.addColorStop(1, 'rgba(70,40,15,.14)'); x.fillStyle = g; x.fillRect(0, WALL_Y - 60, ROOM_W, 60);
@@ -223,12 +233,13 @@ function roomBg(wall, floor) {
   return BGC[id] = c;
 }
 const ROAM = {};
-function roam(id, dt, still) {
+function roam(id, dt, still, floorY = 420) {
   let r = ROAM[id]; if (!r) r = ROAM[id] = { x: 430, y: 470, tx: 430, ty: 470, dir: -1, wait: 2 };
+  const fy = Math.min(470, Math.max(400, floorY + 60)); if (r.y < fy - 5) { r.y = r.ty = fy + 20; }
   if (still || reduceMotion) return r;
   const dx = r.tx - r.x, dy = r.ty - r.y, d = Math.hypot(dx, dy);
   if (d > 1) { const st = Math.min(d, 46 * dt); r.x += dx / d * st; r.y += dy / d * st; if (Math.abs(dx) > 1) r.dir = dx < 0 ? -1 : 1; r.moving = true; }
-  else { r.moving = false; r.wait -= dt; if (r.wait <= 0) { r.tx = 250 + Math.random() * 330; r.ty = 420 + Math.random() * 70; r.wait = 3 + Math.random() * 5; } }
+  else { r.moving = false; r.wait -= dt; if (r.wait <= 0) { r.tx = 250 + Math.random() * 330; r.ty = fy + Math.random() * (500 - fy); r.wait = 3 + Math.random() * 5; } }
   return r;
 }
 let roomLast = {};
@@ -236,17 +247,18 @@ function drawRoom(c, t, pet, o = {}) {
   const id = o.id || 'home', dt = roomLast[id] ? Math.min(0.25, (t - roomLast[id]) / 1000) : 0; roomLast[id] = t;
   c.setTransform(c.canvas.width / ROOM_W, 0, 0, c.canvas.height / ROOM_H, 0, 0);
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
-  const room = (pet && pet.room) || defaultRoom();
-  c.drawImage(roomBg(room.wall, room.floor), 0, 0);
+  const room = (pet && pet.room) || defaultRoom(), sceneSet = room.scene && ROOM_SETS.find(s => s.k === room.scene);
+  if (sceneSet && SPR['theme-' + room.scene]) c.drawImage(SPR['theme-' + room.scene], 0, 0, ROOM_W, ROOM_H);
+  else c.drawImage(roomBg(room.wall, room.floor), 0, 0);
   // sunlight from windows
   room.items.forEach(it => {
-    if (!/win$/.test(it.k)) return; const r = itemRect(it);
+    if (sceneSet || !/win$/.test(it.k)) return; const r = itemRect(it);
     c.save(); c.globalAlpha = 0.12; c.fillStyle = '#fff3c4'; c.beginPath();
     c.moveTo(r.x0 + r.w * 0.2, WALL_Y + 4); c.lineTo(r.x1 - r.w * 0.2, WALL_Y + 4); c.lineTo(r.x1 + 40, ROOM_H); c.lineTo(r.x0 + 20, ROOM_H); c.closePath(); c.fill(); c.restore();
   });
   const list = room.items.map((it, i) => ({ it, i, r: itemRect(it) }));
   list.filter(e => FURN[e.it.k].place === 'rug').forEach(e => drawItem(c, e, o));
-  const pr = pet ? roam(id, dt, o.still) : null;
+  const pr = pet ? roam(id, dt, o.still, sceneSet ? sceneSet.floorY : 420) : null;
   const rest = list.filter(e => FURN[e.it.k].place !== 'rug').map(e => ({ ...e, z: itemZ(room, e.it, e.r) }));
   if (pr) rest.push({ pet: true, z: pr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
@@ -282,7 +294,7 @@ function hitItem(room, px, py) {
   const order = room.items.map((it, i) => ({ it, i, r: itemRect(it), rug: FURN[it.k].place === 'rug' })).map(e => ({ ...e, z: itemZ(room, e.it, e.r) }))
     .sort((a, b) => (a.rug - b.rug) || (b.z - a.z));
   for (const e of order) {
-    const r = e.r; if (px < r.x0 || px > r.x1 || py < r.y0 || py > r.y1) continue;
+    const r = e.r; if (e.it.lock || px < r.x0 || px > r.x1 || py < r.y0 || py > r.y1) continue;
     const d = hitData(e.it.k); if (!d) return e.i;
     let u = (px - r.x0) / r.w; if (e.it.f) u = 1 - u;
     const ix = Math.min(d.width - 1, Math.floor(u * d.width)), iy = Math.min(d.height - 1, Math.floor((py - r.y0) / r.h * d.height));
@@ -334,15 +346,24 @@ function buyThing(kind, k, pet) {
   return true;
 }
 function setPrice(set) {
+  if (S.owned['set-' + set.k]) return 0;
   let p = 0; set.items.forEach(([k]) => { if (!ownsF(k)) p += FURN[k].price; });
   if (!ownsW(set.wall)) p += WALLPAPERS.find(x => x.k === set.wall).price;
   if (!ownsFl(set.floor)) p += FLOORS.find(x => x.k === set.floor).price;
   return Math.round(p * 0.75);
 }
+// A room set goes in as one finished room: the ten picture sets show the whole illustration,
+// the four older sets keep their pieces but lock them in place. Extra things can still be added on top.
 function applySet(set, pet) {
-  set.items.forEach(([k]) => { S.owned['f-' + k] = 1; }); S.owned['w-' + set.wall] = 1; S.owned['fl-' + set.floor] = 1;
-  pet.room = { wall: set.wall, floor: set.floor, items: [...set.items.map(([k, x, y]) => ({ k, x, y })), { k: 'waterbowl', x: 92, y: 494 }] };
+  S.owned['set-' + set.k] = 1;
+  if (set.scene) pet.room = { wall: set.wall, floor: set.floor, scene: set.k, items: [] };
+  else {
+    set.items.forEach(([k]) => { S.owned['f-' + k] = 1; }); S.owned['w-' + set.wall] = 1; S.owned['fl-' + set.floor] = 1;
+    pet.room = { wall: set.wall, floor: set.floor, set: set.k, items: [...set.items.map(([k, x, y]) => ({ k, x, y, lock: 1 })), { k: 'waterbowl', x: 92, y: 494 }] };
+  }
 }
+const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
+function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; room.items = room.items.filter(i => !i.lock).concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); }
 
 // ================= SHOP =================
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
@@ -488,7 +509,8 @@ function renderDeco() {
   $('#decoGrid').innerHTML = h;
 }
 function renderDecoTools() {
-  const pet = S.pets[DECO.pet], it = pet && pet.room.items[DECO.sel];
+  const pet = S.pets[DECO.pet], it = pet && pet.room.items[DECO.sel], st = pet && roomSet(pet.room);
+  if (!it && st) { $('#decoTools').innerHTML = `<span class="muted">This room is the <b>${esc(st.name)}</b>. Its furniture stays together. You can still add things on top.</span><button class="btn small" id="decoSetOff">Take the set off</button>`; return; }
   $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small" id="decoAway">Put away</button>${FURN[it.k].price ? `<button class="btn small bad" data-sell="f:${it.k}">Sell $${sellPrice(FURN[it.k].price)}</button>` : ''}<button class="btn small go" id="decoDone">Done</button>`
     : `<span class="muted">Drag things to move them. Small things can sit on tables, beds and window sills. Tap one to flip, put away or sell it.</span>`;
 }
@@ -501,12 +523,18 @@ function decoClick(e) {
   if (b.id === 'decoAway') { const it = pet.room.items[DECO.sel]; if (it) dropRiders(pet.room, it.k); pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
   if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell); DECO.sel = -1; return renderDeco(); }
   if (b.id === 'decoDone') { DECO.sel = -1; return renderDecoTools(); }
+  if (b.id === 'decoSetOff') { takeSetOff(pet.room); DECO.sel = -1; save(); SFX.tap(); toast('The set is off. Your room is back to the starter look; buy the set again any time for free.'); return renderDeco(); }
   const k = b.dataset.f, w = b.dataset.w, fl = b.dataset.fl;
   if (k) {
     const idx = pet.room.items.findIndex(i => i.k === k);
     if (idx >= 0) { DECO.sel = idx; renderDecoTools(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
     if (!ownsF(k) && !buyThing('f', k, null)) return;
     DECO.sel = placeItem(pet.room, k); save(); SFX.tap(); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return;
+  }
+  if ((w || fl) && pet.room.scene) {                      // a picture set covers the walls and floor: changing them takes the set off
+    const own = w ? ownsW(w) : ownsFl(fl), price = (w ? WALLPAPERS.find(x => x.k === w) : FLOORS.find(x => x.k === fl)).price;
+    if (!own && S.coins < price) { toast(`You need $${money(price - S.coins)} more. Play a session to earn coins!`); return; }
+    takeSetOff(pet.room);
   }
   if (w) { if (!ownsW(w) && !buyThing('w', w, null)) return; pet.room.wall = w; save(); SFX.tap(); return renderDeco(); }
   if (fl) { if (!ownsFl(fl) && !buyThing('fl', fl, null)) return; pet.room.floor = fl; save(); SFX.tap(); return renderDeco(); }
