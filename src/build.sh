@@ -6,6 +6,7 @@ cd "$(dirname "$0")"
 python3 - <<'PY'
 s = open('spell-pets.html', encoding='utf8').read(); f = open('wenkai.css', encoding='utf8').read()
 assert '/*WENKAI_FONT_FACES*/' in s
-open('spell-pets.html', 'w', encoding='utf8').write(s.replace('/*WENKAI_FONT_FACES*/', f, 1))
+s = s.replace('/*WENKAI_FONT_FACES*/', f, 1).replace('/*NUMFONT*/', open('numfont.css', encoding='utf8').read(), 1)
+open('spell-pets.html', 'w', encoding='utf8').write(s)
 PY
 echo "built src/spell-pets.html"
