@@ -28,12 +28,14 @@ function shelterCanvas(key) {
 }
 function drawLotHome(c, L, pet) {
   const w = (L.x1 - L.x0), cx = (L.x0 + L.x1) / 2;
-  c.drawImage(SPR['gate-open'], L.lx - 49, L.ly - 24, 100, 47);
   const has = !!(pet.house && SPR['house-' + pet.house]), img = has ? SPR['house-' + pet.house] : SPR['it-boxbed'];
+  const kind = Object.keys(LOTS).find(k => LOTS[k] === L), R = LOT_PATCH[kind];
+  if (has && R && SPR['lot-' + kind]) c.drawImage(SPR['lot-' + kind], R[0], R[1], R[2] - R[0], R[3] - R[1]);   // a house needs no fence
+  else c.drawImage(SPR['gate-open'], L.lx - 49, L.ly - 24, 100, 47);
   if (!img) return;
-  let hw = has ? w * 0.86 : 92, hh = img.height * hw / img.width;
-  if (has && hh > 175) { hw *= 175 / hh; hh = 175; }
-  c.drawImage(img, cx - hw / 2 + (has ? 0 : -40), L.ly - (has ? 22 : 34) - hh, hw, hh);
+  let hw = has ? w * 1.04 : 92, hh = img.height * hw / img.width;
+  if (has && hh > 200) { hw *= 200 / hh; hh = 200; }
+  c.drawImage(img, cx - hw / 2 + (has ? 0 : -40), L.ly + (has ? 6 : -34) - hh, hw, hh);
 }
 // pets walking around town
 const WALKERS = {};
@@ -85,6 +87,7 @@ function drawTown(c, t) {
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
   if (SPR.town) c.drawImage(SPR.town, 0, 0, TOWN_W, TOWN_H);
+  c.fillStyle = 'rgba(255,248,232,0.3)'; c.fillRect(0, 0, TOWN_W, TOWN_H);            // softer surroundings so the houses stand out
   S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
   const PH = 92, PW = PH * PET_CW / PET_CH;
   const order = S.pets.map((pet, i) => ({ pet, i, w: WALKERS[i] || { ...homeSpot(pet), dir: -1, wp: [] } })).filter(o => lotOf(o.pet)).sort((a, b) => a.w.y - b.w.y);

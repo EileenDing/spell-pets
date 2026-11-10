@@ -92,13 +92,8 @@ const ownsH = k => !!S.owned['h-' + k];
 const unlockedH = k => !!S.owned['hu-' + k];
 const canLive = (pet, k) => !!pet && !!HOUSES[k] && (HOUSES[k].kind === pet.kind || unlockedH(k));
 const houseKindName = k => (PETS[k] || {}).name || k;
-const ROOM_SETS = [
-  { k: 'forest', name: 'Forest Room', wall: 'forestleaves', floor: 'honeyoak', items: [['hangplant', 130, 0], ['lantern', 560, 0], ['mirror', 330, 220], ['bookshelf', 655, 334], ['monstera', 48, 352], ['hammock', 175, 446], ['sofa', 590, 488], ['roundtable', 420, 380], ['leafrug', 400, 448]] },
-  { k: 'cottage', name: 'Cottage Room', wall: 'cream', floor: 'honeyoak', items: [['floralwin', 300, 236], ['bookshelf', 655, 334], ['hangplant', 560, 0], ['roundtable', 520, 392], ['mushlamp', 520, 340], ['bed', 150, 458], ['wovenrug', 400, 446]] },
-  { k: 'pastel', name: 'Pastel Room', wall: 'peachdots', floor: 'paleash', items: [['hangplant', 120, 0], ['rainbow', 120, 200], ['floralwin', 340, 236], ['cubby', 655, 338], ['cushion', 160, 456], ['roundtable', 470, 396], ['flowerjug', 470, 340], ['armchair', 640, 486], ['pawrug', 400, 448]] },
-  { k: 'starry', name: 'Starry Room', wall: 'starrynight', floor: 'walnut', items: [['starlight', 110, 150], ['ginghamwin', 330, 236], ['bookshelf', 520, 334], ['dresser', 680, 338], ['bed', 150, 458], ['starrug', 410, 448], ['teddy', 260, 494]] },
-  ...SET_ROOMS
-];
+// Fourteen room sets, each one finished room (sets2.js). A set stays together; extra things can be added on top.
+const ROOM_SETS = SET_ROOMS;
 const LEGACY_DECOR = { ball: 'blocks', plant: 'monstera', poster: 'pawframe', rug: 'wovenrug', lamp: 'floorlamp', lights: 'bunting', shelf: 'bookshelf', tank: 'fishtank' };
 // old shelter/decor shop items are replaced by this set
 SHOP.forEach(i => { if (i.cat === 'shelter' || i.cat === 'decor') i.legacy = 1; });
@@ -115,6 +110,11 @@ function migrateRoom(p, f) {
   if (p.house && !HOUSES[p.house]) p.house = null;
   if (p.house && HOUSES[p.house].kind !== p.kind) f.owned['hu-' + p.house] = 1;   // already living in another animal's house: keeps it, no fee
   p.shelter = 'box'; delete p.home;
+  if (p.room) {                                            // sets are whole rooms now; drop pieces that no longer exist
+    if (p.room.set) { p.room.scene = p.room.set; delete p.room.set; p.room.items = p.room.items.filter(i => !i.lock); }
+    p.room.items = (p.room.items || []).filter(i => FURN[i.k]);
+    if (p.room.scene && !SET_ROOMS.some(s => s.k === p.room.scene)) delete p.room.scene;
+  }
   if (p.room && !p.room.scene && typeof SET_ROOMS !== 'undefined') {
     const st = SET_ROOMS.find(x => x.k === p.room.wall);
     if (st && p.room.items.filter(i => st.items.some(([k]) => k === i.k)).length >= 3) {
@@ -219,7 +219,13 @@ function roomBg(wall, floor) {
   x.fillStyle = wt ? x.createPattern(wt, 'repeat') : '#f6e7c8'; x.fillRect(0, 0, ROOM_W, WALL_Y);
   if (wt) {                                              // soften the wallpaper pattern: wash it with its own average colour
     const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(wt, 0, 0, 1, 1);
-    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.3 : 0.6})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.35 : 0.8})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+    x.fillStyle = `rgba(255,255,255,${wall === 'leafy' ? 0.06 : 0.2})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+  }
+  if (ft) {                                              // floors: softer too
+    const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(ft, 0, 0, 1, 1);
+    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${floor === 'honeyoak' ? 0.2 : 0.7})`; x.fillRect(0, WALL_Y, ROOM_W, ROOM_H - WALL_Y);
+    x.fillStyle = `rgba(255,255,255,${floor === 'honeyoak' ? 0.03 : 0.2})`; x.fillRect(0, WALL_Y, ROOM_W, ROOM_H - WALL_Y);
   }
   x.save(); x.translate(0, WALL_Y); x.fillStyle = ft ? x.createPattern(ft, 'repeat') : '#d9a066'; x.fillRect(0, 0, ROOM_W, ROOM_H - WALL_Y); x.restore();
   let g = x.createLinearGradient(0, 14, 0, 110); g.addColorStop(0, 'rgba(70,40,15,.22)'); g.addColorStop(1, 'rgba(70,40,15,0)'); x.fillStyle = g; x.fillRect(0, 14, ROOM_W, 100);
@@ -345,22 +351,11 @@ function buyThing(kind, k, pet) {
   toast(pet ? `Bought ${item.name}! It's in ${pet.name}'s home now.` : `Bought ${item.name}!`);
   return true;
 }
-function setPrice(set) {
-  if (S.owned['set-' + set.k]) return 0;
-  let p = 0; set.items.forEach(([k]) => { if (!ownsF(k)) p += FURN[k].price; });
-  if (!ownsW(set.wall)) p += WALLPAPERS.find(x => x.k === set.wall).price;
-  if (!ownsFl(set.floor)) p += FLOORS.find(x => x.k === set.floor).price;
-  return Math.round(p * 0.75);
-}
-// A room set goes in as one finished room: the ten picture sets show the whole illustration,
-// the four older sets keep their pieces but lock them in place. Extra things can still be added on top.
+function setPrice(set) { return S.owned['set-' + set.k] ? 0 : set.price; }
 function applySet(set, pet) {
   S.owned['set-' + set.k] = 1;
-  if (set.scene) pet.room = { wall: set.wall, floor: set.floor, scene: set.k, items: [] };
-  else {
-    set.items.forEach(([k]) => { S.owned['f-' + k] = 1; }); S.owned['w-' + set.wall] = 1; S.owned['fl-' + set.floor] = 1;
-    pet.room = { wall: set.wall, floor: set.floor, set: set.k, items: [...set.items.map(([k, x, y]) => ({ k, x, y, lock: 1 })), { k: 'waterbowl', x: 92, y: 494 }] };
-  }
+  const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
+  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, items: keep };
 }
 const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
 function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; room.items = room.items.filter(i => !i.lock).concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); }
@@ -429,9 +424,9 @@ function renderShop() {
   else if (shopTab === 'walls') h = `<h2 class="shophead">Wallpaper</h2>${swatchCards(WALLPAPERS, 'w')}<h2 class="shophead">Floors</h2>${swatchCards(FLOORS, 'fl')}`;
   else if (shopTab === 'sets') {
     const tp = S.pets[shopPet];
-    h = note('A whole new look in one go: wallpaper, floor and furniture, a quarter off. Things already in the room go back into storage, and you can still move everything around in Decorate.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
+    h = note('A whole finished room in one go. The set stays together; you can still add small things on top in Decorate, and switch sets there any time.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
       const p = setPrice(st);
-      return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('theme-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${st.items.length} things + wallpaper + floor</span>
+      return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('theme-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${S.owned['set-' + st.k] ? 'Yours' : st.pieces + ' pieces + wallpaper + floor'}</span>
         ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy);
@@ -485,7 +480,7 @@ function shopBuy(code) {
 
 // ================= DECORATE =================
 const DECO = { pet: 0, tab: 'beds', sel: -1, drag: null };
-const DECO_TABS = [...FURN_GROUPS.map(([k, n]) => [k, n.split(' ')[0]]), ['walls', 'Wallpaper'], ['floors', 'Floor']];
+const DECO_TABS = [['sets', 'Room sets'], ...FURN_GROUPS.map(([k, n]) => [k, n.split(' ')[0]]), ['walls', 'Wallpaper'], ['floors', 'Floor']];
 function openDeco(i) { DECO.pet = i; DECO.sel = -1; route('deco'); }
 function renderDeco() {
   if (DECO.pet >= S.pets.length) DECO.pet = S.active;
@@ -497,7 +492,10 @@ function renderDeco() {
   renderDecoTools();
   $('#decoTabs').innerHTML = DECO_TABS.map(([k, n]) => `<button class="tab ${k === DECO.tab ? 'sel' : ''}" data-t="${k}" aria-pressed="${k === DECO.tab}">${n}</button>`).join('');
   const room = pet.room; let h = '';
-  if (DECO.tab === 'walls' || DECO.tab === 'floors') {
+  if (DECO.tab === 'sets') {
+    h = ROOM_SETS.map(st => { const own = !!S.owned['set-' + st.k], on = room.scene === st.k, p = setPrice(st), can = S.coins >= p;
+      return `<button class="decocard setcard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-set="${st.k}"><img src="${imgSrc('theme-' + st.k)}" alt=""><b>${esc(st.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + p}</em></button>`; }).join('');
+  } else if (DECO.tab === 'walls' || DECO.tab === 'floors') {
     const list = DECO.tab === 'walls' ? WALLPAPERS : FLOORS, kind = DECO.tab === 'walls' ? 'w' : 'fl', cur = DECO.tab === 'walls' ? room.wall : room.floor;
     h = list.map(x => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k), on = cur === x.k, can = S.coins >= x.price;
       return `<button class="decocard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-${kind}="${x.k}"><span class="swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></span><b>${esc(x.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + x.price}</em></button>`; }).join('');
@@ -524,6 +522,11 @@ function decoClick(e) {
   if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell); DECO.sel = -1; return renderDeco(); }
   if (b.id === 'decoDone') { DECO.sel = -1; return renderDecoTools(); }
   if (b.id === 'decoSetOff') { takeSetOff(pet.room); DECO.sel = -1; save(); SFX.tap(); toast('The set is off. Your room is back to the starter look; buy the set again any time for free.'); return renderDeco(); }
+  if (b.dataset.set) {
+    const st = ROOM_SETS.find(x => x.k === b.dataset.set); if (!st || pet.room.scene === st.k) return;
+    const p = setPrice(st); if (S.coins < p) { toast(`You need $${money(p - S.coins)} more. Play a session to earn coins!`); return; }
+    S.coins -= p; applySet(st, pet); DECO.sel = -1; save(); renderHud(); p ? SFX.fanfare() : SFX.tap(); toast(`${pet.name}'s room is now the ${st.name}!`); return renderDeco();
+  }
   const k = b.dataset.f, w = b.dataset.w, fl = b.dataset.fl;
   if (k) {
     const idx = pet.room.items.findIndex(i => i.k === k);

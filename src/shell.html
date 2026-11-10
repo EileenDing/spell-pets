@@ -413,6 +413,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .decocard img { height: 64px; max-width: 100%; object-fit: contain; } .decocard b { font-size: 14px; line-height: 1.2; }
 .decocard em { font-style: normal; font-size: 13px; font-weight: 700; color: var(--go-d); } .decocard em.buyable { color: #a86a00; } .decocard em.pricey { color: var(--muted); }
 .decocard.on { background: #eaffdc; box-shadow: inset 0 0 0 3px var(--go); } .decocard.locked img, .decocard.locked .swatch { opacity: .75; }
+.decogrid:has(.setcard) { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); } .decocard.setcard img { height: auto; width: 100%; aspect-ratio: 3 / 2; object-fit: cover; border: 2px solid var(--ink); border-radius: 4px; }
 .decocard .swatch { width: 100%; height: 64px; background-size: 120px auto; border: 2px solid #6b3f1f; border-radius: 4px; }
 .shophead { margin: 10px 0 4px; } .shopnote { margin: 0 0 4px; } #shopGrid { display: grid; gap: 4px; }
 .shopgrid.wide { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
@@ -474,7 +475,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
         <div class="hf-title"><span class="leaf">&#10086;</span><span id="homeTitle">My First Home</span><span class="leaf r">&#10086;</span></div>
         <span class="hf-day" id="homeDay"></span>
       </div>
-      <div class="scenebox"><canvas id="sceneHome" class="scene room" width="768" height="512" aria-label="Your pet's home. Tap to visit."></canvas><div class="bubble" id="bubble" hidden></div>
+      <div class="scenebox"><canvas id="sceneHome" class="scene room" width="1536" height="1024" aria-label="Your pet's home. Tap to visit."></canvas><div class="bubble" id="bubble" hidden></div>
         <button class="questbtn" id="btnPlay"><img data-spr="ui-quest" alt=""><span><b>Daily Quest</b><small id="questSub">Spell 10 words</small></span></button>
       </div>
       <nav class="hf-nav">
@@ -526,7 +527,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
   <section id="scr-room" class="wrap" hidden>
     <div class="screenhead"><button class="btn small" id="roomBack">Pet Town</button><h1 id="roomTitle">House</h1><span></span></div>
     <div class="roomgrid">
-      <div class="panel"><canvas id="sceneRoom" class="scene room" width="768" height="512" aria-label="Your pet's room"></canvas>
+      <div class="panel"><canvas id="sceneRoom" class="scene room" width="1536" height="1024" aria-label="Your pet's room"></canvas>
         <div class="petname" id="roomName"></div>
         <div class="meter"><span>Full</span><div class="bar"><i id="roomFull"></i></div><span id="roomFullNum"></span></div>
         <div class="petrow" id="roomPets"></div></div>
@@ -537,7 +538,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
   <section id="scr-deco" class="wrap" hidden>
     <div class="screenhead"><button class="btn small go" id="decoBack">Done</button><h1 id="decoTitle">Decorate</h1><span class="chip wallet" id="decoWallet"></span></div>
     <div class="shopfor" id="decoFor"></div>
-    <div class="homeframe slim"><div class="scenebox"><canvas id="sceneDeco" class="scene room deco" width="768" height="512" aria-label="Decorate your pet's home. Drag things to move them."></canvas></div>
+    <div class="homeframe slim"><div class="scenebox"><canvas id="sceneDeco" class="scene room deco" width="1536" height="1024" aria-label="Decorate your pet's home. Drag things to move them."></canvas></div>
       <div class="decotools" id="decoTools"></div></div>
     <div class="tabs" id="decoTabs"></div>
     <div class="decogrid" id="decoGrid"></div>
