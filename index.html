@@ -9021,19 +9021,19 @@ const FLOORS = [['honeyoak', 'Honey Oak', 0], ['paleash', 'Pale Ash', 15], ['wal
 // after which any of your pets can use that house.
 // id, made for, name, price (the 13 first houses use the animal's name as their id)
 const HOUSE_LIST = [
-  ['dragon', 'dragon', 'Dragon Castle', 200], ['ember', 'dragon', 'Ember Spire', 240], ['crystal', 'dragon', 'Crystal Overlook', 230], ['cloudkeep', 'dragon', 'Cloud Keep', 235],
+  ['dragon', 'dragon', 'Dragon Castle', 165], ['ember', 'dragon', 'Ember Spire', 240], ['crystal', 'dragon', 'Crystal Overlook', 225], ['cloudkeep', 'dragon', 'Cloud Keep', 195],
   ['dinosaur', 'dinosaur', 'Fossil Jungle Hut', 160], ['fern', 'dinosaur', 'Fern Greenhouse', 205], ['orchard', 'dinosaur', 'High Branch Orchard', 225], ['canopy', 'dinosaur', 'Tall Canopy Lodge', 215],
-  ['trex', 'trex', 'Dino Lodge', 180], ['eggshell', 'trex', 'Eggshell Nursery', 200], ['diner', 'trex', 'Tiny Arms Diner', 210], ['footprint', 'trex', 'Footprint Fort', 220],
+  ['trex', 'trex', 'Dino Lodge', 180], ['eggshell', 'trex', 'Eggshell Nursery', 220], ['diner', 'trex', 'Tiny Arms Diner', 210], ['footprint', 'trex', 'Footprint Fort', 200],
   ['snake', 'snake', 'Swirl House', 170], ['spiral', 'snake', 'Spiral Tower', 215], ['desertden', 'snake', 'Desert Rock Den', 190], ['silk', 'snake', 'Shed Silk Pavilion', 220],
-  ['turtle', 'turtle', 'Shell Pond House', 180], ['beacon', 'turtle', 'Tidal Beacon Cottage', 215], ['mosaic', 'turtle', 'Mosaic Shell House', 200], ['teahouse', 'turtle', 'Slow Trail Teahouse', 220],
-  ['pig', 'pig', 'Piggy Barn', 150], ['mudpark', 'pig', 'Mud Splash Park', 205], ['truffle', 'pig', 'Truffle Underground', 215], ['windmill', 'pig', 'Snout Windmill Barn', 225],
+  ['turtle', 'turtle', 'Shell Pond House', 180], ['beacon', 'turtle', 'Tidal Beacon Cottage', 215], ['mosaic', 'turtle', 'Mosaic Shell House', 195], ['teahouse', 'turtle', 'Slow Trail Teahouse', 220],
+  ['pig', 'pig', 'Piggy Barn', 150], ['mudpark', 'pig', 'Mud Splash Park', 220], ['truffle', 'pig', 'Truffle Underground', 180], ['windmill', 'pig', 'Snout Windmill Barn', 200],
   ['monkey', 'monkey', 'Big Treehouse', 190], ['banana', 'monkey', 'Banana Bungalow', 180], ['vinegym', 'monkey', 'Vine Gym House', 220], ['drum', 'monkey', 'Jungle Drum House', 210],
   ['dog', 'dog', 'Bone Cottage', 150], ['fetchball', 'dog', 'Fetch Ball House', 185], ['snifftrail', 'dog', 'Sniff Trail House', 200], ['wagon', 'dog', 'Rescue Wagon House', 230],
   ['cat', 'cat', 'Kitty Townhouse', 170], ['sunbeam', 'cat', 'Sunbeam Window Pod', 195], ['yarn', 'cat', 'Yarn Ball Cottage', 185], ['pounce', 'cat', 'Pounce Loft', 215],
   ['rabbit', 'rabbit', 'Bunny Burrow', 160], ['clover', 'rabbit', 'Clover Burrow', 185], ['carrot', 'rabbit', 'Carrot House', 180], ['bunnyhop', 'rabbit', 'Bunny Hop House', 195],
   ['rat', 'rat', 'Acorn House', 160], ['seedsilo', 'rat', 'Seed Silo', 190], ['wheelshop', 'rat', 'Wheel Workshop', 215], ['tunnel', 'rat', 'Tunnel Home', 230],
   ['parrot', 'parrot', 'Tiki Hut', 170], ['feather', 'parrot', 'Rainbow Feather House', 225], ['beakbay', 'parrot', 'Beak Bay House', 205], ['echo', 'parrot', 'Echo House', 215],
-  ['owl', 'owl', 'Moon Tower', 190], ['moonlib', 'owl', 'Moon Library', 225], ['hollowoak', 'owl', 'Hollow Oak House', 210], ['observatory', 'owl', 'Silent Flight Observatory', 240]
+  ['owl', 'owl', 'Moon Tower', 170], ['moonlib', 'owl', 'Moon Library', 205], ['hollowoak', 'owl', 'Hollow Oak House', 190], ['observatory', 'owl', 'Silent Flight Observatory', 220]
 ];
 const HOUSES = Object.fromEntries(HOUSE_LIST.map(([k, kind, name, price]) => [k, { k, kind, name, price, fee: Math.round(price * Math.min(0.10, Math.max(0.05, 0.05 + 0.05 * (price - 150) / 90))) }]));
 const ownsH = k => !!S.owned['h-' + k];
