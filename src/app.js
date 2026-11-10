@@ -1017,11 +1017,12 @@ function renderRoom() {
       h += `<h3>${label}</h3>${own.length ? `<div class="chips">${chip('None', !pet[slot], `data-set="${slot}" data-v=""`)}${own.map(i => chip(i.name, pet[slot] === i.key, `data-set="${slot}" data-v="${i.key}"`)).join('')}</div>` : emptyShop(label.toLowerCase())}`;
     }
   } else if (roomTab === 'home') {
-    const H = pet.house && HOUSES[pet.house], ownedH = HOUSE_LIST.filter(([k]) => ownsH(k));
+    const H = pet.house && HOUSES[pet.house], ownedH = HOUSE_LIST.filter(([k]) => ownsH(k) && canLive(pet, k)), lockedN = HOUSE_LIST.filter(([k]) => ownsH(k) && !canLive(pet, k)).length;
     h += `<div class="roomhouse"><img src="${H ? imgSrc('house-' + H.k) : imgSrc('it-boxbed')}" alt=""><div><h3>${H ? esc(H.name) : 'Cardboard Box'}</h3>
       <p class="muted small">${H ? `${esc(pet.name)} lives here in Pet Town.` : `${esc(pet.name)} lives in a cardboard box for now. Houses are in the shop.`}</p>
       <button class="btn small go" data-house="1">House shop</button></div></div>
-      ${ownedH.length ? `<h3>Move to another house you own</h3><div class="chips">${chip('Cardboard Box', !pet.house, 'data-movein=""')}${ownedH.map(([k, name]) => chip(name, pet.house === k, `data-movein="${k}"`)).join('')}</div>` : ''}
+      ${ownedH.length ? `<h3>Move to another house you own</h3><div class="chips">${chip('Cardboard Box', !pet.house, 'data-movein=""')}${ownedH.map(([k, , name]) => chip(name, pet.house === k, `data-movein="${k}"`)).join('')}</div>` : ''}
+      ${lockedN ? `<p class="muted small">You own ${lockedN} other house${lockedN > 1 ? 's' : ''} made for other animals. Unlock ${lockedN > 1 ? 'them' : 'it'} for ${esc(pet.name)} in the house shop.</p>` : ''}
       <h3>Inside</h3><p class="muted small">Change the wallpaper and floor, add furniture and drag things where you like.</p><button class="btn go" data-deco="1">Decorate ${esc(pet.name)}'s home</button>`;
   } else if (roomTab === 'food') {
     const foods = Object.keys(FOODS).filter(k => S.food[k] > 0);
@@ -1036,7 +1037,7 @@ function roomClick(e) {
   if (b.dataset.t) { roomTab = b.dataset.t; return renderRoom(); }
   if (b.dataset.deco) return openDeco(roomIdx);
   if (b.dataset.house) { shopTab = 'homes'; shopPet = roomIdx; return route('shop'); }
-  if (b.dataset.movein !== undefined && pet) { pet.house = b.dataset.movein || null; save(); SFX.tap(); return renderRoom(); }
+  if (b.dataset.movein !== undefined && pet) { if (b.dataset.movein && !canLive(pet, b.dataset.movein)) return; pet.house = b.dataset.movein || null; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.buddy !== undefined) { S.active = +b.dataset.buddy; hopUntil = performance.now() + 900; save(); SFX.good(); toast(`${pet.name} is your study buddy now!`); return renderRoom(); }
   if (b.dataset.set && pet) { pet[b.dataset.set] = b.dataset.v || null; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.shel && pet) { pet.shelter = b.dataset.shel; save(); SFX.tap(); return renderRoom(); }
@@ -1129,7 +1130,7 @@ function boot() {
   $('#sceneHome').addEventListener('click', () => openRoom(S.active));
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => route('home')));
   $('#shopTabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) { shopTab = b.dataset.t; renderShop(); } });
-  $('#shopGrid').addEventListener('click', e => { const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
+  $('#shopGrid').addEventListener('click', e => { const hk = e.target.closest('[data-hkind]'); if (hk) { shopHouseKind = hk.dataset.hkind; renderShop(); return; } const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });
   $('#quit').addEventListener('click', askExit);
