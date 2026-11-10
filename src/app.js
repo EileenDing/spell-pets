@@ -1131,6 +1131,7 @@ function boot() {
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => route('home')));
   $('#shopTabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) { shopTab = b.dataset.t; renderShop(); } });
   $('#shopGrid').addEventListener('click', e => { const hk = e.target.closest('[data-hkind]'); if (hk) { shopHouseKind = hk.dataset.hkind; renderShop(); return; }
+    const sb = e.target.closest('[data-sell]'); if (sb) { if (armSell(sb)) { sellThing(sb.dataset.sell); renderShop(); } return; }
     const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });

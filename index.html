@@ -487,6 +487,8 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .shopgrid.wide { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .prevbox.tall { height: 150px; } .prev.house { max-height: 140px; max-width: 96%; } .prev.theme { max-height: 140px; max-width: 100%; border-radius: 6px; } .prev.furn { max-height: 88px; max-width: 90%; }
 .prevbox.swatch { background-size: 150px auto; background-repeat: repeat; }
+.sellbtn { font-size: 13px; padding: 3px 8px; margin-top: 4px; --c: #f3e6cf; --cd: #c9b48f; color: var(--ink); text-shadow: none; }
+.sellbtn.armed, .btn.bad.armed { --c: var(--bad); --cd: var(--bad-d); color: #fff; }
 .roomhouse { display: flex; gap: 12px; align-items: center; } .roomhouse img { width: 140px; flex: none; } .roomhouse img.shadow { filter: grayscale(.8) opacity(.6); }
 @media (max-width: 560px) {
   .hf-top { grid-template-columns: auto auto; } .hf-title { grid-column: 1 / -1; grid-row: 1; font-size: 19px; } .hf-plaque { font-size: 14px; }
@@ -9079,11 +9081,46 @@ function itemRect(it) {
 function clampItem(it) {
   const F = FURN[it.k], { w, h } = itemSize(it.k);
   const over = Math.min(20, w * 0.15); it.x = Math.round(Math.max(w / 2 - over, Math.min(ROOM_W - w / 2 + over, it.x)));
+  if (it.on) return;                                         // sitting on another piece: its y comes from that piece
   if (F.place === 'wall') it.y = Math.round(Math.max(h + 14, Math.min(WALL_Y - 6, it.y)));
   else if (F.place === 'floor') it.y = Math.round(Math.max(WALL_Y + 26, Math.min(ROOM_H - 4, it.y)));
   else if (F.place === 'rug') it.y = Math.round(Math.max(WALL_Y + 20 + h / 2, Math.min(ROOM_H - h / 2 + 10, it.y)));
   else it.y = 0;
 }
+// ---- stacking: small things can sit on tables, beds, shelves and window sills ----
+const STACKABLE_EXTRA = ['tinychest', 'rollbasket', 'bowls', 'gearstand'];
+const isStackable = k => { const F = FURN[k]; return !!F && F.place === 'floor' && (STACKABLE_EXTRA.includes(k) || (F.size <= 90 && F.group !== 'beds' && F.group !== 'tables')); };
+const SURF_CACHE = {};
+// where things can sit on a piece, as a fraction of its height from the top (null = not a surface)
+function surfaceFrac(k) {
+  if (k in SURF_CACHE) return SURF_CACHE[k];
+  const F = FURN[k]; let f = null;
+  const win = /win$|window|porthole/i.test(k + ' ' + F.name);
+  const host = !isStackable(k) && F.place !== 'rug' && F.place !== 'ceil' && (win || F.group === 'tables' || F.group === 'beds' || ['fireplace', 'toychest', 'woodstove'].includes(k));
+  const d = host && hitData(k);
+  if (d) {
+    const W = d.width, H = d.height, rowFill = y => { let n = 0; for (let x = 0; x < W; x++) if (d.data[(y * W + x) * 4 + 3] > 120) n++; return n / W; };
+    if (win) { let y = H - 1; while (y > 0 && rowFill(y) < 0.5) y--; f = Math.max(0.6, (y - H * 0.03) / H); }
+    else { const need = F.group === 'beds' ? 0.72 : 0.6; for (let y = F.group === 'beds' ? Math.floor(H * 0.4) : 0; y < H; y++) if (rowFill(y) >= need) { f = Math.min(0.75, Math.max(0.03, (y + H * 0.04) / H)); break; } }
+  }
+  return SURF_CACHE[k] = f;
+}
+function surfaceY(it) { const f = surfaceFrac(it.k); if (f == null) return null; const r = itemRect(it); return r.y0 + r.h * f; }
+// snap a small thing onto the piece under it, or let it drop to the floor
+function snapStack(room, it) {
+  if (!isStackable(it.k)) { delete it.on; return; }
+  let best = null, bd = 46;
+  room.items.forEach(h => {
+    if (h === it || h.on) return; const s = surfaceY(h); if (s == null) return;
+    const r = itemRect(h), m = r.w * 0.08; if (it.x < r.x0 + m || it.x > r.x1 - m) return;
+    const dd = Math.abs(it.y - s); if (dd < bd) { bd = dd; best = { h, s }; }
+  });
+  if (best) { it.on = best.h.k; it.y = Math.round(best.s); } else { delete it.on; clampItem(it); }
+}
+const ridersOf = (room, k) => room.items.filter(i => i.on === k);
+function dropRiders(room, k) { ridersOf(room, k).forEach(r => { delete r.on; clampItem(r); }); }
+function itemZ(room, it, r) { const h = it.on && room.items.find(x => x.k === it.on); return h ? itemRect(h).y1 + 0.5 : (r || itemRect(it)).y1; }
+
 // only one bed and one rug at a time: a new one takes the old one's place (box -> basket -> bed)
 const BED_KEYS = ['boxbed', 'basket', 'cushion', 'beanbag', 'hammock', 'bed'];
 const swapGroup = k => BED_KEYS.includes(k) ? BED_KEYS : FURN[k].place === 'rug' ? FURN_LIST.filter(f => f[4] === 'rug').map(f => f[0]) : null;
@@ -9151,7 +9188,7 @@ function drawRoom(c, t, pet, o = {}) {
   const list = room.items.map((it, i) => ({ it, i, r: itemRect(it) }));
   list.filter(e => FURN[e.it.k].place === 'rug').forEach(e => drawItem(c, e, o));
   const pr = pet ? roam(id, dt, o.still) : null;
-  const rest = list.filter(e => FURN[e.it.k].place !== 'rug').map(e => ({ ...e, z: e.r.y1 }));
+  const rest = list.filter(e => FURN[e.it.k].place !== 'rug').map(e => ({ ...e, z: itemZ(room, e.it, e.r) }));
   if (pr) rest.push({ pet: true, z: pr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
     if (!e.pet) return drawItem(c, e, o);
@@ -9169,7 +9206,7 @@ function drawRoom(c, t, pet, o = {}) {
 }
 function drawItem(c, e, o) {
   const im = SPR['it-' + e.it.k]; if (!im) return; const r = e.r, F = FURN[e.it.k];
-  if (F.place === 'floor') { c.save(); c.globalAlpha = 0.18; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(e.it.x, r.y1 - 2, r.w * 0.42, Math.max(5, r.w * 0.06), 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+  if (F.place === 'floor' && !e.it.on) { c.save(); c.globalAlpha = 0.18; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(e.it.x, r.y1 - 2, r.w * 0.42, Math.max(5, r.w * 0.06), 0, 0, Math.PI * 2); c.fill(); c.restore(); }
   if (o.dragging === e.i) { c.save(); c.globalAlpha = 0.85; }
   if (e.it.f) { c.save(); c.translate(r.x1, r.y0); c.scale(-1, 1); c.drawImage(im, 0, 0, r.w, r.h); c.restore(); } else c.drawImage(im, r.x0, r.y0, r.w, r.h);
   if (o.dragging === e.i) c.restore();
@@ -9183,8 +9220,8 @@ function hitData(k) {
   return HITD[k] = x.getImageData(0, 0, im.width, im.height);
 }
 function hitItem(room, px, py) {
-  const order = room.items.map((it, i) => ({ it, i, r: itemRect(it), rug: FURN[it.k].place === 'rug' }))
-    .sort((a, b) => (a.rug - b.rug) || (b.r.y1 - a.r.y1));
+  const order = room.items.map((it, i) => ({ it, i, r: itemRect(it), rug: FURN[it.k].place === 'rug' })).map(e => ({ ...e, z: itemZ(room, e.it, e.r) }))
+    .sort((a, b) => (a.rug - b.rug) || (b.z - a.z));
   for (const e of order) {
     const r = e.r; if (px < r.x0 || px > r.x1 || py < r.y0 || py > r.y1) continue;
     const d = hitData(e.it.k); if (!d) return e.i;
@@ -9193,6 +9230,34 @@ function hitItem(room, px, py) {
     if (d.data[(iy * d.width + ix) * 4 + 3] > 40) return e.i;
   }
   return -1;
+}
+
+// ---- selling back (half price) ----
+const RESELL = 0.5;
+const sellPrice = p => Math.max(1, Math.floor(p * RESELL));
+function armSell(b) {                                       // first tap asks, second tap sells
+  if (b.dataset.armed) return true;
+  b.dataset.armed = 1; const t = b.innerHTML; b.innerHTML = 'Tap again to sell'; b.classList.add('armed');
+  setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.innerHTML = t; b.classList.remove('armed'); } }, 3000);
+  return false;
+}
+function sellThing(code) {
+  const i = code.indexOf(':'), kind = code.slice(0, i), k = code.slice(i + 1); let name = '', price = 0;
+  if (kind === 'f') {
+    if (!FURN[k] || !ownsF(k) || !FURN[k].price) return; name = FURN[k].name; price = FURN[k].price;
+    delete S.owned['f-' + k]; S.pets.forEach(p => { if (!p.room) return; dropRiders(p.room, k); p.room.items = p.room.items.filter(x => x.k !== k); });
+  } else if (kind === 'w' || kind === 'fl') {
+    const list = kind === 'w' ? WALLPAPERS : FLOORS, x = list.find(y => y.k === k); if (!x || !x.price || !S.owned[kind + '-' + k]) return;
+    name = x.name; price = x.price; delete S.owned[kind + '-' + k];
+    S.pets.forEach(p => { if (!p.room) return; if (kind === 'w' && p.room.wall === k) p.room.wall = 'leafy'; if (kind === 'fl' && p.room.floor === k) p.room.floor = 'honeyoak'; });
+  } else if (kind === 'h') {
+    const H = HOUSES[k]; if (!H || !ownsH(k)) return; name = H.name; price = H.price;
+    delete S.owned['h-' + k]; delete S.owned['hu-' + k]; S.pets.forEach(p => { if (p.house === k) p.house = null; });
+  } else if (kind === 'i') {
+    const it = SHOP.find(x => x.id === k); if (!it || it.cat === 'food' || !S.owned[k]) return; name = it.name; price = it.price;
+    delete S.owned[k]; S.pets.forEach(p => { if (it.cat === 'skins' && p.skin === it.key) p.skin = null; if (it.cat === 'clothes' && p[it.slot] === it.key) p[it.slot] = null; });
+  } else return;
+  const got = sellPrice(price); S.coins += got; save(); SFX.coin(); renderHud(); toast(`Sold ${name} for $${got}.`);
 }
 
 // ---- buying ----
@@ -9224,8 +9289,8 @@ function applySet(set, pet) {
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
 const SHOP_TABS = [['homes', 'Homes'], ['furniture', 'Furniture'], ['decor', 'Decor'], ['walls', 'Walls & Floors'], ['sets', 'Room Sets'], ['food', 'Food'], ['clothes', 'Clothes'], ['skins', 'Skins']];
 const imgSrc = k => SPR[k] ? SPR[k].src : '';
-function priceBtn(data, price, owned, label) {
-  if (owned) return `<span class="ownedtag">${icon('check')} ${label || 'Owned'}</span>`;
+function priceBtn(data, price, owned, label, sell) {
+  if (owned) return `<span class="ownedtag">${icon('check')} ${label || 'Owned'}</span>${sell && price ? `<button class="btn small sellbtn" data-sell="${sell}">Sell $${sellPrice(price)}</button>` : ''}`;
   const can = S.coins >= price;
   return `<button class="btn buy ${can ? 'go' : 'off'}" ${data} ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${price}</button>`;
 }
@@ -9241,11 +9306,11 @@ function itemPreview(it) {
 }
 function furnCards(groups) {
   return groups.map(([g, label]) => `<h2 class="shophead">${label}</h2><div class="shopgrid">${FURN_LIST.filter(f => f[2] === g && f[3] > 0 && !f[8]).map(([k, name, , price]) =>
-    `<div class="card ${ownsF(k) ? 'owned' : ''}"><div class="prevbox"><img class="prev furn" src="${imgSrc('it-' + k)}" alt=""></div><b>${esc(name)}</b>${priceBtn(`data-buy="f:${k}"`, price, ownsF(k))}</div>`).join('')}</div>`).join('');
+    `<div class="card ${ownsF(k) ? 'owned' : ''}"><div class="prevbox"><img class="prev furn" src="${imgSrc('it-' + k)}" alt=""></div><b>${esc(name)}</b>${priceBtn(`data-buy="f:${k}"`, price, ownsF(k), '', 'f:' + k)}</div>`).join('')}</div>`).join('');
 }
 function swatchCards(list, kind) {
   return `<div class="shopgrid">${list.filter(x => x.price > 0).map(x => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k);
-    return `<div class="card ${own ? 'owned' : ''}"><div class="prevbox swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></div><b>${esc(x.name)}</b>${priceBtn(`data-buy="${kind}:${x.k}"`, x.price, own)}</div>`; }).join('')}</div>`;
+    return `<div class="card ${own ? 'owned' : ''}"><div class="prevbox swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></div><b>${esc(x.name)}</b>${priceBtn(`data-buy="${kind}:${x.k}"`, x.price, own, '', kind + ':' + x.k)}</div>`; }).join('')}</div>`;
 }
 function renderShop() {
   $('#shopTabs').innerHTML = SHOP_TABS.map(([k, n]) => `<button class="tab ${k === shopTab ? 'sel' : ''}" data-t="${k}" aria-pressed="${k === shopTab}">${n}</button>`).join('');
@@ -9270,7 +9335,7 @@ function renderShop() {
           : own ? `<button class="btn buy ${S.coins >= H.fee ? 'go' : 'off'}" data-buy="hu:${k}">${icon('coin', 'coin')} Unlock $${H.fee}</button>`
           : priceBtn(`data-buy="h:${k}"`, total, false);
         const sub = who.length ? 'Home of ' + esc(who.join(', ')) : own ? (ok ? 'Yours, empty' : `Yours \u00b7 unlock for ${esc(tp.name)}`) : other ? `$${H.price} + $${H.fee} unlock fee` : '&nbsp;';
-        return `<div class="card house ${own ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + k)}" alt=""></div><b>${esc(H.name)}</b><span class="muted small">${sub}</span>${btn}</div>`;
+        return `<div class="card house ${own ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + k)}" alt=""></div><b>${esc(H.name)}</b><span class="muted small">${sub}</span>${btn}${own ? `<button class="btn small sellbtn" data-sell="h:${k}">Sell $${sellPrice(H.price)}</button>` : ''}</div>`;
       };
       const ofKind = kind => HOUSE_LIST.filter(x => x[1] === kind).sort((a, b) => a[3] - b[3]).map(x => card(x[0])).join('');
       h = `<h2 class="shophead">${esc(houseKindName(tp.kind))} houses <small class="muted">for ${esc(tp.name)}</small></h2><div class="shopgrid wide">${ofKind(tp.kind)}</div>
@@ -9298,7 +9363,7 @@ function renderShop() {
     h = `<div class="shopgrid">${ltd}${items.map(it => {
       const owned = it.cat !== 'food' && S.owned[it.id];
       const extra = it.cat === 'food' ? `<span class="muted small">Fills ${FOODS[it.key].fill}% · you have ${S.food[it.key] || 0}</span>` : `<span class="muted small">Preview on ${esc((me || {}).name || 'your pet')}</span>`;
-      return `<div class="card ${owned ? 'owned' : ''}"><div class="prevbox">${itemPreview(it)}</div><b>${esc(it.name)}</b>${extra}${priceBtn(`data-id="${it.id}"`, it.price, owned)}</div>`;
+      return `<div class="card ${owned ? 'owned' : ''}"><div class="prevbox">${itemPreview(it)}</div><b>${esc(it.name)}</b>${extra}${priceBtn(`data-id="${it.id}"`, it.price, owned, '', 'i:' + it.id)}</div>`;
     }).join('')}</div>`;
   }
   $('#shopGrid').innerHTML = h;
@@ -9365,8 +9430,8 @@ function renderDeco() {
 }
 function renderDecoTools() {
   const pet = S.pets[DECO.pet], it = pet && pet.room.items[DECO.sel];
-  $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small bad" id="decoAway">Put away</button><button class="btn small go" id="decoDone">Done</button>`
-    : `<span class="muted">Drag things to move them. Tap one to flip it or put it away.</span>`;
+  $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small" id="decoAway">Put away</button>${FURN[it.k].price ? `<button class="btn small bad" data-sell="f:${it.k}">Sell $${sellPrice(FURN[it.k].price)}</button>` : ''}<button class="btn small go" id="decoDone">Done</button>`
+    : `<span class="muted">Drag things to move them. Small things can sit on tables, beds and window sills. Tap one to flip, put away or sell it.</span>`;
 }
 function decoClick(e) {
   const pet = S.pets[DECO.pet]; if (!pet) return;
@@ -9374,7 +9439,8 @@ function decoClick(e) {
   if (b.dataset.decopet !== undefined) { DECO.pet = +b.dataset.decopet; DECO.sel = -1; return renderDeco(); }
   if (b.dataset.t) { DECO.tab = b.dataset.t; return renderDeco(); }
   if (b.id === 'decoFlip') { const it = pet.room.items[DECO.sel]; if (it) { it.f = it.f ? 0 : 1; save(); SFX.tap(); } return; }
-  if (b.id === 'decoAway') { pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
+  if (b.id === 'decoAway') { const it = pet.room.items[DECO.sel]; if (it) dropRiders(pet.room, it.k); pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
+  if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell); DECO.sel = -1; return renderDeco(); }
   if (b.id === 'decoDone') { DECO.sel = -1; return renderDecoTools(); }
   const k = b.dataset.f, w = b.dataset.w, fl = b.dataset.fl;
   if (k) {
@@ -9396,7 +9462,11 @@ function wireDeco() {
   });
   cv.addEventListener('pointermove', e => {
     const d = DECO.drag, pet = S.pets[DECO.pet]; if (!d || !pet) return; const p = decoPoint(e), it = pet.room.items[d.i]; if (!it) return;
-    it.x = p.x + d.dx; it.y = p.y + d.dy; clampItem(it); d.moved = true;
+    const ox = it.x, oy = it.y; delete it.on;
+    it.x = p.x + d.dx; it.y = p.y + d.dy; clampItem(it);
+    if (isStackable(it.k)) { it.y = p.y + d.dy; snapStack(pet.room, it); }
+    else ridersOf(pet.room, it.k).forEach(r => { r.x += it.x - ox; const s = surfaceY(it); if (s != null) r.y = Math.round(s); });
+    d.moved = true;
   });
   const end = () => { if (DECO.drag) { if (DECO.drag.moved) save(); DECO.drag = null; } };
   cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
@@ -10536,6 +10606,7 @@ function boot() {
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => route('home')));
   $('#shopTabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) { shopTab = b.dataset.t; renderShop(); } });
   $('#shopGrid').addEventListener('click', e => { const hk = e.target.closest('[data-hkind]'); if (hk) { shopHouseKind = hk.dataset.hkind; renderShop(); return; }
+    const sb = e.target.closest('[data-sell]'); if (sb) { if (armSell(sb)) { sellThing(sb.dataset.sell); renderShop(); } return; }
     const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });

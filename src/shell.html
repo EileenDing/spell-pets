@@ -418,6 +418,8 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .shopgrid.wide { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .prevbox.tall { height: 150px; } .prev.house { max-height: 140px; max-width: 96%; } .prev.theme { max-height: 140px; max-width: 100%; border-radius: 6px; } .prev.furn { max-height: 88px; max-width: 90%; }
 .prevbox.swatch { background-size: 150px auto; background-repeat: repeat; }
+.sellbtn { font-size: 13px; padding: 3px 8px; margin-top: 4px; --c: #f3e6cf; --cd: #c9b48f; color: var(--ink); text-shadow: none; }
+.sellbtn.armed, .btn.bad.armed { --c: var(--bad); --cd: var(--bad-d); color: #fff; }
 .roomhouse { display: flex; gap: 12px; align-items: center; } .roomhouse img { width: 140px; flex: none; } .roomhouse img.shadow { filter: grayscale(.8) opacity(.6); }
 @media (max-width: 560px) {
   .hf-top { grid-template-columns: auto auto; } .hf-title { grid-column: 1 / -1; grid-row: 1; font-size: 19px; } .hf-plaque { font-size: 14px; }
