@@ -418,6 +418,10 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .shopgrid.wide { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); }
 .prevbox.tall { height: 150px; } .prev.house { max-height: 140px; max-width: 96%; } .prev.theme { max-height: 140px; max-width: 100%; border-radius: 6px; } .prev.furn { max-height: 88px; max-width: 90%; }
 .prevbox.swatch { background-size: 150px auto; background-repeat: repeat; }
+.setdetail { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px; align-items: center; margin-bottom: 10px; }
+.setdetail .setbig { width: 100%; border: 3px solid var(--ink); border-radius: 8px; } .setdetail .btn.big { width: 100%; }
+.setopen { all: unset; display: block; width: 100%; cursor: pointer; } .setopen:focus-visible { outline: 4px solid var(--gold); }
+@media (max-width: 560px) { .setdetail { grid-template-columns: 1fr; } }
 .roomhouse { display: flex; gap: 12px; align-items: center; } .roomhouse img { width: 140px; flex: none; } .roomhouse img.shadow { filter: grayscale(.8) opacity(.6); }
 @media (max-width: 560px) {
   .hf-top { grid-template-columns: auto auto; } .hf-title { grid-column: 1 / -1; grid-row: 1; font-size: 19px; } .hf-plaque { font-size: 14px; }

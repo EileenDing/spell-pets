@@ -56,16 +56,17 @@ const FURN_LIST = [
   ['bowls', 'Food Bowls', 'cosy', 12, 'floor', 46, 92, 496],
   ['fireplace', 'Fireplace', 'cosy', 45, 'floor', 152, 520, 338],
   ['waterbowl', 'Water Bowl', 'cosy', 0, 'floor', 48, 92, 494],
-  ['bone', 'Chew Bone', 'cosy', 0, 'floor', 34, 272, 482]
+  ['bone', 'Chew Bone', 'cosy', 0, 'floor', 34, 272, 482],
+  ...SET_FURN                                   // the ten interior sets (sets2.js); their 9th field is the set
 ];
-const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y]) => { FURN[k] = { k, name, group, price, place, size, x, y }; });
+const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y, set]) => { FURN[k] = { k, name, group, price, place, size, x, y, set }; });
 const FURN_GROUPS = [['beds', 'Beds & seats'], ['tables', 'Tables & storage'], ['lights', 'Lights & walls'], ['rugs', 'Rugs & windows'], ['plants', 'Plants & play'], ['cosy', 'Cosy details']];
 const WALLPAPERS = [['leafy', 'Leafy Cream', 0], ['cream', 'Cream', 12], ['sagestripe', 'Sage Stripe', 15], ['tinyblooms', 'Tiny Blooms', 15], ['forestleaves', 'Forest Leaves', 15], ['bluegingham', 'Blue Gingham', 15],
   ['peachdots', 'Peach Dots', 15], ['starrynight', 'Starry Night', 20], ['cloudsky', 'Cloud Sky', 20], ['pawprints', 'Paw Prints', 15], ['warmbrick', 'Warm Brick', 18], ['woodpanels', 'Wood Panels', 18], ['lavender', 'Lavender', 15]]
-  .map(([k, name, price]) => ({ k, name, price }));
+  .concat(SET_WALLS).map(([k, name, price]) => ({ k, name, price }));
 const FLOORS = [['honeyoak', 'Honey Oak', 0], ['paleash', 'Pale Ash', 15], ['walnut', 'Walnut', 18], ['herringbone', 'Herringbone', 20], ['whitetile', 'White Tile', 15], ['bluetile', 'Blue Tile', 15],
   ['terracotta', 'Terracotta', 15], ['stone', 'Stone', 18], ['mossstone', 'Moss Stone', 20], ['cork', 'Cork', 12], ['pinkcheck', 'Pink Check', 15], ['woven', 'Woven Mat', 15]]
-  .map(([k, name, price]) => ({ k, name, price }));
+  .concat(SET_FLOORS).map(([k, name, price]) => ({ k, name, price }));
 // Houses for Pet Town. Every house is made for one kind of animal.
 // A pet can also live in another animal's house: that costs a one-time unlock fee (5-10% of the price, more for fancier houses),
 // after which any of your pets can use that house.
@@ -94,7 +95,8 @@ const ROOM_SETS = [
   { k: 'forest', name: 'Forest Room', wall: 'forestleaves', floor: 'honeyoak', items: [['hangplant', 130, 0], ['lantern', 560, 0], ['mirror', 330, 220], ['bookshelf', 655, 334], ['monstera', 48, 352], ['hammock', 175, 446], ['sofa', 590, 488], ['roundtable', 420, 380], ['leafrug', 400, 448]] },
   { k: 'cottage', name: 'Cottage Room', wall: 'cream', floor: 'honeyoak', items: [['floralwin', 300, 236], ['bookshelf', 655, 334], ['hangplant', 560, 0], ['roundtable', 520, 392], ['mushlamp', 520, 340], ['bed', 150, 458], ['wovenrug', 400, 446]] },
   { k: 'pastel', name: 'Pastel Room', wall: 'peachdots', floor: 'paleash', items: [['hangplant', 120, 0], ['rainbow', 120, 200], ['floralwin', 340, 236], ['cubby', 655, 338], ['cushion', 160, 456], ['roundtable', 470, 396], ['flowerjug', 470, 340], ['armchair', 640, 486], ['pawrug', 400, 448]] },
-  { k: 'starry', name: 'Starry Room', wall: 'starrynight', floor: 'walnut', items: [['starlight', 110, 150], ['ginghamwin', 330, 236], ['bookshelf', 520, 334], ['dresser', 680, 338], ['bed', 150, 458], ['starrug', 410, 448], ['teddy', 260, 494]] }
+  { k: 'starry', name: 'Starry Room', wall: 'starrynight', floor: 'walnut', items: [['starlight', 110, 150], ['ginghamwin', 330, 236], ['bookshelf', 520, 334], ['dresser', 680, 338], ['bed', 150, 458], ['starrug', 410, 448], ['teddy', 260, 494]] },
+  ...SET_ROOMS
 ];
 const LEGACY_DECOR = { ball: 'blocks', plant: 'monstera', poster: 'pawframe', rug: 'wovenrug', lamp: 'floorlamp', lights: 'bunting', shelf: 'bookshelf', tank: 'fishtank' };
 // old shelter/decor shop items are replaced by this set
@@ -278,7 +280,7 @@ function applySet(set, pet) {
 }
 
 // ================= SHOP =================
-let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
+let shopTab = 'homes', shopPet = 0, shopHouseKind = null, shopSet = null;
 const SHOP_TABS = [['homes', 'Homes'], ['furniture', 'Furniture'], ['decor', 'Decor'], ['walls', 'Walls & Floors'], ['sets', 'Room Sets'], ['food', 'Food'], ['clothes', 'Clothes'], ['skins', 'Skins']];
 const imgSrc = k => SPR[k] ? SPR[k].src : '';
 function priceBtn(data, price, owned, label) {
@@ -297,7 +299,7 @@ function itemPreview(it) {
   return `<img class="pxi prev food" src="${foodURL(it.key)}" alt="">`;
 }
 function furnCards(groups) {
-  return groups.map(([g, label]) => `<h2 class="shophead">${label}</h2><div class="shopgrid">${FURN_LIST.filter(f => f[2] === g && f[3] > 0).map(([k, name, , price]) =>
+  return groups.map(([g, label]) => `<h2 class="shophead">${label}</h2><div class="shopgrid">${FURN_LIST.filter(f => f[2] === g && f[3] > 0 && !f[8]).map(([k, name, , price]) =>
     `<div class="card ${ownsF(k) ? 'owned' : ''}"><div class="prevbox"><img class="prev furn" src="${imgSrc('it-' + k)}" alt=""></div><b>${esc(name)}</b>${priceBtn(`data-buy="f:${k}"`, price, ownsF(k))}</div>`).join('')}</div>`).join('');
 }
 function swatchCards(list, kind) {
@@ -309,6 +311,7 @@ function renderShop() {
   $('#shopWallet').innerHTML = `You have ${coinAmt(S.coins)}`;
   if (shopPet >= S.pets.length) shopPet = S.active;
   const perPet = shopTab === 'sets' || shopTab === 'homes';
+  if (shopTab !== 'sets') shopSet = null;
   $('#shopFor').hidden = !perPet || !S.pets.length;
   $('#shopFor').innerHTML = `<span>${shopTab === 'homes' ? 'Moving in' : 'For the room of'}</span>` + S.pets.map((p, i) => `<button class="petthumb mini ${i === shopPet ? 'sel' : ''}" data-shoppet="${i}" aria-pressed="${i === shopPet}"><img class="pxi" src="${petURL(p)}" alt=""><span>${esc(p.name)}</span></button>`).join('');
   const me = S.pets[S.active];
@@ -340,11 +343,28 @@ function renderShop() {
   else if (shopTab === 'decor') h = note(`New things go straight into ${me ? esc(me.name) + "'s" : 'your'} home. Use Decorate to move them around.`) + furnCards(FURN_GROUPS.slice(2));
   else if (shopTab === 'walls') h = `<h2 class="shophead">Wallpaper</h2>${swatchCards(WALLPAPERS, 'w')}<h2 class="shophead">Floors</h2>${swatchCards(FLOORS, 'fl')}`;
   else if (shopTab === 'sets') {
-    const tp = S.pets[shopPet];
-    h = note('A whole new look in one go: wallpaper, floor and furniture, a quarter off. Things already in the room go back into storage.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
-      const p = setPrice(st);
-      return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('theme-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${st.items.length} things + wallpaper + floor</span>
-        ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
+    const tp = S.pets[shopPet], st = shopSet && ROOM_SETS.find(x => x.k === shopSet);
+    if (st) {
+      const p = setPrice(st), W = WALLPAPERS.find(x => x.k === st.wall), F = FLOORS.find(x => x.k === st.floor);
+      const inRoom = k => !!tp && !!tp.room && tp.room.items.some(i => i.k === k);
+      const itemBtn = k => !ownsF(k) ? priceBtn(`data-buy="f:${k}"`, FURN[k].price, false)
+        : inRoom(k) ? `<span class="ownedtag">${icon('check')} In the room</span>` : tp ? `<button class="btn buy" data-buy="put:${k}">Put in room</button>` : `<span class="ownedtag">${icon('check')} Owned</span>`;
+      const surfBtn = (kind, x) => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k), using = tp && tp.room && (kind === 'w' ? tp.room.wall : tp.room.floor) === x.k;
+        return !own ? priceBtn(`data-buy="${kind}:${x.k}"`, x.price, false) : using ? `<span class="ownedtag">${icon('check')} Using</span>` : tp ? `<button class="btn buy" data-buy="use${kind}:${x.k}">Use it</button>` : `<span class="ownedtag">${icon('check')} Owned</span>`; };
+      h = `<p><button class="btn small" data-setback="1">\u2190 All room sets</button></p>
+        <div class="setdetail"><img class="setbig" src="${imgSrc('theme-' + st.k)}" alt=""><div><h2 class="shophead">${esc(st.name)}</h2>
+          <p class="muted small">Tap any piece below to buy just that one, or get the whole look at once for a quarter off. Things already in the room go back into storage.</p>
+          ${tp ? `<button class="btn buy big ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} Whole set $${p}` : `Use this look in ${esc(tp.name)}'s room`}</button>` : ''}</div></div>
+        <div class="shopgrid">
+          <div class="card ${ownsW(W.k) ? 'owned' : ''}"><div class="prevbox swatch" style="background-image:url(${imgSrc('wall-' + W.k)})"></div><b>${esc(W.name)}</b><span class="muted small">Wallpaper</span>${surfBtn('w', W)}</div>
+          <div class="card ${ownsFl(F.k) ? 'owned' : ''}"><div class="prevbox swatch" style="background-image:url(${imgSrc('floor-' + F.k)})"></div><b>${esc(F.name)}</b><span class="muted small">Floor</span>${surfBtn('fl', F)}</div>
+          ${st.items.map(([k]) => `<div class="card ${ownsF(k) ? 'owned' : ''}"><div class="prevbox"><img class="prev furn" src="${imgSrc('it-' + k)}" alt=""></div><b>${esc(FURN[k].name)}</b>${itemBtn(k)}</div>`).join('')}
+        </div>`;
+    } else h = note('A whole new look in one go. Open a set to see every piece and buy them one by one, or get the whole set for a quarter off.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
+      const p = setPrice(st), n = st.items.length + 2, have = st.items.filter(([k]) => ownsF(k)).length + (ownsW(st.wall) ? 1 : 0) + (ownsFl(st.floor) ? 1 : 0);
+      return `<div class="card set"><button class="setopen" data-setopen="${st.k}" aria-label="Open ${esc(st.name)}"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('theme-' + st.k)}" alt=""></div></button><b>${st.name}</b>
+        <span class="muted small">${have ? `You have ${have} of ${n} pieces` : `${n} pieces`}</span>
+        <button class="btn buy go" data-setopen="${st.k}">See the pieces</button></div>`; }).join('')}</div>`;
   } else {
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy);
     const ltd = shopTab !== 'skins' ? '' : S.pets.map(p => {
@@ -387,7 +407,11 @@ function shopBuy(code) {
     const st = ROOM_SETS.find(x => x.k === k), tp = S.pets[shopPet]; if (!st || !tp) return;
     const p = setPrice(st); if (S.coins < p) { toast(`You need $${money(p - S.coins)} more. Play a session to earn coins!`); return; }
     S.coins -= p; applySet(st, tp); save(); SFX.fanfare(); renderHud(); toast(`${tp.name}'s room is now the ${st.name}!`);
-  } else buyThing(kind, k, me);
+  } else if (kind === 'put') {
+    const tp = S.pets[shopPet]; if (!tp || !ownsF(k)) return; tp.room = tp.room || defaultRoom(); placeItem(tp.room, k); save(); SFX.tap(); toast(`${FURN[k].name} is in ${tp.name}'s room now.`);
+  } else if (kind === 'usew' || kind === 'usefl') {
+    const tp = S.pets[shopPet]; if (!tp) return; tp.room = tp.room || defaultRoom(); if (kind === 'usew') tp.room.wall = k; else tp.room.floor = k; save(); SFX.tap();
+  } else buyThing(kind, k, shopTab === 'sets' ? S.pets[shopPet] : me);
   renderShop();
 }
 
@@ -410,7 +434,7 @@ function renderDeco() {
     h = list.map(x => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k), on = cur === x.k, can = S.coins >= x.price;
       return `<button class="decocard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-${kind}="${x.k}"><span class="swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></span><b>${esc(x.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + x.price}</em></button>`; }).join('');
   } else {
-    h = FURN_LIST.filter(f => f[2] === DECO.tab).map(([k, name, , price]) => { const own = ownsF(k), on = room.items.some(i => i.k === k), can = S.coins >= price;
+    h = FURN_LIST.filter(f => f[2] === DECO.tab && (!f[8] || ownsF(f[0]))).map(([k, name, , price]) => { const own = ownsF(k), on = room.items.some(i => i.k === k), can = S.coins >= price;
       const swap = !on && swapGroup(k) && room.items.some(i => swapGroup(k).includes(i.k));
       return `<button class="decocard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-f="${k}"><img src="${imgSrc('it-' + k)}" alt=""><b>${esc(name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'In the room' : own ? (swap ? 'Swap in' : 'Put in') : '$' + price}</em></button>`; }).join('');
   }
