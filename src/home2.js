@@ -57,6 +57,7 @@ const FURN_LIST = [
   ['fireplace', 'Fireplace', 'cosy', 45, 'floor', 152, 520, 338],
   ['waterbowl', 'Water Bowl', 'cosy', 0, 'floor', 48, 92, 494],
   ['bone', 'Chew Bone', 'cosy', 0, 'floor', 34, 272, 482],
+  ...CAT2_FURN,                                 // Interior Items Catalog (catalog2.js)
   ...SET_FURN                                   // the ten interior sets (sets2.js); their 9th field is the set
 ];
 const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y, set]) => { FURN[k] = { k, name, group, price, place, size, x, y, set }; });
@@ -176,7 +177,8 @@ function snapStack(room, it) {
 }
 const ridersOf = (room, k) => room.items.filter(i => i.on === k);
 function dropRiders(room, k) { ridersOf(room, k).forEach(r => { delete r.on; clampItem(r); }); }
-function itemZ(room, it, r) { const h = it.on && room.items.find(x => x.k === it.on); return h ? itemRect(h).y1 + 0.5 : (r || itemRect(it)).y1; }
+function itemZ(room, it, r) { if (FURN[it.k].place === 'ceil') return WALL_Y;   // hanging lamps in front of things on the wall
+  const h = it.on && room.items.find(x => x.k === it.on); return h ? itemRect(h).y1 + 0.5 : (r || itemRect(it)).y1; }
 
 // only one bed and one rug at a time: a new one takes the old one's place (box -> basket -> bed)
 const BED_KEYS = ['boxbed', 'basket', 'cushion', 'beanbag', 'hammock', 'bed'];
@@ -289,8 +291,8 @@ function hitItem(room, px, py) {
   return -1;
 }
 
-// ---- selling back (half price) ----
-const RESELL = 0.5;
+// ---- selling back (40% of the price) ----
+const RESELL = 0.4;
 const sellPrice = p => Math.max(1, Math.floor(p * RESELL));
 function armSell(b) {                                       // first tap asks, second tap sells
   if (b.dataset.armed) return true;
