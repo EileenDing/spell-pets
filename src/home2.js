@@ -331,7 +331,7 @@ function sellThing(code) {
     name = x.name; price = x.price; delete S.owned[kind + '-' + k];
     S.pets.forEach(p => { if (!p.room) return; if (kind === 'w' && p.room.wall === k) p.room.wall = 'leafy'; if (kind === 'fl' && p.room.floor === k) p.room.floor = 'honeyoak'; });
   } else if (kind === 'h') {
-    const H = HOUSES[k]; if (!H || !ownsH(k)) return; name = H.name; price = H.price;
+    const H = HOUSES[k]; if (!H || !ownsH(k)) return; name = H.name; price = S.owned['h-' + k] === 1 ? Math.round(H.price / 3) : H.price;
     delete S.owned['h-' + k]; delete S.owned['hu-' + k]; S.pets.forEach(p => { if (p.house === k) p.house = null; });
   } else if (kind === 'i') {
     const it = SHOP.find(x => x.id === k); if (!it || it.cat === 'food' || !S.owned[k]) return; name = it.name; price = it.price;
@@ -413,7 +413,7 @@ function renderShop() {
           : own ? `<button class="btn buy ${S.coins >= H.fee ? 'go' : 'off'}" data-buy="hu:${k}">${icon('coin', 'coin')} Unlock $${H.fee}</button>`
           : priceBtn(`data-buy="h:${k}"`, total, false);
         const sub = who.length ? 'Home of ' + esc(who.join(', ')) : own ? (ok ? 'Yours, empty' : `Yours \u00b7 unlock for ${esc(tp.name)}`) : other ? `$${H.price} + $${H.fee} unlock fee` : '&nbsp;';
-        return `<div class="card house ${own ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + k)}" alt=""></div><b>${esc(H.name)}</b><span class="muted small">${sub}</span>${btn}${own ? `<button class="btn small sellbtn" data-sell="h:${k}">Sell $${sellPrice(H.price)}</button>` : ''}</div>`;
+        return `<div class="card house ${own ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + k)}" alt=""></div><b>${esc(H.name)}</b><span class="muted small">${sub}</span>${btn}${own ? `<button class="btn small sellbtn" data-sell="h:${k}">Sell $${sellPrice(S.owned['h-' + k] === 1 ? Math.round(H.price / 3) : H.price)}</button>` : ''}</div>`;
       };
       const ofKind = kind => HOUSE_LIST.filter(x => x[1] === kind).sort((a, b) => a[3] - b[3]).map(x => card(x[0])).join('');
       h = `<h2 class="shophead">${esc(houseKindName(tp.kind))} houses <small class="muted">for ${esc(tp.name)}</small></h2><div class="shopgrid wide">${ofKind(tp.kind)}</div>
@@ -461,7 +461,7 @@ function shopBuy(code) {
     const H = HOUSES[k], p = S.pets[shopPet]; if (!H || !p || ownsH(k)) return;
     const other = H.kind !== p.kind, cost = H.price + (other ? H.fee : 0);
     if (S.coins < cost) { toast(`You need $${money(cost - S.coins)} more. Play a session to earn coins!`); return; }
-    S.coins -= cost; S.owned['h-' + k] = 1; if (other) S.owned['hu-' + k] = 1; p.house = k; save(); SFX.fanfare(); renderHud(); toast(`${p.name} moved into the ${H.name}! Go see it in Pet Town.`);
+    S.coins -= cost; S.owned['h-' + k] = H.price;   // remember what it cost (houses bought before the price rise hold 1) if (other) S.owned['hu-' + k] = 1; p.house = k; save(); SFX.fanfare(); renderHud(); toast(`${p.name} moved into the ${H.name}! Go see it in Pet Town.`);
   } else if (kind === 'hu') {
     const H = HOUSES[k], p = S.pets[shopPet]; if (!H || !p || !ownsH(k) || unlockedH(k)) return;
     if (S.coins < H.fee) { toast(`You need $${money(H.fee - S.coins)} more. Play a session to earn coins!`); return; }
