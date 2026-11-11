@@ -67,10 +67,10 @@ const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y, s
 const FURN_GROUPS = [['beds', 'Beds & seats'], ['tables', 'Tables & storage'], ['lights', 'Lights & walls'], ['rugs', 'Rugs & windows'], ['plants', 'Plants & play'], ['cosy', 'Cosy details']];
 const WALLPAPERS = [['leafy', 'Leafy Cream', 0], ['cream', 'Cream', 12], ['sagestripe', 'Sage Stripe', 15], ['tinyblooms', 'Tiny Blooms', 15], ['forestleaves', 'Forest Leaves', 15], ['bluegingham', 'Blue Gingham', 15],
   ['peachdots', 'Peach Dots', 15], ['starrynight', 'Starry Night', 20], ['cloudsky', 'Cloud Sky', 20], ['pawprints', 'Paw Prints', 15], ['warmbrick', 'Warm Brick', 18], ['woodpanels', 'Wood Panels', 18], ['lavender', 'Lavender', 15]]
-  .concat(SET_WALLS).map(([k, name, price]) => ({ k, name, price }));
+  .concat(SET_WALLS).map(([k, name, price]) => ({ k, name, price: Math.round(price * 1.05) }));   // +5% like furniture
 const FLOORS = [['honeyoak', 'Honey Oak', 0], ['paleash', 'Pale Ash', 15], ['walnut', 'Walnut', 18], ['herringbone', 'Herringbone', 20], ['whitetile', 'White Tile', 15], ['bluetile', 'Blue Tile', 15],
   ['terracotta', 'Terracotta', 15], ['stone', 'Stone', 18], ['mossstone', 'Moss Stone', 20], ['cork', 'Cork', 12], ['pinkcheck', 'Pink Check', 15], ['woven', 'Woven Mat', 15]]
-  .concat(SET_FLOORS).map(([k, name, price]) => ({ k, name, price }));
+  .concat(SET_FLOORS).map(([k, name, price]) => ({ k, name, price: Math.round(price * 1.05) }));   // +5% like furniture
 // Houses for Pet Town. Every house is made for one kind of animal.
 // A pet can also live in another animal's house: that costs a one-time unlock fee (5-10% of the price, more for fancier houses),
 // after which any of your pets can use that house.
