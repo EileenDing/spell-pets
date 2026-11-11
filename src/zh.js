@@ -14,7 +14,8 @@ ZH_BOOKS.forEach(b => {
 // 10 stages of 160 characters in textbook order; inside a stage, 5 levels of 32 from easy/common to hard/rare
 const ZH_PER = 8, ZH_LV = 32, ZH_LV_SESS = ZH_LV / ZH_PER;
 const ZH_NUM = '一二三四五六七八九十';
-const ZH_REWARD = [2, 4, 7, 9];   // finishing these stages hatches a new pet
+const ZH_REWARD = [2, 4, 7, 9];
+const ZH_PAY = 0.4;                // per correct round for a new character   // finishing these stages hatches a new pet
 const ZH_PARTS = ZH_STAGES.map((str, k) => {
   const chars = [...str].map(c => ZH_BY[c]);
   const books = ZH_BOOKS.filter(b => chars.some(w => w.book === b.id)).map(b => b.short);
@@ -171,13 +172,13 @@ function renderZhHub() {
     </div>
     <div class="panel zh">
       <h2 class="zh">${p.title} <span class="muted small">${p.book}</span></h2>
-      ${due.length ? `<p>今天有 <b>${due.length}</b> 个错字要复习，会加到下一课里，复习时每轮答对得 $1。</p>` : ''}
+      ${due.length ? `<p>今天有 <b>${due.length}</b> 个错字要复习，会加到下一课里，复习时三轮全对得 $2。</p>` : ''}
       ${later.length ? `<p class="muted">${later.length} 个错字明天再复习。</p>` : ''}
       <div class="zhlevels">${p.levels.map((lv, l) => `<div class="zhlv"><span class="zhlvname">第${ZH_NUM[l]}级</span><span class="zhlvchars">${lv.slice(0, 6).map(w => w.id).join('')}…</span>
         <div class="zhsess">${Array.from({ length: ZH_LV_SESS }, (_, j) => { const i = l * ZH_LV_SESS + j, d = z.done[p.id + '-' + i], avail = d || i === nxt;
           return `<button class="zhs ${d === 's' ? 'skip' : d ? 'done' : ''} ${i === nxt ? 'next' : ''}" data-zhsess="${i}" ${avail ? '' : 'disabled'} title="第${i + 1}课">${i + 1}</button>`; }).join('')}</div></div>`).join('')}</div>
       ${nxt >= 0 ? `<button class="btn big go" data-zhsess="${nxt}"><span class="zh">开始第 ${nxt + 1} 课</span></button>` : `<p>这一关已经全部完成啦！可以点上面的数字再练一遍。</p>`}
-      <p class="muted small zh">每课 8 个字，三轮：听音识字 → 写拼音 → 句子里选字。每个字每轮答对得 $0.5。浅色的课是测试时已经会了的，可以点开复习。</p>
+      <p class="muted small zh">每课 8 个字，三轮：听音识字 → 写拼音 → 句子里选字。每个字每轮答对得 $0.4；以前错过的字复习时三轮全对得 $2。浅色的课是测试时已经会了的，可以点开复习。</p>
       ${zhVoicePicker()}
       <p class="center small"><button class="linkbtn zh" id="zhRetest">重新测试</button></p>
     </div>`;
@@ -299,7 +300,8 @@ function finishZh() {
   const pet0 = S.pets[S.active];
   const rows = P.items.map(it => {
     const r = P.res[it.id], all = r.every(v => v === true), w = ZH_BY[it.id];
-    const per = it.review ? 1 : 0.5, pay = r.filter(v => v === true).length * per; earned += pay; if (all) right++;
+    // new characters: $0.4 per correct round; a character missed before is worth $2 in all when every round is right
+    const nOk = r.filter(v => v === true).length, pay = it.review ? Math.round(nOk / 3 * 2 * 10) / 10 : Math.round(nOk * ZH_PAY * 10) / 10; earned += pay; if (all) right++;
     if (all) delete z.mistakes[it.id]; else z.mistakes[it.id] = t;
     return { w, r, pay, review: it.review };
   });
@@ -319,7 +321,7 @@ function finishZh() {
       ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}
       ${partNow ? `<p class="good">${p.title}通关啦！</p>` : ''}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw"><span class="zhc">${esc(x.w.id)}</span> <small class="pysmall">${esc(x.w.py)}</small> <small class="muted">${esc(x.w.words[0])}</small>${x.review ? '<em>复习</em>' : ''}</span><span class="marks">${x.r.map(v => icon(v ? 'check' : 'cross')).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + money(x.pay) : '$0'}</span></li>`).join('')}</ul>
-    ${rows.some(x => !x.r.every(v => v === true)) ? `<p class="muted">没有三轮全对的字会记下来，明天再练，复习时每轮答对得 $1。</p>` : ''}
+    ${rows.some(x => !x.r.every(v => v === true)) ? `<p class="muted">没有三轮全对的字会记下来，明天再练，复习时三轮全对得 $2。</p>` : ''}
     <div class="row"><button class="btn go big zh" id="zhAgain">继续下一课</button><button class="btn zh" id="zhBack">返回中文挑战</button></div></div>`;
   const k = P.zhPart; P = null;
   const goNext = () => { const kk = zhPartDone(ZH_PARTS[k]) && k < ZH_PARTS.length - 1 ? k + 1 : k; const nx = zhNextIdx(ZH_PARTS[kk]); if (nx >= 0 && zhPartOpen(kk)) { zhPartSel = kk; startZhSession(kk, nx); } else { chalId = 'zh'; route('chal'); } };

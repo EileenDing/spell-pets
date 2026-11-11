@@ -58,8 +58,11 @@ const FURN_LIST = [
   ['waterbowl', 'Water Bowl', 'cosy', 0, 'floor', 48, 92, 494],
   ['bone', 'Chew Bone', 'cosy', 0, 'floor', 34, 272, 482],
   ...CAT2_FURN,                                 // Interior Items Catalog (catalog2.js)
+  ...CAT3_FURN,                                 // single catalog pieces (catalog3.js)
   ...SET_FURN                                   // the ten interior sets (sets2.js); their 9th field is the set
 ];
+const FURN_PRICE_UP = 1.05;                     // all furniture 5% dearer than the listed price
+FURN_LIST.forEach(f => { if (f[3]) f[3] = Math.round(f[3] * FURN_PRICE_UP); });
 const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y, set]) => { FURN[k] = { k, name, group, price, place, size, x, y, set }; });
 const FURN_GROUPS = [['beds', 'Beds & seats'], ['tables', 'Tables & storage'], ['lights', 'Lights & walls'], ['rugs', 'Rugs & windows'], ['plants', 'Plants & play'], ['cosy', 'Cosy details']];
 const WALLPAPERS = [['leafy', 'Leafy Cream', 0], ['cream', 'Cream', 12], ['sagestripe', 'Sage Stripe', 15], ['tinyblooms', 'Tiny Blooms', 15], ['forestleaves', 'Forest Leaves', 15], ['bluegingham', 'Blue Gingham', 15],
@@ -73,21 +76,21 @@ const FLOORS = [['honeyoak', 'Honey Oak', 0], ['paleash', 'Pale Ash', 15], ['wal
 // after which any of your pets can use that house.
 // id, made for, name, price (the 13 first houses use the animal's name as their id)
 const HOUSE_LIST = [
-  ['dragon', 'dragon', 'Dragon Castle', 165], ['ember', 'dragon', 'Ember Spire', 240], ['crystal', 'dragon', 'Crystal Overlook', 225], ['cloudkeep', 'dragon', 'Cloud Keep', 195],
-  ['dinosaur', 'dinosaur', 'Fossil Jungle Hut', 160], ['fern', 'dinosaur', 'Fern Greenhouse', 205], ['orchard', 'dinosaur', 'High Branch Orchard', 225], ['canopy', 'dinosaur', 'Tall Canopy Lodge', 215],
-  ['trex', 'trex', 'Dino Lodge', 180], ['eggshell', 'trex', 'Eggshell Nursery', 220], ['diner', 'trex', 'Tiny Arms Diner', 210], ['footprint', 'trex', 'Footprint Fort', 200],
-  ['snake', 'snake', 'Swirl House', 170], ['spiral', 'snake', 'Spiral Tower', 215], ['desertden', 'snake', 'Desert Rock Den', 190], ['silk', 'snake', 'Shed Silk Pavilion', 220],
-  ['turtle', 'turtle', 'Shell Pond House', 180], ['beacon', 'turtle', 'Tidal Beacon Cottage', 215], ['mosaic', 'turtle', 'Mosaic Shell House', 195], ['teahouse', 'turtle', 'Slow Trail Teahouse', 220],
-  ['pig', 'pig', 'Piggy Barn', 150], ['mudpark', 'pig', 'Mud Splash Park', 220], ['truffle', 'pig', 'Truffle Underground', 180], ['windmill', 'pig', 'Snout Windmill Barn', 200],
-  ['monkey', 'monkey', 'Big Treehouse', 190], ['banana', 'monkey', 'Banana Bungalow', 180], ['vinegym', 'monkey', 'Vine Gym House', 220], ['drum', 'monkey', 'Jungle Drum House', 210],
-  ['dog', 'dog', 'Bone Cottage', 150], ['fetchball', 'dog', 'Fetch Ball House', 185], ['snifftrail', 'dog', 'Sniff Trail House', 200], ['wagon', 'dog', 'Rescue Wagon House', 230],
-  ['cat', 'cat', 'Kitty Townhouse', 170], ['sunbeam', 'cat', 'Sunbeam Window Pod', 220], ['yarn', 'cat', 'Yarn Ball Cottage', 185], ['pounce', 'cat', 'Pounce Loft', 200],
-  ['rabbit', 'rabbit', 'Bunny Burrow', 150], ['clover', 'rabbit', 'Clover Burrow', 185], ['carrot', 'rabbit', 'Carrot House', 165], ['bunnyhop', 'rabbit', 'Bunny Hop House', 195],
-  ['rat', 'rat', 'Acorn House', 160], ['seedsilo', 'rat', 'Seed Silo', 190], ['wheelshop', 'rat', 'Wheel Workshop', 215], ['tunnel', 'rat', 'Tunnel Home', 230],
-  ['parrot', 'parrot', 'Tiki Hut', 160], ['feather', 'parrot', 'Rainbow Feather House', 215], ['beakbay', 'parrot', 'Beak Bay House', 185], ['echo', 'parrot', 'Echo House', 200],
-  ['owl', 'owl', 'Moon Tower', 160], ['moonlib', 'owl', 'Moon Library', 185], ['hollowoak', 'owl', 'Hollow Oak House', 205], ['observatory', 'owl', 'Silent Flight Observatory', 240]
+  ['dragon', 'dragon', 'Dragon Castle', 495], ['ember', 'dragon', 'Ember Spire', 720], ['crystal', 'dragon', 'Crystal Overlook', 675], ['cloudkeep', 'dragon', 'Cloud Keep', 585],
+  ['dinosaur', 'dinosaur', 'Fossil Jungle Hut', 480], ['fern', 'dinosaur', 'Fern Greenhouse', 615], ['orchard', 'dinosaur', 'High Branch Orchard', 675], ['canopy', 'dinosaur', 'Tall Canopy Lodge', 645],
+  ['trex', 'trex', 'Dino Lodge', 540], ['eggshell', 'trex', 'Eggshell Nursery', 660], ['diner', 'trex', 'Tiny Arms Diner', 630], ['footprint', 'trex', 'Footprint Fort', 600],
+  ['snake', 'snake', 'Swirl House', 510], ['spiral', 'snake', 'Spiral Tower', 645], ['desertden', 'snake', 'Desert Rock Den', 570], ['silk', 'snake', 'Shed Silk Pavilion', 660],
+  ['turtle', 'turtle', 'Shell Pond House', 540], ['beacon', 'turtle', 'Tidal Beacon Cottage', 645], ['mosaic', 'turtle', 'Mosaic Shell House', 585], ['teahouse', 'turtle', 'Slow Trail Teahouse', 660],
+  ['pig', 'pig', 'Piggy Barn', 450], ['mudpark', 'pig', 'Mud Splash Park', 660], ['truffle', 'pig', 'Truffle Underground', 540], ['windmill', 'pig', 'Snout Windmill Barn', 600],
+  ['monkey', 'monkey', 'Big Treehouse', 570], ['banana', 'monkey', 'Banana Bungalow', 540], ['vinegym', 'monkey', 'Vine Gym House', 660], ['drum', 'monkey', 'Jungle Drum House', 630],
+  ['dog', 'dog', 'Bone Cottage', 450], ['fetchball', 'dog', 'Fetch Ball House', 555], ['snifftrail', 'dog', 'Sniff Trail House', 600], ['wagon', 'dog', 'Rescue Wagon House', 690],
+  ['cat', 'cat', 'Kitty Townhouse', 510], ['sunbeam', 'cat', 'Sunbeam Window Pod', 660], ['yarn', 'cat', 'Yarn Ball Cottage', 555], ['pounce', 'cat', 'Pounce Loft', 600],
+  ['rabbit', 'rabbit', 'Bunny Burrow', 450], ['clover', 'rabbit', 'Clover Burrow', 555], ['carrot', 'rabbit', 'Carrot House', 495], ['bunnyhop', 'rabbit', 'Bunny Hop House', 585],
+  ['rat', 'rat', 'Acorn House', 480], ['seedsilo', 'rat', 'Seed Silo', 570], ['wheelshop', 'rat', 'Wheel Workshop', 645], ['tunnel', 'rat', 'Tunnel Home', 690],
+  ['parrot', 'parrot', 'Tiki Hut', 480], ['feather', 'parrot', 'Rainbow Feather House', 645], ['beakbay', 'parrot', 'Beak Bay House', 555], ['echo', 'parrot', 'Echo House', 600],
+  ['owl', 'owl', 'Moon Tower', 480], ['moonlib', 'owl', 'Moon Library', 555], ['hollowoak', 'owl', 'Hollow Oak House', 615], ['observatory', 'owl', 'Silent Flight Observatory', 720]
 ];
-const HOUSES = Object.fromEntries(HOUSE_LIST.map(([k, kind, name, price]) => [k, { k, kind, name, price, fee: Math.round(price * Math.min(0.10, Math.max(0.05, 0.05 + 0.05 * (price - 150) / 90))) }]));
+const HOUSES = Object.fromEntries(HOUSE_LIST.map(([k, kind, name, price]) => [k, { k, kind, name, price, fee: Math.round(price * Math.min(0.10, Math.max(0.05, 0.05 + 0.05 * (price / 3 - 150) / 90))) }]));
 const ownsH = k => !!S.owned['h-' + k];
 const unlockedH = k => !!S.owned['hu-' + k];
 const canLive = (pet, k) => !!pet && !!HOUSES[k] && (HOUSES[k].kind === pet.kind || unlockedH(k));
@@ -351,7 +354,7 @@ function buyThing(kind, k, pet) {
   toast(pet ? `Bought ${item.name}! It's in ${pet.name}'s home now.` : `Bought ${item.name}!`);
   return true;
 }
-function setPrice(set) { return S.owned['set-' + set.k] ? 0 : set.price; }
+function setPrice(set) { return S.owned['set-' + set.k] ? 0 : Math.round(set.price * FURN_PRICE_UP); }
 function applySet(set, pet) {
   S.owned['set-' + set.k] = 1;
   const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
