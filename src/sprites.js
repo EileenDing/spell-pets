@@ -57,7 +57,7 @@ function petGeom(kind) {
   const w = im ? im.width : 150, h = im ? im.height : 180;
   const ox = Math.round((PET_CW - w) / 2), oy = PET_CH - 2 - h;
   const es = A.es || 46, ex = ox + (A.ex != null ? A.ex : w / 2), ey = oy + (A.ey != null ? A.ey : h * .3);
-  return { ox, oy, w, h, ex, ey, es, er: A.er || 5, neckY: ey + es * 0.8 };
+  return { kind, ox, oy, w, h, ex, ey, es, er: A.er || 5, neckY: ey + es * 0.8 };
 }
 // widest run of pet pixels on one row, near the face centre
 function rowSpan(ctx, y, cx) {
@@ -86,6 +86,39 @@ function drawFit(ctx, img, cx, top, width, smooth = true) {
 }
 const WEAR = { strawhat: 'wear-strawhat', cap: 'wear-cap', round: 'wear-glasses', bowtie: 'wear-bow', scarf: 'wear-scarf', backpack: 'wear-backpack', overalls: 'wear-overalls', raincoat: 'wear-raincoat' };
 
+// garments trimmed to their own pixels; the raincoat loses its empty hood so it reads as a coat on any pet
+const GARM = {};
+function garment(key) {
+  if (GARM[key] !== undefined) return GARM[key];
+  const im = SPR[WEAR[key]]; if (!im) return null;
+  const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, 0, 0);
+  const d = x.getImageData(0, 0, c.width, c.height).data, W = c.width, H = c.height;
+  let top = 0;
+  if (key === 'raincoat') {                                   // first row below the dark hood opening
+    let last = 0;                                             // rows with a wide run of dark brown = the hood opening (buttons are small)
+    for (let y = 0; y < H * 0.6; y++) { let n = 0; for (let i = 0; i < W; i++) { const k = (y * W + i) * 4; if (d[k + 3] > 200) { const [h, s, l] = rgbHSL(d[k], d[k + 1], d[k + 2]); if (h > 15 && h < 45 && s > 0.3 && l < 0.42) n++; } } if (n >= W * 0.12) last = y; }
+    top = last + 1;
+  }
+  let x0 = W, x1 = 0, y0 = H, y1 = 0;
+  for (let y = top; y < H; y++) for (let i = 0; i < W; i++) if (d[(y * W + i) * 4 + 3] > 40) { x0 = Math.min(x0, i); x1 = Math.max(x1, i); y0 = Math.min(y0, y); y1 = Math.max(y1, y); }
+  if (x1 <= x0) return GARM[key] = null;
+  const o = document.createElement('canvas'); o.width = x1 - x0 + 1; o.height = y1 - y0 + 1; o.getContext('2d').drawImage(c, x0, y0, o.width, o.height, 0, 0, o.width, o.height);
+  return GARM[key] = o;
+}
+// per-pet nudges for body clothes: dx, dy (in eye-spacings), width factor
+const BODY_FIT = { dinosaur: { raincoat: [0.35, 1.5, 0.95] }, parrot: { raincoat: [0, 0.4, 0.95] }, trex: { raincoat: [0.15, 0.35, 1] }, dog: { raincoat: [0, 0.15, 1] } };
+function tailor(lx, img, G, key) {
+  const feet = G.oy + G.h - 3, chest = G.neckY + G.es * 0.1;
+  const by = Math.round(chest + (feet - chest) * 0.45), bs = rowSpan(lx, by, G.ex) || rowSpan(lx, by, G.ox + G.w / 2) || [G.ex - G.es, G.ex + G.es];
+  const f = (BODY_FIT[G.kind] || {})[key] || [0, 0, 1];
+  let w = (bs[1] - bs[0]) * (key === 'raincoat' ? 1.12 : 1.04) * f[2], h = img.height * w / img.width;
+  if (key === 'overalls' && h > (feet - chest) * 1.05) { h = (feet - chest) * 1.05; w = img.width * h / img.height; }
+  const cx = (bs[0] + bs[1]) / 2 + f[0] * G.es;
+  const top = (key === 'raincoat' ? G.neckY + G.es * 0.02 : feet - h + 2) + f[1] * G.es;
+  lx.save(); lx.globalCompositeOperation = 'source-atop'; lx.imageSmoothingEnabled = true;
+  lx.drawImage(img, Math.round(cx - w / 2), Math.round(top), Math.round(w), Math.round(h)); lx.restore();
+}
+
 function renderPet(pet, o = {}) {
   const kind = pet.kind, im = SPR['pet-' + kind];
   const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
@@ -94,11 +127,14 @@ function renderPet(pet, o = {}) {
   const G = petGeom(kind);
   const get = k => (o[k] !== undefined ? o[k] : pet[k]);
   const skin = get('skin'), hat = get('hat'), eyes = get('eyes'), neck = get('neck'), back = get('back'), body = get('body');
-  // backpack sits behind the pet
-  if (back && SPR[WEAR[back]]) drawFit(ctx, SPR[WEAR[back]], G.ex + G.es * 1.2, G.neckY - G.es * 0.05, G.es * 1.4);
   // the pet itself (own layer so skins only touch the pet)
   const L = document.createElement('canvas'); L.width = PET_CW; L.height = PET_CH;
   const lx = L.getContext('2d', { willReadFrequently: true }); lx.drawImage(im, G.ox, G.oy);
+  // backpack sits behind the pet, peeking out beside its back
+  if (back && SPR[WEAR[back]]) {
+    const sp = rowSpan(lx, G.neckY + G.es * 0.5, G.ex) || [G.ex - G.es, G.ex + G.es], bw = G.es * 1.45;
+    drawFit(ctx, SPR[WEAR[back]], sp[1] - bw * 0.12, G.neckY - G.es * 0.15, bw);
+  }
   const ltd = skin === 'ltd' ? LTD[kind] : null;
   if (ltd) recolor(lx, PET_CW, PET_CH, kind, ltd.pal, ltd.pat);
   else if (skin && SKINS[skin]) recolor(lx, PET_CW, PET_CH, kind, SKINS[skin].pal);
@@ -110,14 +146,8 @@ function renderPet(pet, o = {}) {
       lx.strokeStyle = '#1d1426'; lx.lineWidth = 3; lx.lineCap = 'round'; lx.beginPath(); lx.moveTo(x - r, G.ey); lx.quadraticCurveTo(x, G.ey + r * .9, x + r, G.ey); lx.stroke();
     });
   }
-  // body clothes are clipped to the pet's outline
-  if (body && SPR[WEAR[body]]) {
-    const sp = rowSpan(lx, G.neckY + G.es * 0.55, G.ex) || [G.ex - G.es, G.ex + G.es];
-    const bw = (sp[1] - sp[0]) * (body === 'raincoat' ? 1.08 : 0.92), top = body === 'raincoat' ? G.neckY - G.es * 0.18 : G.neckY + G.es * 0.05;
-    const img = SPR[WEAR[body]], hgt = Math.min(PET_CH - top, img.height * bw / img.width);
-    lx.save(); lx.globalCompositeOperation = 'source-atop'; lx.imageSmoothingEnabled = true;
-    lx.drawImage(img, Math.round((sp[0] + sp[1]) / 2 - bw / 2), Math.round(top), Math.round(bw), Math.round(hgt)); lx.restore();
-  }
+  // body clothes are tailored: each row is stretched to the pet's own width there, then clipped to its outline
+  if (body && garment(body)) tailor(lx, garment(body), G, body);
   ctx.drawImage(L, 0, 0);
   // neck, glasses, hat on top
   if (neck === 'scarf' && SPR['wear-scarf']) drawFit(ctx, SPR['wear-scarf'], G.ex + G.es * 0.08, G.neckY - G.es * 0.42, G.es * 1.75);

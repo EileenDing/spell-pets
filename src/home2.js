@@ -59,7 +59,7 @@ const FURN_LIST = [
   ['bone', 'Chew Bone', 'cosy', 0, 'floor', 34, 272, 482],
   ...CAT2_FURN,                                 // Interior Items Catalog (catalog2.js)
   ...CAT3_FURN,                                 // single catalog pieces (catalog3.js)
-  ...SET_FURN                                   // the ten interior sets (sets2.js); their 9th field is the set
+  ...SET_FURN                                   // room set pieces (sets2.js); their 9th field lists the sets they belong to
 ];
 const FURN_PRICE_UP = 1.05;                     // all furniture 5% dearer than the listed price
 FURN_LIST.forEach(f => { if (f[3]) f[3] = Math.round(f[3] * FURN_PRICE_UP); });
@@ -95,13 +95,16 @@ const ownsH = k => !!S.owned['h-' + k];
 const unlockedH = k => !!S.owned['hu-' + k];
 const canLive = (pet, k) => !!pet && !!HOUSES[k] && (HOUSES[k].kind === pet.kind || unlockedH(k));
 const houseKindName = k => (PETS[k] || {}).name || k;
-// Fourteen room sets, each one finished room (sets2.js). A set stays together; extra things can be added on top.
+// Fourteen room sets (sets2.js): a wall+floor background plus pieces that can each be moved, put away and put back.
 const ROOM_SETS = SET_ROOMS;
 const LEGACY_DECOR = { ball: 'blocks', plant: 'monstera', poster: 'pawframe', rug: 'wovenrug', lamp: 'floorlamp', lights: 'bunting', shelf: 'bookshelf', tank: 'fishtank' };
 // old shelter/decor shop items are replaced by this set
 SHOP.forEach(i => { if (i.cat === 'shelter' || i.cat === 'decor') i.legacy = 1; });
+// Party Hat and Wizard Hat have no picture of their own yet: out of the shop; anyone who bought one gets the coins back
+const RETIRED = ['hat-party', 'hat-wizard'];
+SHOP.forEach(i => { if (RETIRED.includes(i.id)) i.legacy = 1; });
 
-const ownsF = k => !FURN[k].price || !!S.owned['f-' + k];
+const ownsF = k => { const F = FURN[k]; return F.set ? F.set.some(s => !!S.owned['set-' + s]) : (!F.price || !!S.owned['f-' + k]); };   // set pieces come with their set
 const ownsW = k => { const w = WALLPAPERS.find(x => x.k === k); return !!w && (!w.price || !!S.owned['w-' + k]); };
 const ownsFl = k => { const f = FLOORS.find(x => x.k === k); return !!f && (!f.price || !!S.owned['fl-' + k]); };
 function defaultRoom() { return { wall: 'leafy', floor: 'honeyoak', items: [{ k: 'plainwin', x: 300, y: 244 }, { k: 'boxbed', x: 150, y: 456 }, { k: 'waterbowl', x: 92, y: 494 }, { k: 'bone', x: 272, y: 482 }] }; }
@@ -113,16 +116,14 @@ function migrateRoom(p, f) {
   if (p.house && !HOUSES[p.house]) p.house = null;
   if (p.house && HOUSES[p.house].kind !== p.kind) f.owned['hu-' + p.house] = 1;   // already living in another animal's house: keeps it, no fee
   p.shelter = 'box'; delete p.home;
+  RETIRED.forEach(id => { const it = SHOP.find(i => i.id === id); if (!it) return; if (f.owned[id]) { f.coins = (f.coins || 0) + it.price; delete f.owned[id]; } if (p[it.slot] === it.key) p[it.slot] = null; });
   if (p.room) {                                            // sets are whole rooms now; drop pieces that no longer exist
     if (p.room.set) { p.room.scene = p.room.set; delete p.room.set; p.room.items = p.room.items.filter(i => !i.lock); }
     p.room.items = (p.room.items || []).filter(i => FURN[i.k]);
     if (p.room.scene && !SET_ROOMS.some(s => s.k === p.room.scene)) delete p.room.scene;
-  }
-  if (p.room && !p.room.scene && typeof SET_ROOMS !== 'undefined') {
-    const st = SET_ROOMS.find(x => x.k === p.room.wall);
-    if (st && p.room.items.filter(i => st.items.some(([k]) => k === i.k)).length >= 3) {
-      p.room.scene = st.k; p.room.items = p.room.items.filter(i => !st.items.some(([k]) => k === i.k) && i.k !== 'waterbowl'); f.owned['set-' + st.k] = 1;
-    }
+    const st = p.room.scene && SET_ROOMS.find(s => s.k === p.room.scene);
+    if (st && !p.room.sp) { p.room.items = setItems(st).filter(i => !p.room.items.some(x => x.k === i.k)).concat(p.room.items); }   // sets used to be one picture: lay out their pieces once
+    if (st) p.room.sp = 1;
   }
   if (p.room) return;
   p.room = defaultRoom();
@@ -202,7 +203,7 @@ function placeItem(room, k) {
     const x = F.x + dx; if (x < w / 2 - 20 || x > ROOM_W - w / 2 + 20) continue;
     if (!same.some(i => Math.abs(i.x - x) < (itemSize(i.k).w + w) * 0.4 && Math.abs(i.y - F.y) < 90)) { best = x; break; }
   }
-  const it = { k, x: best, y: F.y }; clampItem(it); room.items.push(it); return room.items.length - 1;
+  const it = { k, x: best, y: F.y }; clampItem(it); room.items.push(it); if (isStackable(k) && F.set) { it.y = F.y; snapStack(room, it); } return room.items.length - 1;
 }
 
 // ---- drawing ----
@@ -355,13 +356,16 @@ function buyThing(kind, k, pet) {
   return true;
 }
 function setPrice(set) { return S.owned['set-' + set.k] ? 0 : Math.round(set.price * FURN_PRICE_UP); }
+const setItems = set => set.items.map(i => ({ ...i }));
+function fixRiders(room) { room.items.forEach(i => { if (i.on && !room.items.some(h => h.k === i.on)) { delete i.on; clampItem(i); } }); }
 function applySet(set, pet) {
   S.owned['set-' + set.k] = 1;
-  const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
-  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, items: keep };
+  const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !FURN[i.k].set && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
+  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 1, items: setItems(set).concat(keep) };
+  fixRiders(pet.room);
 }
 const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
-function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; room.items = room.items.filter(i => !i.lock).concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); }
+function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; room.items = room.items.filter(i => !i.lock && !FURN[i.k].set); room.items = room.items.concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); fixRiders(room); }
 
 // ================= SHOP =================
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
@@ -429,7 +433,7 @@ function renderShop() {
     const tp = S.pets[shopPet];
     h = note('A whole finished room in one go. The set stays together; you can still add small things on top in Decorate, and switch sets there any time.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
       const p = setPrice(st);
-      return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('theme-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${S.owned['set-' + st.k] ? 'Yours' : st.pieces + ' pieces + wallpaper + floor'}</span>
+      return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('setprev-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${S.owned['set-' + st.k] ? 'Yours' : st.pieces + ' pieces + wallpaper + floor'}</span>
         ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy);
@@ -497,7 +501,7 @@ function renderDeco() {
   const room = pet.room; let h = '';
   if (DECO.tab === 'sets') {
     h = ROOM_SETS.map(st => { const own = !!S.owned['set-' + st.k], on = room.scene === st.k, p = setPrice(st), can = S.coins >= p;
-      return `<button class="decocard setcard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-set="${st.k}"><img src="${imgSrc('theme-' + st.k)}" alt=""><b>${esc(st.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + p}</em></button>`; }).join('');
+      return `<button class="decocard setcard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-set="${st.k}"><img src="${imgSrc('setprev-' + st.k)}" alt=""><b>${esc(st.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + p}</em></button>`; }).join('');
   } else if (DECO.tab === 'walls' || DECO.tab === 'floors') {
     const list = DECO.tab === 'walls' ? WALLPAPERS : FLOORS, kind = DECO.tab === 'walls' ? 'w' : 'fl', cur = DECO.tab === 'walls' ? room.wall : room.floor;
     h = list.map(x => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k), on = cur === x.k, can = S.coins >= x.price;
@@ -511,7 +515,7 @@ function renderDeco() {
 }
 function renderDecoTools() {
   const pet = S.pets[DECO.pet], it = pet && pet.room.items[DECO.sel], st = pet && roomSet(pet.room);
-  if (!it && st) { $('#decoTools').innerHTML = `<span class="muted">This room is the <b>${esc(st.name)}</b>. Its furniture stays together. You can still add things on top.</span><button class="btn small" id="decoSetOff">Take the set off</button>`; return; }
+  if (!it && st) { $('#decoTools').innerHTML = `<span class="muted">This room is the <b>${esc(st.name)}</b>. Drag any piece to move it, or tap it to flip or put it away. Put-away pieces wait in the tabs below.</span><button class="btn small" id="decoSetOff">Take the set off</button>`; return; }
   $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small" id="decoAway">Put away</button>${FURN[it.k].price ? `<button class="btn small bad" data-sell="f:${it.k}">Sell $${sellPrice(FURN[it.k].price)}</button>` : ''}<button class="btn small go" id="decoDone">Done</button>`
     : `<span class="muted">Drag things to move them. Small things can sit on tables, beds and window sills. Tap one to flip, put away or sell it.</span>`;
 }
@@ -537,10 +541,10 @@ function decoClick(e) {
     if (!ownsF(k) && !buyThing('f', k, null)) return;
     DECO.sel = placeItem(pet.room, k); save(); SFX.tap(); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return;
   }
-  if ((w || fl) && pet.room.scene) {                      // a picture set covers the walls and floor: changing them takes the set off
+  if ((w || fl) && pet.room.scene) {                      // a set's background covers walls and floor: a new wallpaper or floor replaces it, the furniture stays
     const own = w ? ownsW(w) : ownsFl(fl), price = (w ? WALLPAPERS.find(x => x.k === w) : FLOORS.find(x => x.k === fl)).price;
     if (!own && S.coins < price) { toast(`You need $${money(price - S.coins)} more. Play a session to earn coins!`); return; }
-    takeSetOff(pet.room);
+    const st = roomSet(pet.room); delete pet.room.scene; if (st) { pet.room.wall = st.wall; pet.room.floor = st.floor; }
   }
   if (w) { if (!ownsW(w) && !buyThing('w', w, null)) return; pet.room.wall = w; save(); SFX.tap(); return renderDeco(); }
   if (fl) { if (!ownsFl(fl) && !buyThing('fl', fl, null)) return; pet.room.floor = fl; save(); SFX.tap(); return renderDeco(); }
