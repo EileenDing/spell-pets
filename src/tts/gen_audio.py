@@ -6,7 +6,8 @@ import sys, os, json, re, unicodedata
 import numpy as np, sherpa_onnx, lameenc
 T = '/tmp/claude-0/-home-claude/73b1055a-597b-553d-8d3b-a747a428061d/scratchpad/tts/'
 CACHE = T + 'cache/'; os.makedirs(CACHE, exist_ok=True)
-src = open('/home/claude/zh/zhdata.js', encoding='utf8').read()
+HERE = os.path.dirname(os.path.abspath(__file__))
+src = open(os.path.join(HERE, '..', 'zh', 'zhdata.js'), encoding='utf8').read()
 rows = []
 for part in ['1a', '1b', '2a', '2b']:
     blk = re.search(r"'%s': `(.*?)`" % part, src, re.S).group(1).strip().split('\n')
