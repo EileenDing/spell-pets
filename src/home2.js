@@ -228,8 +228,8 @@ function roomBg(wall, floor, WALL_Y = 300) {
   x.fillStyle = wt ? x.createPattern(wt, 'repeat') : '#f6e7c8'; x.fillRect(0, 0, ROOM_W, WALL_Y);
   if (wt) {                                              // soften the wallpaper pattern: wash it with its own average colour
     const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(wt, 0, 0, 1, 1);
-    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.3 : 0.6})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
-    x.fillStyle = `rgba(255,255,255,${wall === 'leafy' ? 0.04 : 0.12})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.15 : 0.3})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+    x.fillStyle = `rgba(255,255,255,${wall === 'leafy' ? 0.02 : 0.05})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
   }
   if (ft) {                                              // floors: softer too
     const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(ft, 0, 0, 1, 1);
@@ -258,13 +258,46 @@ function roam(id, dt, still, floorY = 420) {
   return r;
 }
 let roomLast = {};
+// starry wallpapers: find the stars painted on the wall once, then let some of them sparkle
+const STARRY_WALLS = ['midnight', 'starry', 'starrynight'], STARS = {};
+function starsOf(key, img, wy) {
+  if (STARS[key]) return STARS[key];
+  if (img.complete === false || !(img.width || img.naturalWidth)) return [];
+  const cv = document.createElement('canvas'); cv.width = ROOM_W; cv.height = ROOM_H; const x = cv.getContext('2d', { willReadFrequently: true });
+  x.drawImage(img, 0, 0, ROOM_W, ROOM_H); const d = x.getImageData(0, 0, ROOM_W, ROOM_H).data, cell = 22, out = [];
+  let sum = 0, n = 0; for (let y = 30; y < wy - 20; y += 7) for (let xx = 8; xx < ROOM_W - 8; xx += 7) { const i = (y * ROOM_W + xx) * 4; sum += (d[i] + d[i + 1]) / 2 - d[i + 2] * 0.35; n++; } const base = sum / n;
+  for (let gy = 30; gy < wy - 20; gy += cell) for (let gx = 8; gx < ROOM_W - 8; gx += cell) {
+    let best = 0, bx = 0, by = 0;
+    for (let y = gy; y < Math.min(gy + cell, wy - 20); y++) for (let xx = gx; xx < Math.min(gx + cell, ROOM_W - 8); xx++) {
+      const i = (y * ROOM_W + xx) * 4, r = d[i], g = d[i + 1], b = d[i + 2], sc = (r + g) / 2 - b * 0.35;   // bright and warm: a painted star
+      if (sc > best) { best = sc; bx = xx; by = y; }
+    }
+    if (best > base + 45) out.push({ x: bx, y: by, s: best });
+  }
+  out.sort((a, b) => b.s - a.s);
+  return STARS[key] = out.slice(0, 46).map((p, i) => ({ x: p.x, y: p.y, ph: hash(i * 13 + 7) * 6.28, sp: 0.9 + hash(i * 5 + 1) * 1.1, r: 5 + hash(i * 3 + 2) * 5 }));
+}
+function twinkle(c, t, stars) {
+  if (reduceMotion) return;
+  c.save(); c.lineCap = 'round';
+  for (const p of stars) {
+    const a = Math.pow(Math.max(0, Math.sin(t / 700 * p.sp + p.ph)), 3); if (a < 0.03) continue;
+    const r = p.r * (0.9 + a * 0.7);
+    c.globalAlpha = a * 0.7; c.fillStyle = '#fff6c8'; c.beginPath(); c.arc(p.x, p.y, r * 0.55, 0, Math.PI * 2); c.fill();
+    c.globalAlpha = a; c.strokeStyle = '#ffffff'; c.lineWidth = 2.2;
+    c.beginPath(); c.moveTo(p.x - r, p.y); c.lineTo(p.x + r, p.y); c.moveTo(p.x, p.y - r); c.lineTo(p.x, p.y + r); c.stroke();
+    c.lineWidth = 1; c.beginPath(); c.moveTo(p.x - r * 0.45, p.y - r * 0.45); c.lineTo(p.x + r * 0.45, p.y + r * 0.45); c.moveTo(p.x + r * 0.45, p.y - r * 0.45); c.lineTo(p.x - r * 0.45, p.y + r * 0.45); c.stroke();
+  }
+  c.restore();
+}
 function drawRoom(c, t, pet, o = {}) {
   const id = o.id || 'home', dt = roomLast[id] ? Math.min(0.25, (t - roomLast[id]) / 1000) : 0; roomLast[id] = t;
   c.setTransform(c.canvas.width / ROOM_W, 0, 0, c.canvas.height / ROOM_H, 0, 0);
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
   const room = (pet && pet.room) || defaultRoom(), sceneSet = room.scene && ROOM_SETS.find(s => s.k === room.scene); useRoom(room);
-  if (sceneSet && SPR['theme-' + room.scene]) c.drawImage(SPR['theme-' + room.scene], 0, 0, ROOM_W, ROOM_H);
-  else c.drawImage(roomBg(room.wall, room.floor, CUR_WY), 0, 0);
+  const bgImg = sceneSet && SPR['theme-' + room.scene] ? SPR['theme-' + room.scene] : roomBg(room.wall, room.floor, CUR_WY);
+  c.drawImage(bgImg, 0, 0, ROOM_W, ROOM_H);
+  if (STARRY_WALLS.includes(sceneSet ? room.scene : room.wall)) twinkle(c, t, starsOf((sceneSet ? 'set-' + room.scene : room.wall) + '|' + CUR_WY, bgImg, CUR_WY));
   // sunlight from windows
   room.items.forEach(it => {
     if (sceneSet || !/win$/.test(it.k)) return; const r = itemRect(it);

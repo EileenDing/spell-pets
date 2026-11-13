@@ -17,7 +17,7 @@ def mirror_tile(t, w, h, scale):
     for y in range(0, h, th * 2):
         for x in range(0, w, tw * 2): out.paste(big, (x, y))
     return out
-WALL_FADE, FLOOR_FADE = (0.6, 0.12), (0.62, 0.14)          # (wash toward own colour, toward white)
+WALL_FADE, FLOOR_FADE = (0.3, 0.05), (0.62, 0.14)          # (wash toward own colour, toward white)
 def background(k):
     W, H, WY = RW * S2, RH * S2, WALL * S2
     bg = Image.new('RGB', (W, H))
