@@ -9,7 +9,7 @@ def enc(im, q=88):
 WN = {'forest': ('Warm Wood', 'Honey Plank'), 'cottage': ('Cream Plaster', 'Wood Wainscot'), 'pastel': ('Pink Stripe', 'Pale Boards'), 'starry': ('Blue Star Panel', 'Medium Wood'),
       'tidal': ('Aqua Ripple', 'Blue Mosaic'), 'citrus': ('Orange Blossom', 'Terracotta Tile'), 'rainy': ('Slate Rain Stripe', 'Grey Herringbone'), 'clock': ('Brass Gear', 'Dark Walnut Board'),
       'alpine': ('Ivory Snowflake', 'Pale Timber'), 'paper': ('Origami Diagram', 'Honey Checker'), 'subway': ('Green Subway Tile', 'Speckled Terrazzo'), 'music': ('Purple Acoustic', 'Wood-Vinyl Checker'),
-      'tea': ('Botanical Rice Paper', 'Tatami Grid'), 'desert': ('Peach Dune', 'Rose Adobe Tile')}
+      'tea': ('Botanical Rice Paper', 'Tatami Grid'), 'desert': ('Peach Dune', 'Rose Adobe Tile'), 'midnight': ('Constellation', 'Midnight Plank'), 'library': ('Archive Green', 'Herringbone Oak')}
 NAMES = {
  'forestlantern': 'Forest Lantern', 'vinebasket': 'Hanging Vine Basket', 'leafybookcase': 'Leafy Bookcase', 'forestsofa': 'Forest Sofa', 'leafrug2': 'Leaf Rug', 'coffeetable': 'Log Coffee Table',
  'monstera2': 'Monstera Pot', 'cushions': 'Floor Cushions', 'cottagenightstand': 'Cottage Nightstand', 'mushroomlamp': 'Mushroom Lamp', 'leafybookshelf': 'Leafy Bookshelf', 'braidedrug': 'Braided Rug',
@@ -28,9 +28,15 @@ NAMES = {
  'loudspeaker': 'Loudspeaker', 'keyboardstand': 'Keyboard', 'recordcabinet': 'Record Cabinet', 'recordpillow': 'Record Pillow', 'vinylrecords': 'Vinyl Records', 'paperlantern': 'Paper Lantern',
  'scroll': 'Hanging Scroll', 'ceramiccabinet': 'Ceramic Cabinet', 'teatraytable': 'Tea Table', 'shojilantern': 'Shoji Lantern', 'floorcushion': 'Floor Cushion', 'teavase': 'Tea Vase',
  'fairylights': 'Fairy Lights', 'cactuspendant': 'Cactus Pendant', 'desertbench': 'Desert Bench', 'oasisrug2': 'Oasis Rug', 'desertcactus': 'Potted Cactus', 'desertthrow': 'Desert Throw',
+ 'bed-midnight': 'Crescent Pet Bed', 'midnightstand': 'Bedside Table', 'moonorb': 'Moon Orb Lamp', 'win-midnight': 'Arched Night Window', 'starpendant': 'Glass Star Pendant', 'starchartrug': 'Star Chart Rug',
+ 'telescope': 'Telescope', 'midnightdresser': 'Three-Drawer Dresser', 'armillary': 'Armillary Sphere', 'bluebooks': 'Blue Books', 'chaise': 'Chaise', 'archivebookcase': 'Archive Bookcase',
+ 'libladder': 'Library Ladder', 'cardcatalog': 'Card Catalog', 'win-library': 'Leaded Window', 'chandelier': 'Chandelier', 'displaycase': 'Display Case', 'writingdesk': 'Writing Desk',
+ 'bankerlamp': 'Banker Lamp', 'footstool': 'Footstool', 'archiverug': 'Archive Rug', 'globe': 'Globe', 'pottedivy': 'Potted Ivy', 'archivebooks': 'Stacked Books',
 }
+GROUP_FIX = {'libladder': 'cosy', 'telescope': 'cosy', 'globe': 'cosy', 'moonorb': 'lights', 'bankerlamp': 'lights'}
 SEATS = ('sofa', 'bench', 'booth', 'chair', 'stool', 'pouf')
 def group(piece, slot):
+    if piece in GROUP_FIX: return GROUP_FIX[piece]
     if slot == 'bed' or any(s in piece for s in SEATS): return 'beds'
     if slot in ('window', 'rug'): return 'rugs'
     if slot in ('ceil', 'ceil2', 'walltop', 'lamp', 'wall_l', 'wall_m', 'rack') or 'lamp' in piece or 'lantern' in piece: return 'lights'

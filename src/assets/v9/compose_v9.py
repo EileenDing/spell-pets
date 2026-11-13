@@ -83,6 +83,14 @@ SETS = {
    ('floorcushion', 'soft', {'x': 640, 'h': 55, 'y': 500}), ('teavase', 'plant_r', {'h': 85, 'x': 590, 'y': 372})]),
  'desert': ('Desert Camp', [('win-desert', 'window', {'h': 140}), ('fairylights', 'walltop', {'mw': 420, 'y': 34}), ('cactuspendant', 'ceil', {'h': 120, 'x': 590}), ('bed-desert', 'bed', {'h': 195}),
    ('desertbench', 'mid', {'h': 80, 'mw': 220, 'x': 560}), ('oasisrug2', 'rug', {'x': 440}), ('desertcactus', 'plant_r', {'h': 120}), ('desertthrow', 'soft', {'x': 330, 'h': 52})]),
+ 'midnight': ('Midnight Room', [('win-midnight', 'window', {'h': 150, 'x': 400}), ('starpendant', 'ceil2', {'x': 245, 'h': 112}), ('bed-midnight', 'bed', {'h': 165, 'mw': 260}),
+   ('midnightstand', 'side', {'h': 76, 'x': 305}), ('moonorb', 'on:midnightstand', {'h': 48}), ('telescope', 'lamp', {'x': 548, 'h': 140}), ('midnightdresser', 'big', {'h': 112, 'mw': 165, 'x': 690}),
+   ('armillary', 'on:midnightdresser', {'h': 70, 'dx': 38}), ('bluebooks', 'on:midnightdresser', {'h': 44, 'dx': -42}), ('starchartrug', 'rug', {'x': 440, 'mw': 260})]),
+ 'library': ('Library Archive', [('win-library', 'window', {'h': 150, 'x': 405}), ('chandelier', 'ceil', {'x': 405, 'h': 100}), ('archivebookcase', 'big', {'x': 92, 'h': 190, 'mw': 150}),
+   ('pottedivy', 'on:archivebookcase', {'h': 58, 'dx': -18}), ('libladder', 'lamp', {'x': 205, 'h': 175}), ('cardcatalog', 'big', {'x': 712, 'h': 96, 'mw': 105}),
+   ('displaycase', 'mid', {'x': 405, 'y': 392, 'h': 92, 'mw': 190}), ('chaise', 'bed', {'h': 100, 'mw': 255}), ('writingdesk', 'mid', {'x': 600, 'y': 410, 'h': 96, 'mw': 185}),
+   ('bankerlamp', 'on:writingdesk', {'h': 58, 'dx': 42}), ('archivebooks', 'on:writingdesk', {'h': 32, 'dx': -40}), ('footstool', 'seat', {'x': 600, 'h': 58, 'y': 486}),
+   ('archiverug', 'rug', {'x': 420, 'mw': 270}), ('globe', 'front_r', {'h': 85, 'x': 722})]),
 }
 def surface_frac(im):
     a = np.array(im)[..., 3] > 120; H, W = a.shape

@@ -119,17 +119,71 @@ function tailor(lx, img, G, key) {
   lx.drawImage(img, Math.round(cx - w / 2), Math.round(top), Math.round(w), Math.round(h)); lx.restore();
 }
 
+// ---- costume sets: every piece is placed on the pet's own head, face and body ----
+const COS_HAT = {   // width in eye-spacings, where the brim sits (fraction of the picture's height), sideways nudge
+  'cos-ming-0': [2.7, 0.86, 0], 'cos-wuxia-0': [2.6, 0.5, 0], 'cos-donut-2': [1.45, 0.92, 0], 'cos-hunter-1': [2.0, 0.8, -0.1], 'cos-army-0': [2.15, 0.7, 0],
+  'cos-gentleman-0': [2.3, 0.82, 0.15], 'cos-lady-0': [1.7, 0.84, 0.1], 'cos-peterpan-0': [2.2, 0.82, 0.1] };
+function costumeLayers(ctx, lx, G, c, when) {
+  const feet = G.oy + G.h - 3, chest = G.neckY + G.es * 0.1, by = Math.round(chest + (feet - chest) * 0.45);
+  let bs = rowSpan(lx, by, G.ex) || rowSpan(lx, by, G.ox + G.w / 2) || [G.ex - G.es, G.ex + G.es];
+  const cap = Math.min(G.es, 56) * 2.5; if (bs[1] - bs[0] > cap) { const m = Math.max(bs[0] + cap / 2, Math.min(bs[1] - cap / 2, G.ex)); bs = [m - cap / 2, m + cap / 2]; }   // tails and fins are not belly
+  const bw = bs[1] - bs[0], bc = (bs[0] + bs[1]) / 2, hes = Math.min(G.es, 56);   // hats follow the head, not a frog's wide-set eyes
+  const CW = { 'cos-gentleman-2': 0.68, 'cos-pharaoh-1': 0.8 };
+  const fitBox = (img, w, top, maxH) => { let h = img.height * w / img.width; if (maxH && h > maxH) { h = maxH; w = img.width * h / img.height; } return [w, h]; };
+  const put = (img, cx, top, w, h) => { ctx.imageSmoothingEnabled = true; ctx.drawImage(img, Math.round(cx - w / 2), Math.round(top), Math.round(w), Math.round(h)); };
+  for (const p of c.parts) {
+    const img = SPR[p.k]; if (!img) continue; const L = p.layer;
+    if (when === 'behind') {
+      if (L === 'back') { const sp = rowSpan(lx, G.neckY + G.es * 0.5, G.ex) || bs, w = G.es * 1.45; drawFit(ctx, img, sp[1] - w * 0.12, G.neckY - G.es * 0.15, w); }
+      if (L === 'backcape') { const [w, h] = fitBox(img, bw * 1.55, 0, (feet - G.neckY) * 1.0); put(img, bc, G.neckY - G.es * 0.15, w, h); }
+      continue;
+    }
+    if (when === 'clip') {                                  // garments that follow the body's outline
+      if (L === 'robe') { const w = bw * 1.18, h = img.height * w / img.width; lx.save(); lx.globalCompositeOperation = 'source-atop'; lx.imageSmoothingEnabled = true; lx.drawImage(img, Math.round(bc - w / 2), Math.round(G.neckY - G.es * 0.08), Math.round(w), Math.round(h)); lx.restore(); }
+      continue;
+    }
+    if (L === 'dress') { let [w, h] = fitBox(img, bw * 1.4, 0, feet + 2 - (G.neckY - G.es * 0.1)); put(img, bc, feet + 2 - h, w, h); }
+    else if (L === 'skirt') { const [w, h] = fitBox(img, bw * 1.5, 0, (feet - by) * 1.6); put(img, bc, feet + 3 - h, w, h); }
+    else if (L === 'tail') { const [w, h] = fitBox(img, bw * 1.05, 0, (feet - by) * 1.75); put(img, bc + bw * 0.06, feet + 4 - h, w, h); }
+    else if (L === 'ring') { const [w, h] = fitBox(img, bw * 1.2); put(img, bc, feet - h * 0.62, w, h); }
+    else if (L === 'chest') { const [w, h] = fitBox(img, bw * 0.62); put(img, bc, G.neckY + G.es * 0.02, w, h); }
+    else if (L === 'collar') { const [w, h] = fitBox(img, bw * (CW[p.k] || 0.9)); put(img, bc, G.neckY - G.es * 0.2, w, h); }
+    else if (L === 'capefront') { const [w, h] = fitBox(img, bw * 1.35, 0, (feet - G.neckY) * 0.95); put(img, bc, G.neckY - G.es * 0.28, w, h); }
+    else if (L === 'held') { const h = hes * 2.0, w = img.width * h / img.height; put(img, Math.min(PET_CW - w / 2 - 1, bs[1]), by - h * 0.55, w, h); }
+  }
+  if (when !== 'top') return;
+  for (const p of c.parts) {                                // head things last
+    const img = SPR[p.k]; if (!img) continue; const L = p.layer;
+    if (L === 'hood') {                                      // the face shows through the hood's opening
+      const hs = rowSpan(lx, G.ey, G.ex) || [G.ex - G.es, G.ex + G.es], fw = Math.min(hs[1] - hs[0], hes * 2.6) * 0.86, o = p.open;
+      const w = fw / (o[2] - o[0]), h = img.height * w / img.width, ox = (o[0] + o[2]) / 2, oy = (o[1] + o[3]) / 2;
+      put(img, G.ex - (ox - 0.5) * w, G.ey + G.es * 0.22 - oy * h, w, h);
+    } else if (L === 'hat') {
+      const f = COS_HAT[p.k] || [2, 0.85, 0], w = hes * f[0], h = img.height * w / img.width;
+      put(img, G.ex + f[2] * hes, G.ey - hes * 0.42 - f[1] * h, w, h);
+    } else if (L === 'tiara') { const w = hes * 1.75, h = img.height * w / img.width; put(img, G.ex, G.ey - hes * 0.55 - h * 0.8, w, h); }
+    else if (L === 'clip') { const w = hes * 0.9, h = img.height * w / img.width; put(img, G.ex + hes * 0.78, G.ey - hes * 0.95, w, h); }
+  }
+}
+
+function petImage(kind, skin) {                             // colour skins drawn for this kind of pet
+  const a = skin && skin.startsWith('a-') && SPR['pet-' + kind + '-' + skin.slice(2)];
+  return a || SPR['pet-' + kind];
+}
 function renderPet(pet, o = {}) {
-  const kind = pet.kind, im = SPR['pet-' + kind];
+  const kind = pet.kind, im0 = SPR['pet-' + kind];
   const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
   const ctx = c.getContext('2d', { willReadFrequently: true });
-  if (!im) return c;
+  if (!im0) return c;
   const G = petGeom(kind);
   const get = k => (o[k] !== undefined ? o[k] : pet[k]);
-  const skin = get('skin'), hat = get('hat'), eyes = get('eyes'), neck = get('neck'), back = get('back'), body = get('body');
+  const skin = get('skin'), cos = get('costume') && typeof COSTUMES !== 'undefined' && COSTUMES[get('costume')];
+  const hat = cos ? null : get('hat'), eyes = cos ? null : get('eyes'), neck = cos ? null : get('neck'), back = cos ? null : get('back'), body = cos ? null : get('body');
+  const im = petImage(kind, skin);
   // the pet itself (own layer so skins only touch the pet)
   const L = document.createElement('canvas'); L.width = PET_CW; L.height = PET_CH;
-  const lx = L.getContext('2d', { willReadFrequently: true }); lx.drawImage(im, G.ox, G.oy);
+  const lx = L.getContext('2d', { willReadFrequently: true }); lx.drawImage(im, G.ox + Math.round((im0.width - im.width) / 2), G.oy + im0.height - im.height);
+  if (cos) costumeLayers(ctx, lx, G, cos, 'behind');
   // backpack sits behind the pet, peeking out beside its back
   if (back && SPR[WEAR[back]]) {
     const sp = rowSpan(lx, G.neckY + G.es * 0.5, G.ex) || [G.ex - G.es, G.ex + G.es], bw = G.es * 1.45;
@@ -138,7 +192,7 @@ function renderPet(pet, o = {}) {
   const ltd = skin === 'ltd' ? LTD[kind] : null;
   if (ltd) recolor(lx, PET_CW, PET_CH, kind, ltd.pal, ltd.pat);
   else if (skin && SKINS[skin]) recolor(lx, PET_CW, PET_CH, kind, SKINS[skin].pal);
-  if (o.blink && PET_ANCHOR[kind] && PET_ANCHOR[kind].ex != null) {
+  if (o.blink && PET_ANCHOR[kind] && PET_ANCHOR[kind].ex != null && !PET_ANCHOR[kind].noblink && !(cos && cos.parts.some(p => p.layer === 'hood'))) {
     const half = kind === 'parrot' ? [0] : [-G.es / 2, G.es / 2];
     half.forEach(dx => {
       const x = G.ex + dx, r = G.er + 1.5, smp = lx.getImageData(Math.round(x), Math.round(G.ey + r + 3), 1, 1).data;
@@ -148,7 +202,9 @@ function renderPet(pet, o = {}) {
   }
   // body clothes are tailored: each row is stretched to the pet's own width there, then clipped to its outline
   if (body && garment(body)) tailor(lx, garment(body), G, body);
+  if (cos) costumeLayers(ctx, lx, G, cos, 'clip');
   ctx.drawImage(L, 0, 0);
+  if (cos) costumeLayers(ctx, lx, G, cos, 'top');
   // neck, glasses, hat on top
   if (neck === 'scarf' && SPR['wear-scarf']) drawFit(ctx, SPR['wear-scarf'], G.ex + G.es * 0.08, G.neckY - G.es * 0.42, G.es * 1.75);
   if (neck === 'bowtie' && SPR['wear-bow']) drawFit(ctx, SPR['wear-bow'], G.ex, G.neckY - G.es * 0.3, G.es * 0.95);

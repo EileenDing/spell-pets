@@ -1,0 +1,305 @@
+{
+"mermaid": {
+"0": {
+"layer": "tail",
+"open": null,
+"w": 145,
+"h": 157
+},
+"1": {
+"layer": "chest",
+"open": null,
+"w": 102,
+"h": 63
+},
+"2": {
+"layer": "clip",
+"open": null,
+"w": 86,
+"h": 61
+}
+},
+"unicorn": {
+"0": {
+"layer": "hood",
+"open": [
+0.169,
+0.444,
+0.838,
+0.848
+],
+"w": 130,
+"h": 151
+},
+"1": {
+"layer": "capefront",
+"open": null,
+"w": 139,
+"h": 112
+}
+},
+"ming": {
+"0": {
+"layer": "hat",
+"open": null,
+"w": 154,
+"h": 82
+},
+"1": {
+"layer": "robe",
+"open": null,
+"w": 138,
+"h": 141
+}
+},
+"wuxia": {
+"0": {
+"layer": "hat",
+"open": [
+0.309,
+0.519,
+0.647,
+0.617
+],
+"w": 136,
+"h": 133
+},
+"1": {
+"layer": "robe",
+"open": null,
+"w": 131,
+"h": 135
+},
+"2": {
+"layer": "held",
+"open": null,
+"w": 54,
+"h": 109
+}
+},
+"cinderella": {
+"0": {
+"layer": "dress",
+"open": null,
+"w": 187,
+"h": 151
+},
+"1": {
+"layer": "tiara",
+"open": null,
+"w": 104,
+"h": 68
+}
+},
+"snowwhite": {
+"0": {
+"layer": "dress",
+"open": null,
+"w": 172,
+"h": 161
+},
+"1": {
+"layer": "tiara",
+"open": null,
+"w": 108,
+"h": 74
+}
+},
+"donut": {
+"0": {
+"layer": "ring",
+"open": null,
+"w": 173,
+"h": 158
+},
+"2": {
+"layer": "hat",
+"open": null,
+"w": 95,
+"h": 83
+}
+},
+"hunter": {
+"0": {
+"layer": "back",
+"open": null,
+"w": 87,
+"h": 81
+},
+"1": {
+"layer": "hat",
+"open": null,
+"w": 108,
+"h": 70
+},
+"2": {
+"layer": "robe",
+"open": null,
+"w": 146,
+"h": 128
+},
+"3": {
+"layer": "held",
+"open": null,
+"w": 46,
+"h": 146
+}
+},
+"jungle": {
+"0": {
+"layer": "dress",
+"open": null,
+"w": 168,
+"h": 125
+},
+"1": {
+"layer": "tiara",
+"open": null,
+"w": 144,
+"h": 58
+},
+"2": {
+"layer": "held",
+"open": null,
+"w": 83,
+"h": 108
+}
+},
+"army": {
+"0": {
+"layer": "hat",
+"open": [
+0.256,
+0.602,
+0.727,
+0.787
+],
+"w": 121,
+"h": 108
+},
+"2": {
+"layer": "robe",
+"open": null,
+"w": 129,
+"h": 125
+},
+"3": {
+"layer": "held",
+"open": null,
+"w": 61,
+"h": 141
+}
+},
+"gentleman": {
+"0": {
+"layer": "hat",
+"open": null,
+"w": 171,
+"h": 104
+},
+"1": {
+"layer": "robe",
+"open": null,
+"w": 173,
+"h": 111
+},
+"2": {
+"layer": "collar",
+"open": null,
+"w": 116,
+"h": 54
+},
+"3": {
+"layer": "backcape",
+"open": null,
+"w": 169,
+"h": 126
+}
+},
+"lady": {
+"0": {
+"layer": "hat",
+"open": null,
+"w": 145,
+"h": 194
+},
+"1": {
+"layer": "dress",
+"open": null,
+"w": 229,
+"h": 206
+}
+},
+"pharaoh": {
+"0": {
+"layer": "hood",
+"open": null,
+"w": 199,
+"h": 184
+},
+"1": {
+"layer": "collar",
+"open": null,
+"w": 137,
+"h": 68
+},
+"2": {
+"layer": "skirt",
+"open": null,
+"w": 144,
+"h": 123
+}
+},
+"peterpan": {
+"0": {
+"layer": "hat",
+"open": null,
+"w": 158,
+"h": 118
+},
+"1": {
+"layer": "robe",
+"open": null,
+"w": 162,
+"h": 150
+}
+},
+"dino": {
+"0": {
+"layer": "hood",
+"open": [
+0.128,
+0.461,
+0.787,
+0.876
+],
+"w": 211,
+"h": 193
+},
+"1": {
+"layer": "robe",
+"open": null,
+"w": 205,
+"h": 162
+}
+},
+"octocos": {
+"0": {
+"layer": "hood",
+"open": [
+0.167,
+0.333,
+0.864,
+0.77
+],
+"w": 198,
+"h": 174
+},
+"1": {
+"layer": "skirt",
+"open": null,
+"w": 222,
+"h": 126
+}
+}
+}

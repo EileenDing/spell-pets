@@ -2321,7 +2321,10 @@ const PETS = {
  "...oo.oooo.oo..."]}
 };
 PETS.trex={name:'T-Rex'}; PETS.snake={name:'Snake'}; PETS.parrot={name:'Parrot'}; PETS.owl={name:'Owl'}; PETS.rat.name='Hamster';
-const PET_ORDER = ['dragon','dinosaur','dog','cat','turtle','rabbit','pig','rat','monkey','trex','snake','parrot','owl'];
+PETS.frog={name:'Frog'}; PETS.octopus={name:'Octopus'}; PETS.capybara={name:'Capybara'};
+const PET_ORDER = ['dragon','dinosaur','dog','cat','turtle','rabbit','pig','rat','monkey','trex','snake','parrot','owl','frog','octopus','capybara'];
+// colour skins drawn for one kind of pet (the first look in each row is the normal pet)
+const ART_SKINS = { frog: { mint: 'Mint', gold: 'Gold', pond: 'Pond', plum: 'Plum' }, octopus: { peach: 'Peach', lagoon: 'Lagoon', berry: 'Berry', ink: 'Ink' }, capybara: { honey: 'Honey', cocoa: 'Cocoa', cream: 'Cream', mist: 'Mist' } };
 
 const HATS = {
  party:{name:'Party Hat', rows:[
@@ -2376,6 +2379,7 @@ const FOODS = {
 
 const SHOP = [
  ...Object.entries(SKINS).map(([k,v])=>({id:'skin-'+k, cat:'skins', key:k, name:v.name+' skin', price:30})),
+ ...Object.entries(ART_SKINS).flatMap(([kind,o])=>Object.entries(o).map(([k,n])=>({id:'skin-'+kind+'-'+k, cat:'skins', key:'a-'+k, petKind:kind, name:n+' '+PETS[kind].name, price:40}))),
  {id:'hat-strawhat', cat:'clothes', slot:'hat', key:'strawhat', name:'Straw Hat', price:12},
  {id:'hat-cap', cat:'clothes', slot:'hat', key:'cap', name:'Paw Cap', price:12},
  {id:'hat-party', cat:'clothes', slot:'hat', key:'party', name:'Party Hat', price:10},

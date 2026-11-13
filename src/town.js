@@ -90,7 +90,7 @@ function drawTown(c, t) {
   c.fillStyle = 'rgba(255,248,232,0.3)'; c.fillRect(0, 0, TOWN_W, TOWN_H);            // softer surroundings so the houses stand out
   S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
   const PH = 92, PW = PH * PET_CW / PET_CH;
-  const order = S.pets.map((pet, i) => ({ pet, i, w: WALKERS[i] || { ...homeSpot(pet), dir: -1, wp: [] } })).filter(o => lotOf(o.pet)).sort((a, b) => a.w.y - b.w.y);
+  const order = S.pets.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
   order.forEach(({ pet, i, w }) => {
     const moving = w.wp && w.wp.length;
     const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 });

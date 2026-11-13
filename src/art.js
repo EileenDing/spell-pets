@@ -135,7 +135,10 @@ const LTD = {
   trex: { name: 'Volcano', pal: { b: '#4a3b46', d: '#2a2028', l: '#ff8c42' }, pat: (x, y) => phash(x, y, 8) < .07 ? '#ff5d2e' : null },
   snake: { name: 'Emerald', pal: { b: '#2fbf71', d: '#1b7a48', l: '#b8f5d0' }, pat: (x, y) => ((x + y) % 5 === 0 ? '#ffd23f' : null) },
   parrot: { name: 'Snowy', pal: { b: '#eef3ff', d: '#9fb0d4', l: '#ffffff' }, pat: (x, y) => phash(x, y, 9) < .06 ? '#9fd8ff' : null },
-  owl: { name: 'Moonlight', pal: { b: '#3b4a7a', d: '#232c4f', l: '#c9d4ff' }, pat: (x, y) => phash(x, y, 10) < .05 ? '#fff6b0' : null }
+  owl: { name: 'Moonlight', pal: { b: '#3b4a7a', d: '#232c4f', l: '#c9d4ff' }, pat: (x, y) => phash(x, y, 10) < .05 ? '#fff6b0' : null },
+  frog: { name: 'Strawberry', pal: { b: '#f0545f', d: '#b8323f', l: '#ffb3b8' }, pat: (x, y) => phash(x, y, 11) < .08 ? '#ffe36b' : null },
+  octopus: { name: 'Pearl', pal: { b: '#f4f0ff', d: '#c8bde8', l: '#ffffff' }, pat: (x, y) => phash(x, y, 12) < .07 ? '#ffc6e8' : null },
+  capybara: { name: 'Matcha', pal: { b: '#9cc77a', d: '#6a9a4f', l: '#e3f2c8' }, pat: (x, y) => phash(x, y, 13) < .05 ? '#fff6dd' : null }
 };
 const HAT_ART = {
   party: () => [pT(10, 5, 16, -8.5, 22, 5, '#4cc9f0', 20, { line: 1, pat: (x, y) => ((x + y + 64) % 5 < 2 ? '#f72585' : null) }), pE(16, -8.5, 2, 2, '#ffcc33', 21, { line: 1 })],

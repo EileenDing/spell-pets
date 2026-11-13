@@ -369,7 +369,9 @@ function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.fl
 
 // ================= SHOP =================
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
-const SHOP_TABS = [['homes', 'Homes'], ['furniture', 'Furniture'], ['decor', 'Decor'], ['walls', 'Walls & Floors'], ['sets', 'Room Sets'], ['food', 'Food'], ['clothes', 'Clothes'], ['skins', 'Skins']];
+const SHOP_TABS = [['homes', 'Homes'], ['furniture', 'Furniture'], ['decor', 'Decor'], ['walls', 'Walls & Floors'], ['sets', 'Room Sets'], ['food', 'Food'], ['clothes', 'Clothes'], ['costumes', 'Costumes'], ['skins', 'Skins']];
+// costume sets are sold and worn as a whole
+if (typeof COSTUMES !== 'undefined') SHOP.push(...Object.entries(COSTUMES).map(([k, c]) => ({ id: 'cos-' + k, cat: 'costumes', key: k, name: c.name, price: c.price, slot: 'costume' })));
 const imgSrc = k => SPR[k] ? SPR[k].src : '';
 function priceBtn(data, price, owned, label, sell) {
   if (owned) return `<span class="ownedtag">${icon('check')} ${label || 'Owned'}</span>${sell && price ? `<button class="btn small sellbtn" data-sell="${sell}">Sell $${sellPrice(price)}</button>` : ''}`;
@@ -377,8 +379,10 @@ function priceBtn(data, price, owned, label, sell) {
   return `<button class="btn buy ${can ? 'go' : 'off'}" ${data} ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${price}</button>`;
 }
 function itemPreview(it) {
-  const pet = S.pets[S.active] || { kind: 'cat' };
-  if (it.cat === 'skins') return `<img class="pxi prev pet" src="${petURL(pet, { skin: it.key, hat: null, eyes: null, neck: null, back: null, body: null })}" alt="">`;
+  let pet = S.pets[S.active] || { kind: 'cat' };
+  if (it.petKind && pet.kind !== it.petKind) pet = S.pets.find(p => p.kind === it.petKind) || { kind: it.petKind };
+  if (it.cat === 'costumes') return `<img class="prev wear cosset" src="${imgSrc('cosset-' + it.key)}" alt=""><img class="pxi prev pet onpet" src="${petURL(pet, { costume: it.key, skin: pet.skin })}" alt="">`;
+  if (it.cat === 'skins') return `<img class="pxi prev pet" src="${petURL(pet, { skin: it.key, hat: null, eyes: null, neck: null, back: null, body: null, costume: null })}" alt="">`;
   if (it.cat === 'clothes') {
     const bare = { hat: null, eyes: null, neck: null, back: null, body: null, [it.slot]: it.key };
     const wear = WEAR[it.key] && SPR[WEAR[it.key]];
@@ -408,7 +412,7 @@ function renderShop() {
     const tp = S.pets[shopPet] || S.pets[0];
     if (!tp) h = note('Hatch a pet first, then build it a house.');
     else {
-      if (!shopHouseKind || shopHouseKind === tp.kind) shopHouseKind = PET_ORDER.find(k => k !== tp.kind);
+      if (!shopHouseKind || shopHouseKind === tp.kind) shopHouseKind = PET_ORDER.find(k => k !== tp.kind && HOUSE_LIST.some(h => h[1] === k));
       const card = k => {
         const H = HOUSES[k], own = ownsH(k), here = tp.house === k, other = H.kind !== tp.kind, ok = canLive(tp, k);
         const who = S.pets.filter(p => p.house === k).map(p => p.name), total = H.price + (other ? H.fee : 0);
@@ -420,10 +424,10 @@ function renderShop() {
         return `<div class="card house ${own ? 'owned' : ''}"><div class="prevbox tall"><img class="prev house" src="${imgSrc('house-' + k)}" alt=""></div><b>${esc(H.name)}</b><span class="muted small">${sub}</span>${btn}${own ? `<button class="btn small sellbtn" data-sell="h:${k}">Sell $${sellPrice(S.owned['h-' + k] === 1 ? Math.round(H.price / 3) : H.price)}</button>` : ''}</div>`;
       };
       const ofKind = kind => HOUSE_LIST.filter(x => x[1] === kind).sort((a, b) => a[3] - b[3]).map(x => card(x[0])).join('');
-      h = `<h2 class="shophead">${esc(houseKindName(tp.kind))} houses <small class="muted">for ${esc(tp.name)}</small></h2><div class="shopgrid wide">${ofKind(tp.kind)}</div>
+      h = `<h2 class="shophead">${esc(houseKindName(tp.kind))} houses <small class="muted">for ${esc(tp.name)}</small></h2>${ofKind(tp.kind) ? `<div class="shopgrid wide">${ofKind(tp.kind)}</div>` : note(`${esc(houseKindName(tp.kind))} houses and a ${esc(houseKindName(tp.kind)).toLowerCase()} lot in Pet Town are coming soon. ${esc(tp.name)} can already move into another animal's house below and decorate the room inside.`)}
         <h2 class="shophead">Other animals\u2019 houses</h2>
         <p class="muted shopnote">${esc(tp.name)} can live in another animal's house too, for a one-time unlock fee (5\u201310% of the price). Once a house is unlocked, any of your pets can use it.</p>
-        <div class="chips housekinds">${PET_ORDER.filter(k => k !== tp.kind).map(k => chip(houseKindName(k), k === shopHouseKind, `data-hkind="${k}"`)).join('')}</div>
+        <div class="chips housekinds">${PET_ORDER.filter(k => k !== tp.kind && HOUSE_LIST.some(h => h[1] === k)).map(k => chip(houseKindName(k), k === shopHouseKind, `data-hkind="${k}"`)).join('')}</div>
         <div class="shopgrid wide">${ofKind(shopHouseKind)}</div>`;
     }
   } else if (shopTab === 'furniture') h = note(`New things go straight into ${me ? esc(me.name) + "'s" : 'your'} home. Use Decorate to move them around.`) + furnCards(FURN_GROUPS.slice(0, 2));
@@ -431,20 +435,23 @@ function renderShop() {
   else if (shopTab === 'walls') h = `<h2 class="shophead">Wallpaper</h2>${swatchCards(WALLPAPERS, 'w')}<h2 class="shophead">Floors</h2>${swatchCards(FLOORS, 'fl')}`;
   else if (shopTab === 'sets') {
     const tp = S.pets[shopPet];
-    h = note('A whole finished room in one go. The set stays together; you can still add small things on top in Decorate, and switch sets there any time.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
+    h = note('A whole finished room in one go. Every piece can be moved in Decorate, and you can switch sets there any time.') + `<div class="shopgrid wide">${ROOM_SETS.map(st => {
       const p = setPrice(st);
       return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('setprev-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${S.owned['set-' + st.k] ? 'Yours' : st.pieces + ' pieces + wallpaper + floor'}</span>
         ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
-    const items = SHOP.filter(i => i.cat === shopTab && !i.legacy);
+    const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || S.pets.some(p => p.kind === i.petKind)));
     const ltd = shopTab !== 'skins' ? '' : S.pets.map(p => {
       const has = S.owned['ltd-' + p.kind];
       return `<div class="card ltd ${has ? 'owned' : 'locked'}"><span class="ltdtag">Limited</span><div class="prevbox"><img class="pxi prev pet ${has ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
         <b>${has ? esc(LTD[p.kind].name) + ' ' + esc(PETS[p.kind].name) : '???'}</b><span class="muted small">${has ? 'Unlocked! Wear it in the room.' : 'Not for sale. Keep playing with ' + esc(p.name) + ' to discover it.'}</span></div>`;
     }).join('');
-    h = `<div class="shopgrid">${ltd}${items.map(it => {
+    h = (shopTab === 'costumes' ? note('Each costume comes as a whole set and is worn all together. Change outfits in your pet\'s room.') : '') + `<div class="shopgrid">${ltd}${items.map(it => {
       const owned = it.cat !== 'food' && S.owned[it.id];
-      const extra = it.cat === 'food' ? `<span class="muted small">Fills ${FOODS[it.key].fill}% · you have ${S.food[it.key] || 0}</span>` : `<span class="muted small">Preview on ${esc((me || {}).name || 'your pet')}</span>`;
+      const forPet = it.petKind ? S.pets.find(p => p.kind === it.petKind) : me;
+      const extra = it.cat === 'food' ? `<span class="muted small">Fills ${FOODS[it.key].fill}% · you have ${S.food[it.key] || 0}</span>`
+        : it.cat === 'costumes' ? `<span class="muted small">Whole set · on ${esc((me || {}).name || "your pet")}</span>`
+        : it.petKind ? `<span class="muted small">Only for ${esc(PETS[it.petKind].name)}s · on ${esc((forPet || {}).name || '')}</span>` : `<span class="muted small">Preview on ${esc((me || {}).name || 'your pet')}</span>`;
       return `<div class="card ${owned ? 'owned' : ''}"><div class="prevbox">${itemPreview(it)}</div><b>${esc(it.name)}</b>${extra}${priceBtn(`data-id="${it.id}"`, it.price, owned, '', 'i:' + it.id)}</div>`;
     }).join('')}</div>`;
   }
@@ -455,7 +462,11 @@ function buy(id) {
   if (S.coins < it.price) { toast(`You need $${money(it.price - S.coins)} more. Play a session to earn coins!`); return; }
   S.coins -= it.price;
   if (it.cat === 'food') S.food[it.key] = (S.food[it.key] || 0) + 1;
-  else { S.owned[it.id] = 1; const pet = S.pets[S.active]; if (it.cat === 'skins' && pet) pet.skin = it.key; if (it.cat === 'clothes' && pet) pet[it.slot] = it.key; }
+  else {
+    S.owned[it.id] = 1; let pet = S.pets[S.active];
+    if (it.petKind && (!pet || pet.kind !== it.petKind)) pet = S.pets.find(p => p.kind === it.petKind);
+    if (it.cat === 'skins' && pet) pet.skin = it.key; if (it.cat === 'clothes' && pet) pet[it.slot] = it.key; if (it.cat === 'costumes' && pet) pet.costume = it.key;
+  }
   save(); SFX.coin(); renderHud(); renderShop();
   toast(it.cat === 'food' ? `Bought ${it.name}. Feed it in a pet's room.` : `Bought ${it.name}!`);
 }

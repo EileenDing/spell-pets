@@ -150,13 +150,13 @@ function drawPet(c, pet, x, y, o = {}) {
   if (hat) { const h = HATS[hat]; drawSprite(c, h.rows, BASEPAL, x + a.hx - 4, oy + a.hy - (h.rows.length - 1)); }
 }
 function petURL(pet, o = {}) {
-  const key = 'p-' + JSON.stringify([pet.kind, pet.skin, pet.hat, pet.eyes, pet.neck, pet.back, pet.body, o]);
+  const key = 'p-' + JSON.stringify([pet.kind, pet.skin, pet.hat, pet.eyes, pet.neck, pet.back, pet.body, pet.costume, o]);
   if (URLS[key]) return URLS[key];
   return URLS[key] = petCanvas(pet, o).toDataURL();
 }
 const PETC = {};
 function petCanvas(pet, o = {}) {
-  const key = JSON.stringify([pet.kind, pet.skin, pet.hat, pet.eyes, pet.neck, pet.back, pet.body, o]);
+  const key = JSON.stringify([pet.kind, pet.skin, pet.hat, pet.eyes, pet.neck, pet.back, pet.body, pet.costume, o]);
   if (PETC[key]) return PETC[key];
   const keys = Object.keys(PETC); if (keys.length > 60) delete PETC[keys[0]];
   return PETC[key] = renderPet(pet, o);
@@ -352,7 +352,7 @@ function takeRemote(id, d) {
   const local = localSave(id), localAt = local ? local.savedAt || 0 : 0;
   if ((d.savedAt || 0) > localAt && d.json) {
     lsSet(lsKey(id), d.json); prof.savedAt = d.savedAt;
-    if (PROFILE && PROFILE.id === id && !P) { S = migrate(JSON.parse(d.json)); PROFILE.name = d.name; PROFILE.test = !!d.test; if (currentScreen !== 'who') route(currentScreen); }
+    if (PROFILE && PROFILE.id === id && !P) { S = migrate(JSON.parse(d.json)); PROFILE.name = d.name; PROFILE.test = !!d.test; testGrant(); if (currentScreen !== 'who') route(currentScreen); }
   }
 }
 async function initCloud() {
@@ -396,8 +396,11 @@ function choosePlayer(id) {
   lsSet(LS_ACTIVE, id);
   S = localSave(id) || freshState();
   roomIdx = 0; shopPet = 0; zhPartSel = 0;
+  testGrant();
   route('home'); maybeFirstPet();
 }
+// one-time top-up for the parent's Test profile (Nov 2026: $10,000 for trying out the new things)
+function testGrant() { if (PROFILE && PROFILE.test && S && !S.grant10k) { S.coins = Math.max(S.coins || 0, 10000); S.grant10k = 1; save(); renderHud(); } }
 function addPlayer(name, fromState) {
   name = (name || '').trim().slice(0, 20); if (!name) return null;
   const id = newId(), prof = { id, name, created: Date.now(), savedAt: 0 };
@@ -1029,7 +1032,10 @@ function renderRoom() {
   if (roomTab === 'outfit' && pet) {
     const skins = Object.keys(SKINS).filter(k => S.owned['skin-' + k]);
     const ltdChip = S.owned['ltd-' + pet.kind] ? chip(LTD[pet.kind].name + ' (limited)', pet.skin === 'ltd', 'data-set="skin" data-v="ltd"', '<i class="sw ltdsw"></i>') : '';
-    h += `<h3>Skin</h3><div class="chips">${chip('Normal', !pet.skin, 'data-set="skin" data-v=""')}${ltdChip}${skins.map(k => chip(SKINS[k].name, pet.skin === k, `data-set="skin" data-v="${k}"`, `<i class="sw" style="background:${SKINS[k].pal.b}"></i>`)).join('')}</div>`;
+    const artChips = Object.entries((typeof ART_SKINS !== 'undefined' && ART_SKINS[pet.kind]) || {}).filter(([k]) => S.owned['skin-' + pet.kind + '-' + k]).map(([k, n]) => chip(n, pet.skin === 'a-' + k, `data-set="skin" data-v="a-${k}"`)).join('');
+    h += `<h3>Skin</h3><div class="chips">${chip('Normal', !pet.skin, 'data-set="skin" data-v=""')}${ltdChip}${artChips}${skins.map(k => chip(SKINS[k].name, pet.skin === k, `data-set="skin" data-v="${k}"`, `<i class="sw" style="background:${SKINS[k].pal.b}"></i>`)).join('')}</div>`;
+    const cosOwn = SHOP.filter(i => i.cat === 'costumes' && S.owned[i.id]);
+    if (cosOwn.length) h += `<h3>Costume</h3><p class="muted small">A costume is worn as a whole set, over the other clothes.</p><div class="chips">${chip('None', !pet.costume, 'data-set="costume" data-v=""')}${cosOwn.map(i => chip(i.name, pet.costume === i.key, `data-set="costume" data-v="${i.key}"`)).join('')}</div>`;
     for (const [slot, label] of [['hat', 'Hat'], ['eyes', 'Glasses'], ['neck', 'Neck'], ['back', 'Back'], ['body', 'Outfit']]) {
       const own = SHOP.filter(i => i.slot === slot && S.owned[i.id]);
       h += `<h3>${label}</h3>${own.length ? `<div class="chips">${chip('None', !pet[slot], `data-set="${slot}" data-v=""`)}${own.map(i => chip(i.name, pet[slot] === i.key, `data-set="${slot}" data-v="${i.key}"`)).join('')}</div>` : emptyShop(label.toLowerCase())}`;
@@ -1057,7 +1063,7 @@ function roomClick(e) {
   if (b.dataset.house) { shopTab = 'homes'; shopPet = roomIdx; return route('shop'); }
   if (b.dataset.movein !== undefined && pet) { if (b.dataset.movein && !canLive(pet, b.dataset.movein)) return; pet.house = b.dataset.movein || null; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.buddy !== undefined) { S.active = +b.dataset.buddy; hopUntil = performance.now() + 900; save(); SFX.good(); toast(`${pet.name} is your study buddy now!`); return renderRoom(); }
-  if (b.dataset.set && pet) { pet[b.dataset.set] = b.dataset.v || null; save(); SFX.tap(); return renderRoom(); }
+  if (b.dataset.set && pet) { pet[b.dataset.set] = b.dataset.v || null; if (b.dataset.v && !['skin', 'costume'].includes(b.dataset.set)) pet.costume = null; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.shel && pet) { pet.shelter = b.dataset.shel; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.dec && pet) { pet.decor[b.dataset.dec] = !pet.decor[b.dataset.dec]; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.feed && pet) {
