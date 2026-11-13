@@ -4,7 +4,7 @@ from PIL import Image, ImageFilter
 here = os.path.dirname(os.path.abspath(__file__)); os.chdir(here)
 G = 1.22                                # every piece a bit bigger than its slot
 S2 = 2                                  # render scale (room is 768x512 in game units)
-RW, RH, WALL = 768, 512, 300
+RW, RH, WALL = 768, 512, 380             # set rooms: tall walls and a shallow floor, like the room pictures
 def fade(im, wash, white):
     a = np.array(im.convert('RGB')).astype(float); avg = a.reshape(-1, 3).mean(0)
     a = a * (1 - wash) + avg * wash; a = a * (1 - white) + 255 * white
@@ -34,7 +34,7 @@ def background(k):
     a[0:30] = (143, 90, 46); a[0:10] = (196, 134, 80); a[28:34] = (77, 44, 20)                                      # ceiling beam
     return Image.fromarray(a)
 # slots in room units: (x, anchor y, height, max width, anchor)  anchor: 'bottom' | 'top' | 'centre'
-SLOT = {
+OLD_SLOT = {
   'window': (330, 250, 150, 220, 'bottom'), 'ceil': (548, 17, 118, 200, 'top'), 'ceil2': (200, 17, 108, 150, 'top'),
   'walltop': (384, 22, 60, 360, 'top'), 'rack': (150, 34, 62, 250, 'top'),
   'wall_l': (105, 170, 80, 130, 'centre'), 'wall_m': (530, 172, 78, 170, 'centre'),
@@ -43,6 +43,32 @@ SLOT = {
   'plant': (45, 372, 150, 105, 'bottom'), 'plant_r': (735, 372, 145, 100, 'bottom'), 'lamp': (432, 368, 165, 95, 'bottom'),
   'rug': (400, 455, 0, 250, 'centre'), 'soft': (300, 506, 56, 115, 'bottom'), 'front_r': (722, 506, 88, 90, 'bottom'),
 }
+# real-world sizes: windows and tall cupboards grow the most, small things on tables barely
+SLOT = {
+  'window': (330, 312, 192, 270, 'bottom'), 'ceil': (548, 17, 128, 215, 'top'), 'ceil2': (200, 17, 118, 160, 'top'),
+  'walltop': (384, 22, 70, 420, 'top'), 'rack': (150, 34, 72, 280, 'top'),
+  'wall_l': (105, 205, 100, 160, 'centre'), 'wall_m': (530, 205, 96, 200, 'centre'),
+  'bed': (140, 494, 190, 300, 'bottom'), 'side': (300, 410, 96, 118, 'bottom'), 'big': (680, 408, 262, 190, 'bottom'),
+  'mid': (515, 440, 136, 255, 'bottom'), 'front': (515, 496, 78, 175, 'bottom'), 'seat': (618, 498, 100, 140, 'bottom'),
+  'plant': (45, 410, 172, 120, 'bottom'), 'plant_r': (735, 410, 166, 115, 'bottom'), 'lamp': (432, 410, 192, 108, 'bottom'),
+  'rug': (400, 470, 0, 300, 'centre'), 'soft': (300, 508, 60, 125, 'bottom'), 'front_r': (722, 508, 92, 100, 'bottom'),
+}
+WALL_SLOTS = ('window', 'walltop', 'rack', 'wall_l', 'wall_m', 'ceil', 'ceil2')
+def regeo(plan):
+    """overrides written for the old 300-unit wall -> the new tall-wall room"""
+    out = []
+    for piece, slot, o in plan:
+        o = dict(o)
+        if slot.startswith('on:') or slot == 'sill':
+            if 'h' in o: o['h'] = o['h'] * 1.1
+            if 'dx' in o: o['dx'] = o['dx'] * 1.15
+        else:
+            O, N = OLD_SLOT[slot], SLOT[slot]; f = (N[3] / O[3]) if slot == 'rug' else N[2] / O[2]
+            if 'h' in o: o['h'] = o['h'] * f
+            if 'mw' in o: o['mw'] = o['mw'] * (N[3] / O[3])
+            if 'y' in o: o['y'] = o['y'] + (N[1] - O[1]) if slot in WALL_SLOTS else round(WALL + (o['y'] - 300) * (RH - WALL) / (RH - 300))
+        out.append((piece, slot, o))
+    return out
 # set: name, [(piece, slot, overrides)]; slot 'on:<piece>' sits on that piece, 'sill' sits on the window sill
 SETS = {
  'forest': ('Forest Room', [('win-forest', 'window', {}), ('forestlantern', 'ceil', {}), ('vinebasket', 'ceil2', {'x': 135}), ('bed-forest', 'bed', {'h': 150}),
@@ -83,15 +109,20 @@ SETS = {
    ('floorcushion', 'soft', {'x': 640, 'h': 55, 'y': 500}), ('teavase', 'plant_r', {'h': 85, 'x': 590, 'y': 372})]),
  'desert': ('Desert Camp', [('win-desert', 'window', {'h': 140}), ('fairylights', 'walltop', {'mw': 420, 'y': 34}), ('cactuspendant', 'ceil', {'h': 120, 'x': 590}), ('bed-desert', 'bed', {'h': 195}),
    ('desertbench', 'mid', {'h': 80, 'mw': 220, 'x': 560}), ('oasisrug2', 'rug', {'x': 440}), ('desertcactus', 'plant_r', {'h': 120}), ('desertthrow', 'soft', {'x': 330, 'h': 52})]),
- 'midnight': ('Midnight Room', [('win-midnight', 'window', {'h': 150, 'x': 400}), ('starpendant', 'ceil2', {'x': 245, 'h': 112}), ('bed-midnight', 'bed', {'h': 165, 'mw': 260}),
-   ('midnightstand', 'side', {'h': 76, 'x': 305}), ('moonorb', 'on:midnightstand', {'h': 48}), ('telescope', 'lamp', {'x': 548, 'h': 140}), ('midnightdresser', 'big', {'h': 112, 'mw': 165, 'x': 690}),
-   ('armillary', 'on:midnightdresser', {'h': 70, 'dx': 38}), ('bluebooks', 'on:midnightdresser', {'h': 44, 'dx': -42}), ('starchartrug', 'rug', {'x': 440, 'mw': 260})]),
- 'library': ('Library Archive', [('win-library', 'window', {'h': 150, 'x': 405}), ('chandelier', 'ceil', {'x': 405, 'h': 100}), ('archivebookcase', 'big', {'x': 92, 'h': 190, 'mw': 150}),
-   ('pottedivy', 'on:archivebookcase', {'h': 58, 'dx': -18}), ('libladder', 'lamp', {'x': 205, 'h': 175}), ('cardcatalog', 'big', {'x': 712, 'h': 96, 'mw': 105}),
-   ('displaycase', 'mid', {'x': 405, 'y': 392, 'h': 92, 'mw': 190}), ('chaise', 'bed', {'h': 100, 'mw': 255}), ('writingdesk', 'mid', {'x': 600, 'y': 410, 'h': 96, 'mw': 185}),
-   ('bankerlamp', 'on:writingdesk', {'h': 58, 'dx': 42}), ('archivebooks', 'on:writingdesk', {'h': 32, 'dx': -40}), ('footstool', 'seat', {'x': 600, 'h': 58, 'y': 486}),
-   ('archiverug', 'rug', {'x': 420, 'mw': 270}), ('globe', 'front_r', {'h': 85, 'x': 722})]),
+ 'midnight': ('Midnight Room', [('win-midnight', 'window', {'h': 197, 'x': 392, 'y': 290, 'mw': 246}), ('starpendant', 'ceil2', {'x': 192, 'h': 135, 'mw': 164}),
+   ('bed-midnight', 'bed', {'h': 176, 'mw': 246, 'x': 130, 'y': 494}), ('midnightstand', 'side', {'h': 75, 'x': 280, 'y': 420}), ('moonorb', 'on:midnightstand', {'h': 59}),
+   ('telescope', 'lamp', {'x': 528, 'h': 164, 'mw': 139, 'y': 425}), ('midnightdresser', 'big', {'h': 121, 'mw': 164, 'x': 676, 'y': 418}),
+   ('armillary', 'on:midnightdresser', {'h': 89, 'dx': 48}), ('bluebooks', 'on:midnightdresser', {'h': 41, 'dx': -48}), ('starchartrug', 'rug', {'x': 430, 'y': 468, 'mw': 287})]),
+ 'library': ('Library Archive', [('win-library', 'window', {'h': 193, 'x': 405, 'y': 292, 'mw': 205}), ('chandelier', 'ceil', {'x': 405, 'h': 92, 'mw': 139}),
+   ('archivebookcase', 'big', {'x': 118, 'h': 250, 'mw': 230, 'y': 418}), ('pottedivy', 'on:archivebookcase', {'h': 57, 'dx': -55}), ('libladder', 'lamp', {'x': 222, 'h': 223, 'mw': 164, 'y': 425}),
+   ('cardcatalog', 'big', {'x': 728, 'h': 100, 'mw': 115, 'y': 414}), ('globe', 'on:cardcatalog', {'h': 69}),
+   ('displaycase', 'mid', {'x': 405, 'y': 428, 'h': 123, 'mw': 184}), ('chaise', 'bed', {'h': 115, 'mw': 221, 'x': 140, 'y': 496}),
+   ('writingdesk', 'mid', {'x': 560, 'y': 448, 'h': 113, 'mw': 184}), ('bankerlamp', 'on:writingdesk', {'h': 82, 'dx': 58}), ('archivebooks', 'on:writingdesk', {'h': 34, 'dx': -55}),
+   ('footstool', 'seat', {'x': 575, 'h': 69, 'y': 502}), ('archiverug', 'rug', {'x': 420, 'y': 472, 'mw': 344})]),
 }
+NEWGEO = {'midnight', 'library'}       # laid out straight from the room pictures
+for _k in list(SETS):
+    if _k not in NEWGEO: SETS[_k] = (SETS[_k][0], regeo(SETS[_k][1]))
 def surface_frac(im):
     a = np.array(im)[..., 3] > 120; H, W = a.shape
     for y in range(H):

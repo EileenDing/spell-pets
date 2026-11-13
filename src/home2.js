@@ -1,6 +1,8 @@
 // ================= ROOMS, HOMES & SHOP (Pet Town art set) =================
 // Each pet has a room (wallpaper, floor, furniture it can drag around) and, in Pet Town, a house.
 const ROOM_W = 768, ROOM_H = 512, WALL_Y = 300;
+// set rooms have taller walls (room.wy); CUR_WY is the wall line of the room being worked on
+let CUR_WY = WALL_Y; const useRoom = r => (CUR_WY = (r && r.wy) || WALL_Y);
 // key, name, group, price, place, size, default x, default y
 // place: wall = hangs on the wall, floor = stands on the floor, rug = flat on the floor, ceil = hangs from the ceiling
 // size = height in the room (rugs: width). x/y = centre-bottom (rugs: centre).
@@ -122,8 +124,10 @@ function migrateRoom(p, f) {
     p.room.items = (p.room.items || []).filter(i => FURN[i.k]);
     if (p.room.scene && !SET_ROOMS.some(s => s.k === p.room.scene)) delete p.room.scene;
     const st = p.room.scene && SET_ROOMS.find(s => s.k === p.room.scene);
-    if (st && !p.room.sp) { p.room.items = setItems(st).filter(i => !p.room.items.some(x => x.k === i.k)).concat(p.room.items); }   // sets used to be one picture: lay out their pieces once
-    if (st) p.room.sp = 1;
+    if (st && p.room.sp !== 2) {                          // set rooms got taller walls and real-size furniture (Nov 2026): lay the set out again, keep the extras
+      p.room.items = setItems(st).concat(p.room.items.filter(i => !FURN[i.k].set && FURN[i.k].place !== 'wall' && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k)));
+      p.room.sp = 2; p.room.wy = st.wy || 380; useRoom(p.room); p.room.items.forEach(i => { if (!FURN[i.k].set) clampItem(i); }); useRoom(null);
+    }
   }
   if (p.room) return;
   p.room = defaultRoom();
@@ -150,9 +154,9 @@ function clampItem(it) {
   const F = FURN[it.k], { w, h } = itemSize(it.k);
   const over = Math.min(20, w * 0.15); it.x = Math.round(Math.max(w / 2 - over, Math.min(ROOM_W - w / 2 + over, it.x)));
   if (it.on) return;                                         // sitting on another piece: its y comes from that piece
-  if (F.place === 'wall') it.y = Math.round(Math.max(h + 14, Math.min(WALL_Y - 6, it.y)));
-  else if (F.place === 'floor') it.y = Math.round(Math.max(WALL_Y + 26, Math.min(ROOM_H - 4, it.y)));
-  else if (F.place === 'rug') it.y = Math.round(Math.max(WALL_Y + 20 + h / 2, Math.min(ROOM_H - h / 2 + 10, it.y)));
+  if (F.place === 'wall') it.y = Math.round(Math.max(h + 14, Math.min(CUR_WY - 6, it.y)));
+  else if (F.place === 'floor') it.y = Math.round(Math.max(CUR_WY + 26, Math.min(ROOM_H - 4, it.y)));
+  else if (F.place === 'rug') it.y = Math.round(Math.max(Math.min(CUR_WY + 20 + h / 2, ROOM_H - h / 2 + 10), Math.min(ROOM_H - h / 2 + 10, it.y)));
   else it.y = 0;
 }
 // ---- stacking: small things can sit on tables, beds, shelves and window sills ----
@@ -176,6 +180,7 @@ function surfaceFrac(k) {
 function surfaceY(it) { const f = surfaceFrac(it.k); if (f == null) return null; const r = itemRect(it); return r.y0 + r.h * f; }
 // snap a small thing onto the piece under it, or let it drop to the floor
 function snapStack(room, it) {
+  useRoom(room);
   if (!isStackable(it.k)) { delete it.on; return; }
   let best = null, bd = 46;
   room.items.forEach(h => {
@@ -186,7 +191,7 @@ function snapStack(room, it) {
   if (best) { it.on = best.h.k; it.y = Math.round(best.s); } else { delete it.on; clampItem(it); }
 }
 const ridersOf = (room, k) => room.items.filter(i => i.on === k);
-function dropRiders(room, k) { ridersOf(room, k).forEach(r => { delete r.on; clampItem(r); }); }
+function dropRiders(room, k) { useRoom(room); ridersOf(room, k).forEach(r => { delete r.on; clampItem(r); }); }
 function itemZ(room, it, r) { if (FURN[it.k].place === 'ceil') return WALL_Y;   // hanging lamps in front of things on the wall
   const h = it.on && room.items.find(x => x.k === it.on); return h ? itemRect(h).y1 + 0.5 : (r || itemRect(it)).y1; }
 
@@ -194,7 +199,7 @@ function itemZ(room, it, r) { if (FURN[it.k].place === 'ceil') return WALL_Y;   
 const BED_KEYS = ['boxbed', 'basket', 'cushion', 'beanbag', 'hammock', 'bed'];
 const swapGroup = k => BED_KEYS.includes(k) ? BED_KEYS : FURN[k].place === 'rug' ? FURN_LIST.filter(f => f[4] === 'rug').map(f => f[0]) : null;
 function placeItem(room, k) {
-  const F = FURN[k]; if (room.items.some(i => i.k === k)) return room.items.findIndex(i => i.k === k);
+  useRoom(room); const F = FURN[k]; if (room.items.some(i => i.k === k)) return room.items.findIndex(i => i.k === k);
   const grp = swapGroup(k), old = grp && room.items.find(i => grp.includes(i.k) && i.k !== k);
   if (old) { room.items = room.items.filter(i => i !== old); const it = { k, x: old.x, y: F.place === 'rug' ? old.y : F.y, f: old.f }; clampItem(it); room.items.push(it); return room.items.length - 1; }
   const { w } = itemSize(k), same = room.items.filter(i => FURN[i.k].place === F.place);
@@ -216,8 +221,8 @@ function tileCanvas(key, s) {
   [[0, 0, 1, 1], [1, 0, -1, 1], [0, 1, 1, -1], [1, 1, -1, -1]].forEach(([i, j, sx, sy]) => { g.save(); g.translate(i * w + (sx < 0 ? w : 0), j * h + (sy < 0 ? h : 0)); g.scale(sx, sy); g.drawImage(im, 0, 0, w, h); g.restore(); });
   return TILEC[id] = t;
 }
-function roomBg(wall, floor) {
-  const id = wall + '|' + floor; if (BGC[id]) return BGC[id];
+function roomBg(wall, floor, WALL_Y = 300) {
+  const id = wall + '|' + floor + '|' + WALL_Y; if (BGC[id]) return BGC[id];
   const c = document.createElement('canvas'); c.width = ROOM_W; c.height = ROOM_H; const x = c.getContext('2d');
   const wt = tileCanvas('wall-' + wall, wall === 'leafy' ? 0.9 : 1.15), ft = tileCanvas('floor-' + floor, 1.05);
   x.fillStyle = wt ? x.createPattern(wt, 'repeat') : '#f6e7c8'; x.fillRect(0, 0, ROOM_W, WALL_Y);
@@ -257,18 +262,18 @@ function drawRoom(c, t, pet, o = {}) {
   const id = o.id || 'home', dt = roomLast[id] ? Math.min(0.25, (t - roomLast[id]) / 1000) : 0; roomLast[id] = t;
   c.setTransform(c.canvas.width / ROOM_W, 0, 0, c.canvas.height / ROOM_H, 0, 0);
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
-  const room = (pet && pet.room) || defaultRoom(), sceneSet = room.scene && ROOM_SETS.find(s => s.k === room.scene);
+  const room = (pet && pet.room) || defaultRoom(), sceneSet = room.scene && ROOM_SETS.find(s => s.k === room.scene); useRoom(room);
   if (sceneSet && SPR['theme-' + room.scene]) c.drawImage(SPR['theme-' + room.scene], 0, 0, ROOM_W, ROOM_H);
-  else c.drawImage(roomBg(room.wall, room.floor), 0, 0);
+  else c.drawImage(roomBg(room.wall, room.floor, CUR_WY), 0, 0);
   // sunlight from windows
   room.items.forEach(it => {
     if (sceneSet || !/win$/.test(it.k)) return; const r = itemRect(it);
     c.save(); c.globalAlpha = 0.12; c.fillStyle = '#fff3c4'; c.beginPath();
-    c.moveTo(r.x0 + r.w * 0.2, WALL_Y + 4); c.lineTo(r.x1 - r.w * 0.2, WALL_Y + 4); c.lineTo(r.x1 + 40, ROOM_H); c.lineTo(r.x0 + 20, ROOM_H); c.closePath(); c.fill(); c.restore();
+    c.moveTo(r.x0 + r.w * 0.2, CUR_WY + 4); c.lineTo(r.x1 - r.w * 0.2, CUR_WY + 4); c.lineTo(r.x1 + 40, ROOM_H); c.lineTo(r.x0 + 20, ROOM_H); c.closePath(); c.fill(); c.restore();
   });
   const list = room.items.map((it, i) => ({ it, i, r: itemRect(it) }));
   list.filter(e => FURN[e.it.k].place === 'rug').forEach(e => drawItem(c, e, o));
-  const pr = pet ? roam(id, dt, o.still, sceneSet ? sceneSet.floorY : 420) : null;
+  const pr = pet ? roam(id, dt, o.still, room.wy || (sceneSet ? sceneSet.floorY : 420)) : null;
   const rest = list.filter(e => FURN[e.it.k].place !== 'rug').map(e => ({ ...e, z: itemZ(room, e.it, e.r) }));
   if (pr) rest.push({ pet: true, z: pr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
@@ -357,15 +362,15 @@ function buyThing(kind, k, pet) {
 }
 function setPrice(set) { return S.owned['set-' + set.k] ? 0 : Math.round(set.price * FURN_PRICE_UP); }
 const setItems = set => set.items.map(i => ({ ...i }));
-function fixRiders(room) { room.items.forEach(i => { if (i.on && !room.items.some(h => h.k === i.on)) { delete i.on; clampItem(i); } }); }
+function fixRiders(room) { useRoom(room); room.items.forEach(i => { if (i.on && !room.items.some(h => h.k === i.on)) { delete i.on; clampItem(i); } }); }
 function applySet(set, pet) {
   S.owned['set-' + set.k] = 1;
   const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !FURN[i.k].set && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
-  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 1, items: setItems(set).concat(keep) };
+  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, wy: set.wy || 380, items: setItems(set).concat(keep) };
   fixRiders(pet.room);
 }
 const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
-function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; room.items = room.items.filter(i => !i.lock && !FURN[i.k].set); room.items = room.items.concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); fixRiders(room); }
+function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; delete room.wy; useRoom(room); room.items = room.items.filter(i => !i.lock && !FURN[i.k].set); room.items = room.items.concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); fixRiders(room); }
 
 // ================= SHOP =================
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
@@ -571,7 +576,7 @@ function wireDeco() {
   cv.addEventListener('pointermove', e => {
     const d = DECO.drag, pet = S.pets[DECO.pet]; if (!d || !pet) return; const p = decoPoint(e), it = pet.room.items[d.i]; if (!it) return;
     const ox = it.x, oy = it.y; delete it.on;
-    it.x = p.x + d.dx; it.y = p.y + d.dy; clampItem(it);
+    useRoom(pet.room); it.x = p.x + d.dx; it.y = p.y + d.dy; clampItem(it);
     if (isStackable(it.k)) { it.y = p.y + d.dy; snapStack(pet.room, it); }
     else ridersOf(pet.room, it.k).forEach(r => { r.x += it.x - ox; const s = surfaceY(it); if (s != null) r.y = Math.round(s); });
     d.moved = true;

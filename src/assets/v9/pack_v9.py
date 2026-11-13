@@ -85,7 +85,7 @@ for k, (name, plan) in SETS.items():
             if 'it-' + piece not in imgs: imgs['it-' + piece] = enc(Image.open(f'cut/it-{piece}.png').convert('RGBA'), 88)
         elif k not in furn[piece][8]: furn[piece][8].append(k)
     price = int(5 * round((80 + 10 * len(plan)) / 5))
-    rooms.append({'k': k, 'name': name, 'wall': k, 'floor': k, 'items': items, 'scene': 1, 'floorY': 300, 'price': price, 'pieces': len(plan)})
+    rooms.append({'k': k, 'name': name, 'wall': k, 'floor': k, 'items': items, 'scene': 1, 'floorY': 380, 'wy': 380, 'price': price, 'pieces': len(plan)})
     walls.append([k, WN[k][0], 20]); floors.append([k, WN[k][1], 20])
 out = os.path.join(here, '..', '..')
 open(os.path.join(out, 'sprdata3.js'), 'w').write('// Room sets: empty room backgrounds, small previews, walls, floors and every set piece (WebP data URIs)\nObject.assign(SPR_SRC, ' + json.dumps(imgs) + ');\n')
