@@ -30,7 +30,7 @@ NAMES = {
  'fairylights': 'Fairy Lights', 'cactuspendant': 'Cactus Pendant', 'desertbench': 'Desert Bench', 'oasisrug2': 'Oasis Rug', 'desertcactus': 'Potted Cactus', 'desertthrow': 'Desert Throw',
  'bed-midnight': 'Crescent Pet Bed', 'midnightstand': 'Bedside Table', 'moonorb': 'Moon Orb Lamp', 'win-midnight': 'Arched Night Window', 'starpendant': 'Glass Star Pendant', 'starchartrug': 'Star Chart Rug',
  'telescope': 'Telescope', 'midnightdresser': 'Three-Drawer Dresser', 'armillary': 'Armillary Sphere', 'bluebooks': 'Blue Books', 'chaise': 'Chaise', 'archivebookcase': 'Archive Bookcase',
- 'libladder': 'Library Ladder', 'cardcatalog': 'Card Catalog', 'win-library': 'Leaded Window', 'chandelier': 'Chandelier', 'displaycase': 'Display Case', 'writingdesk': 'Writing Desk',
+ 'libladder': 'Library Ladder', 'archivebookcase2': 'Archive Bookcase (Right)', 'cardcatalog': 'Card Catalog', 'win-library': 'Leaded Window', 'chandelier': 'Chandelier', 'displaycase': 'Display Case', 'writingdesk': 'Writing Desk',
  'bankerlamp': 'Banker Lamp', 'footstool': 'Footstool', 'archiverug': 'Archive Rug', 'globe': 'Globe', 'pottedivy': 'Potted Ivy', 'archivebooks': 'Stacked Books',
 }
 GROUP_FIX = {'libladder': 'cosy', 'telescope': 'cosy', 'globe': 'cosy', 'moonorb': 'lights', 'bankerlamp': 'lights'}

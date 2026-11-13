@@ -17,7 +17,7 @@ def mirror_tile(t, w, h, scale):
     for y in range(0, h, th * 2):
         for x in range(0, w, tw * 2): out.paste(big, (x, y))
     return out
-WALL_FADE, FLOOR_FADE = (0.82, 0.22), (0.62, 0.14)          # (wash toward own colour, toward white)
+WALL_FADE, FLOOR_FADE = (0.6, 0.12), (0.62, 0.14)          # (wash toward own colour, toward white)
 def background(k):
     W, H, WY = RW * S2, RH * S2, WALL * S2
     bg = Image.new('RGB', (W, H))
@@ -113,12 +113,13 @@ SETS = {
    ('bed-midnight', 'bed', {'h': 176, 'mw': 246, 'x': 130, 'y': 494}), ('midnightstand', 'side', {'h': 75, 'x': 280, 'y': 420}), ('moonorb', 'on:midnightstand', {'h': 59}),
    ('telescope', 'lamp', {'x': 528, 'h': 164, 'mw': 139, 'y': 425}), ('midnightdresser', 'big', {'h': 121, 'mw': 164, 'x': 676, 'y': 418}),
    ('armillary', 'on:midnightdresser', {'h': 89, 'dx': 48}), ('bluebooks', 'on:midnightdresser', {'h': 41, 'dx': -48}), ('starchartrug', 'rug', {'x': 430, 'y': 468, 'mw': 287})]),
- 'library': ('Library Archive', [('win-library', 'window', {'h': 193, 'x': 405, 'y': 292, 'mw': 205}), ('chandelier', 'ceil', {'x': 405, 'h': 92, 'mw': 139}),
-   ('archivebookcase', 'big', {'x': 118, 'h': 250, 'mw': 230, 'y': 418}), ('pottedivy', 'on:archivebookcase', {'h': 57, 'dx': -55}), ('libladder', 'lamp', {'x': 222, 'h': 223, 'mw': 164, 'y': 425}),
-   ('cardcatalog', 'big', {'x': 728, 'h': 100, 'mw': 115, 'y': 414}), ('globe', 'on:cardcatalog', {'h': 69}),
-   ('displaycase', 'mid', {'x': 405, 'y': 428, 'h': 123, 'mw': 184}), ('chaise', 'bed', {'h': 115, 'mw': 221, 'x': 140, 'y': 496}),
-   ('writingdesk', 'mid', {'x': 560, 'y': 448, 'h': 113, 'mw': 184}), ('bankerlamp', 'on:writingdesk', {'h': 82, 'dx': 58}), ('archivebooks', 'on:writingdesk', {'h': 34, 'dx': -55}),
-   ('footstool', 'seat', {'x': 575, 'h': 69, 'y': 502}), ('archiverug', 'rug', {'x': 420, 'y': 472, 'mw': 344})]),
+ 'library': ('Library Archive', [('win-library', 'window', {'h': 182, 'x': 400, 'y': 292, 'mw': 189}), ('chandelier', 'ceil', {'x': 400, 'h': 92, 'mw': 139}),
+   ('archivebookcase', 'big', {'x': 130, 'h': 234, 'mw': 213, 'y': 418}), ('pottedivy', 'on:archivebookcase', {'h': 56, 'dx': -50}),
+   ('archivebookcase2', 'big', {'x': 638, 'h': 234, 'mw': 213, 'y': 418}), ('globe', 'on:archivebookcase2', {'h': 66, 'dx': 40}),
+   ('cardcatalog', 'big', {'x': 92, 'h': 86, 'mw': 102, 'y': 426}), ('libladder', 'lamp', {'x': 232, 'h': 223, 'mw': 164, 'y': 430}),
+   ('displaycase', 'mid', {'x': 400, 'y': 430, 'h': 123, 'mw': 184}), ('chaise', 'bed', {'h': 115, 'mw': 221, 'x': 140, 'y': 496}),
+   ('writingdesk', 'mid', {'x': 616, 'y': 450, 'h': 113, 'mw': 184}), ('bankerlamp', 'on:writingdesk', {'h': 82, 'dx': 58}), ('archivebooks', 'on:writingdesk', {'h': 34, 'dx': -55}),
+   ('footstool', 'seat', {'x': 615, 'h': 69, 'y': 504}), ('archiverug', 'rug', {'x': 410, 'y': 474, 'mw': 344})]),
 }
 NEWGEO = {'midnight', 'library'}       # laid out straight from the room pictures
 for _k in list(SETS):

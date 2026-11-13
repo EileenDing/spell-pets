@@ -124,9 +124,9 @@ function migrateRoom(p, f) {
     p.room.items = (p.room.items || []).filter(i => FURN[i.k]);
     if (p.room.scene && !SET_ROOMS.some(s => s.k === p.room.scene)) delete p.room.scene;
     const st = p.room.scene && SET_ROOMS.find(s => s.k === p.room.scene);
-    if (st && p.room.sp !== 2) {                          // set rooms got taller walls and real-size furniture (Nov 2026): lay the set out again, keep the extras
+    if (st && (p.room.sp !== 2 || (st.k === 'library' && p.room.lv !== 1))) {   // (the Library also gained a second bookcase)                          // set rooms got taller walls and real-size furniture (Nov 2026): lay the set out again, keep the extras
       p.room.items = setItems(st).concat(p.room.items.filter(i => !FURN[i.k].set && FURN[i.k].place !== 'wall' && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k)));
-      p.room.sp = 2; p.room.wy = st.wy || 380; useRoom(p.room); p.room.items.forEach(i => { if (!FURN[i.k].set) clampItem(i); }); useRoom(null);
+      p.room.sp = 2; p.room.lv = 1; p.room.wy = st.wy || 380; useRoom(p.room); p.room.items.forEach(i => { if (!FURN[i.k].set) clampItem(i); }); useRoom(null);
     }
   }
   if (p.room) return;
@@ -228,8 +228,8 @@ function roomBg(wall, floor, WALL_Y = 300) {
   x.fillStyle = wt ? x.createPattern(wt, 'repeat') : '#f6e7c8'; x.fillRect(0, 0, ROOM_W, WALL_Y);
   if (wt) {                                              // soften the wallpaper pattern: wash it with its own average colour
     const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(wt, 0, 0, 1, 1);
-    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.35 : 0.8})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
-    x.fillStyle = `rgba(255,255,255,${wall === 'leafy' ? 0.06 : 0.2})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+    const [r, g, b] = ax.getImageData(0, 0, 1, 1).data; x.fillStyle = `rgba(${r},${g},${b},${wall === 'leafy' ? 0.3 : 0.6})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
+    x.fillStyle = `rgba(255,255,255,${wall === 'leafy' ? 0.04 : 0.12})`; x.fillRect(0, 0, ROOM_W, WALL_Y);
   }
   if (ft) {                                              // floors: softer too
     const a = document.createElement('canvas'); a.width = a.height = 1; const ax = a.getContext('2d'); ax.drawImage(ft, 0, 0, 1, 1);
@@ -278,10 +278,10 @@ function drawRoom(c, t, pet, o = {}) {
   if (pr) rest.push({ pet: true, z: pr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
     if (!e.pet) return drawItem(c, e, o);
-    const PH = 128, PW = PH * PET_CW / PET_CH;
+    const PH = 152, PW = PH * PET_CW / PET_CH;
     let y = pr.y - PH + 6 - (pr.moving ? (Math.floor(t / 140) % 2) * 3 : (reduceMotion ? 0 : Math.floor(t / 520) % 2));
     if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 14);
-    c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 30, 7, 0, 0, Math.PI * 2); c.fill(); c.restore();
+    c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 36, 8, 0, 0, Math.PI * 2); c.fill(); c.restore();
     const img = petCanvas(pet, { blink: t % 4200 < 160 });
     if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH);
   });
@@ -366,7 +366,7 @@ function fixRiders(room) { useRoom(room); room.items.forEach(i => { if (i.on && 
 function applySet(set, pet) {
   S.owned['set-' + set.k] = 1;
   const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !FURN[i.k].set && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
-  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, wy: set.wy || 380, items: setItems(set).concat(keep) };
+  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, lv: 1, wy: set.wy || 380, items: setItems(set).concat(keep) };
   fixRiders(pet.room);
 }
 const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
