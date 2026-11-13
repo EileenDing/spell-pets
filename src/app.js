@@ -270,7 +270,7 @@ function itemURL(kind, key) {
 
 // ================= state & saving =================
 const LS_KEY = 'spellpets-save-v1';
-function freshState() { return { v: 1, savedAt: 0, coins: 0, earned: 0, streak: 0, best: 0, lastDay: null, days: [], seen: {}, mistakes: {}, pets: [], active: 0, owned: {}, food: {}, shelter: 'box', decor: {}, rewards: [], petMode: 'eggs', partner: {}, sessions: 0, rate: 0.85, sound: true }; }
+function freshState() { return { v: 1, savedAt: 0, coins: 0, earned: 0, streak: 0, best: 0, lastDay: null, days: [], seen: {}, mistakes: {}, pets: [], active: 0, owned: {}, food: {}, shelter: 'box', decor: {}, rewards: [], petMode: 'eggs', partner: {}, petDays: {}, sessions: 0, rate: 0.85, sound: true }; }
 function migrate(o) {
   const f = Object.assign(freshState(), o || {});
   const fix = obj => { const r = {}; for (const [k, v] of Object.entries(obj || {})) r[k.includes(':') ? k.split(':').pop() : k] = v; return r; };
@@ -278,6 +278,15 @@ function migrate(o) {
   if (f.petMode !== 'eggs') { f.rewards = []; f.petMode = 'eggs'; f.eggBase = f.sessions || 0; }
   f.partner = f.partner || {};
   f.zh = f.zh || { done: {}, mistakes: {}, rewarded: [] };
+  f.petDays = f.petDays || {};
+  if (!f.eggV2) {                                        // slower pets (Nov 2026): keep partial egg progress, keep every pet already found
+    const es = Math.max(0, (f.sessions || 0) - (f.eggBase || 0)); f.eggBase = (f.sessions || 0) - (es % 30); f.rewards = [];
+    const r = f.zh.rewarded || (f.zh.rewarded = []);      // Chinese: a pet already given at stage 3 / 8 counts as that egg's hatch at 5 / 10
+    [['g3', 'g5'], ['g8', 'g10']].forEach(([a, b]) => { if (r.includes(a) && !r.includes(b)) r.push(b); });
+    const days = new Set(f.days || []).size;              // limited skins now count days; old session counts become days, at most the days played
+    Object.entries(f.partner || {}).forEach(([k, n]) => { if (!f.petDays[k]) f.petDays[k] = { n: Math.min(n, days), last: null }; });
+    f.eggV2 = 1;
+  }
   (f.pets || []).forEach(p => { p.items = p.items || {}; p.decor = p.decor || {}; p.shelter = p.shelter || 'box'; });
   if (!f.perPetHomes && f.pets && f.pets.length) {
     const p = f.pets[f.active] || f.pets[0];
@@ -425,12 +434,18 @@ function whoClick(e) {
 
 // ================= progress rules =================
 function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, today()) <= 1 ? S.streak : 0; }
-// Hidden rhythm: about every 30 finished sessions an egg hatches into a new pet.
-// Each pet's limited-edition skin unlocks after about 25 sessions played with that pet.
-// Neither number is ever shown to the player.
-const EGG_EVERY = 30, LTD_AFTER = 25;
+// Hidden rhythm: 50 English sessions find a mystery egg, 30 more hatch it (one new pet every 80).
+// Chinese: passing stage 3 finds an egg and stage 5 hatches it; stage 8 finds one and stage 10 hatches it (zh.js).
+// Each pet's limited-edition skin unlocks after 30 different days of practice with that pet (English or Chinese).
+// None of these numbers is ever shown to the player.
+const EGG_FIND = 50, EGG_HATCH = 30, EGG_CYCLE = EGG_FIND + EGG_HATCH, LTD_DAYS = 30;
 const eggSessions = () => Math.max(0, S.sessions - (S.eggBase || 0));
-const milestonesReached = () => Math.min(PET_ORDER.length - 1, Math.floor(eggSessions() / EGG_EVERY));
+const milestonesReached = () => Math.min(PET_ORDER.length - 1, Math.floor(eggSessions() / EGG_CYCLE));
+function notePetDay(pet) {                               // one practice day with this pet as the partner
+  if (!pet) return; const d = S.petDays[pet.kind] || (S.petDays[pet.kind] = { n: 0, last: null }), t = today();
+  if (d.last !== t) { d.n++; d.last = t; }
+  if (d.n >= LTD_DAYS && !S.owned['ltd-' + pet.kind]) { S.owned['ltd-' + pet.kind] = 1; LTD_QUEUE.push(pet.kind); }
+}
 const seenTotal = () => ALL.filter(w => S.seen[w.id]).length;
 function currentLevel() {
   const start = (S.place && S.place.pos) || 0;
@@ -552,11 +567,13 @@ function renderHome() {
   // mystery egg: a hint, never a number
   const allPets = S.pets.length >= PET_ORDER.length;
   $('#eggPanel').hidden = !S.pets.length;
-  const stage = allPets ? 0 : Math.min(2, Math.floor((eggSessions() % EGG_EVERY) / 10));
+  const cyc = eggSessions() % EGG_CYCLE, found = cyc >= EGG_FIND;
+  const stage = allPets || !found ? 0 : Math.min(2, Math.floor((cyc - EGG_FIND) / 10));
   $('#eggImg').src = allPets ? petURL(S.pets[S.active]) : (URLS['egg' + stage] || (URLS['egg' + stage] = renderEgg(stage).toDataURL()));
-  $('#eggImg').className = 'pxi egg wob' + (allPets ? 0 : stage);
+  $('#eggImg').className = 'pxi egg ' + (allPets ? 'wob0' : found ? 'wob' + stage : 'eggsoon');
   $('#eggNote').innerHTML = allPets ? 'You have found every pet! Keep playing with each one to discover their limited-edition looks.'
-    : ['A mystery egg is resting in your nest. What could be inside?', 'The egg is wiggling&hellip; something is moving in there!', 'Crack! Crack! It looks like it will hatch soon!'][stage];
+    : !found ? (cyc < EGG_FIND / 2 ? 'Your nest is empty for now. Keep practising and a mystery egg may turn up&hellip;' : 'Something is rustling near your nest. An egg must be close!')
+    : ['You found a mystery egg! It is resting in your nest. What could be inside?', 'The egg is wiggling&hellip; something is moving in there!', 'Crack! Crack! It looks like it will hatch soon!'][stage];
   renderChallenges();
   $('#bookCount').textContent = Object.keys(S.mistakes).length || '';
   $('#rate').value = String(S.rate); $('#sound').checked = !!S.sound;
@@ -605,7 +622,7 @@ function claimRewards(then) {
     const leftZ = PET_ORDER.filter(x => !S.pets.some(p => p.kind === x));
     if (!leftZ.length) { claimRewards(then); return; }
     SFX.fanfare();
-    petPicker(`<span class="zh">${zp.title}\u901a\u5173\uff01</span>`, `<span class="zh">\u4f60\u5b66\u4f1a\u4e86\u8fd9\u4e00\u5173\u7684\u6240\u6709\u751f\u5b57\uff0c\u9009\u4e00\u53ea\u65b0\u5ba0\u7269\u5427\uff01</span>`, leftZ, () => claimRewards(then), true);
+    petPicker(`<span class="zh">${zp.title}\u901a\u5173\uff01</span>`, `<span class="zh">你的神秘蛋孵出来了！选一只新宠物吧！</span>`, leftZ, () => claimRewards(then), true);
     return;
   }
   const pending = rewardQueue();
@@ -949,7 +966,8 @@ function finishSession() {
   if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
   S.best = Math.max(S.best || 0, S.streak);
   S.coins += earned; S.earned += earned; S.sessions++;
-  if (pet0) { S.partner[pet0.kind] = (S.partner[pet0.kind] || 0) + 1; if (S.partner[pet0.kind] >= LTD_AFTER && !S.owned['ltd-' + pet0.kind]) { S.owned['ltd-' + pet0.kind] = 1; LTD_QUEUE.push(pet0.kind); } }
+  notePetDay(pet0);
+  if (eggSessions() % EGG_CYCLE === EGG_FIND && S.pets.length < PET_ORDER.length) setTimeout(() => toast('You found a mystery egg! Look in your nest on the home screen.'), 1200);
   save(); renderHud(); SFX.coin(); if (firstToday) setTimeout(SFX.fanfare, 250);
   const pet = S.pets[S.active];
   $('#roundLabel').textContent = 'Results'; $('#pips').innerHTML = ''; $('#quitBar').hidden = true;

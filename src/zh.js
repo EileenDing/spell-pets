@@ -14,13 +14,13 @@ ZH_BOOKS.forEach(b => {
 // 10 stages of 160 characters in textbook order; inside a stage, 5 levels of 32 from easy/common to hard/rare
 const ZH_PER = 8, ZH_LV = 32, ZH_LV_SESS = ZH_LV / ZH_PER;
 const ZH_NUM = '一二三四五六七八九十';
-const ZH_REWARD = [2, 4, 7, 9];
+const ZH_EGG = [2, 7], ZH_REWARD = [4, 9];   // stage 3 finds an egg, stage 5 hatches it; stage 8 finds one, stage 10 hatches it
 const ZH_PAY = 0.4;                // per correct round for a new character   // finishing these stages hatches a new pet
 const ZH_PARTS = ZH_STAGES.map((str, k) => {
   const chars = [...str].map(c => ZH_BY[c]);
   const books = ZH_BOOKS.filter(b => chars.some(w => w.book === b.id)).map(b => b.short);
   return { id: 'g' + (k + 1), k, title: '第' + (k < 10 ? ZH_NUM[k] : k + 1) + '关', book: books.join('–'), chars,
-    levels: [0, 1, 2, 3, 4].map(l => chars.slice(l * ZH_LV, (l + 1) * ZH_LV)), sessions: chars.length / ZH_PER, reward: ZH_REWARD.includes(k) };
+    levels: [0, 1, 2, 3, 4].map(l => chars.slice(l * ZH_LV, (l + 1) * ZH_LV)), sessions: chars.length / ZH_PER, reward: ZH_REWARD.includes(k), egg: ZH_EGG.includes(k) };
 });
 const TONES = { a: 'āáǎà', e: 'ēéěè', i: 'īíǐì', o: 'ōóǒò', u: 'ūúǔù', v: 'ǖǘǚǜ' };
 function pyToNum(py) {
@@ -163,10 +163,10 @@ function renderZhHub() {
   const due = Object.keys(z.mistakes).filter(c => ZH_BY[c] && z.mistakes[c] < t), later = Object.keys(z.mistakes).filter(c => ZH_BY[c] && z.mistakes[c] >= t);
   const p = ZH_PARTS[zhPartSel], nxt = zhNextIdx(p);
   return `<div class="panel zh zhhub">
-      <p class="zhlead">一共 <b>1600</b> 个字，分成十关，每关 5 级。通过第三、五、八、十关，就能得到一只新宠物！</p>
+      <p class="zhlead">一共 <b>1600</b> 个字，分成十关，每关 5 级。通过第三关会得到一个神秘蛋，再通过第五关它就会孵出来；第八关再得一个蛋，第十关孵出来。</p>
       <div class="zhparts">${ZH_PARTS.map((q, k) => { const open = zhPartOpen(k), done = zhPartDone(q), n = zhDoneCount(q);
         return `<button class="zhpart ${k === zhPartSel ? 'sel' : ''} ${done ? 'done' : open ? 'open' : 'locked'}" data-zhpart="${k}" ${open ? '' : 'disabled'}>
-          <b>${q.title}${q.reward ? ' <span class="egg-dot" title="通关得宠物">★</span>' : ''}</b><span class="small">${q.book}</span>
+          <b>${q.title}${q.reward ? ' <span class="egg-dot" title="通关孵出宠物">★</span>' : q.egg ? ' <span class="egg-dot" title="通关得到神秘蛋">蛋</span>' : ''}</b><span class="small">${q.book}</span>
           <div class="bar small"><i style="width:${Math.round(n / q.sessions * 100)}%"></i></div>
           <span class="small">${done ? '已通关' : open ? n + ' / ' + q.sessions : '未解锁'}</span></button>`; }).join('')}</div>
     </div>
@@ -310,7 +310,7 @@ function finishZh() {
   if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
   S.best = Math.max(S.best || 0, S.streak);
   S.coins = Math.round((S.coins + earned) * 10) / 10; S.earned = Math.round((S.earned + earned) * 10) / 10;
-  if (pet0) { S.partner[pet0.kind] = (S.partner[pet0.kind] || 0) + 1; if (S.partner[pet0.kind] >= LTD_AFTER && !S.owned['ltd-' + pet0.kind]) { S.owned['ltd-' + pet0.kind] = 1; LTD_QUEUE.push(pet0.kind); } }
+  notePetDay(pet0);
   save(); renderHud(); SFX.coin(); if (firstToday) setTimeout(SFX.fanfare, 250);
   $('#roundLabel').textContent = '成绩'; $('#pips').innerHTML = ''; $('#quitBar').hidden = true;
   const partNow = zhPartDone(p);
@@ -319,7 +319,7 @@ function finishZh() {
       <p class="eyebrow">${p.title} · 第 ${P.zhIdx + 1} 课完成</p><h2 class="rt zh">学会了 ${right} / ${P.items.length} 个字</h2>
       <p class="earn">${coinAmt(earned)}</p>
       ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}
-      ${partNow ? `<p class="good">${p.title}通关啦！</p>` : ''}</div></div>
+      ${partNow ? `<p class="good">${p.title}通关啦！${p.egg ? `你得到了一个神秘蛋！再通过${ZH_PARTS[p.k + 2].title}，它就会孵出来。` : ''}</p>` : ''}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw"><span class="zhc">${esc(x.w.id)}</span> <small class="pysmall">${esc(x.w.py)}</small> <small class="muted">${esc(x.w.words[0])}</small>${x.review ? '<em>复习</em>' : ''}</span><span class="marks">${x.r.map(v => icon(v ? 'check' : 'cross')).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + money(x.pay) : '$0'}</span></li>`).join('')}</ul>
     ${rows.some(x => !x.r.every(v => v === true)) ? `<p class="muted">没有三轮全对的字会记下来，明天再练，复习时三轮全对得 $2。</p>` : ''}
     <div class="row"><button class="btn go big zh" id="zhAgain">继续下一课</button><button class="btn zh" id="zhBack">返回中文挑战</button></div></div>`;

@@ -20,7 +20,7 @@ function testToolClick(e) {
   if (t === 'pets') { testAllPets(); toast('All 13 pets are here.'); }
   if (t === 'egg') {
     if (S.pets.length >= PET_ORDER.length) { toast('You already have every pet. Start over to test hatching.'); return; }
-    S.sessions = (S.eggBase || 0) + (S.rewards.length + 1) * EGG_EVERY; save(); renderHud(); claimRewards(() => route('home')); return;
+    S.sessions = (S.eggBase || 0) + (S.rewards.length + 1) * EGG_CYCLE; save(); renderHud(); claimRewards(() => route('home')); return;
   }
   if (t === 'unlock') {
     SHOP.forEach(i => { if (!i.legacy && i.cat !== 'food') S.owned[i.id] = 1; });
