@@ -90,7 +90,10 @@ const HOUSE_LIST = [
   ['rabbit', 'rabbit', 'Bunny Burrow', 450], ['clover', 'rabbit', 'Clover Burrow', 555], ['carrot', 'rabbit', 'Carrot House', 495], ['bunnyhop', 'rabbit', 'Bunny Hop House', 585],
   ['rat', 'rat', 'Acorn House', 480], ['seedsilo', 'rat', 'Seed Silo', 570], ['wheelshop', 'rat', 'Wheel Workshop', 645], ['tunnel', 'rat', 'Tunnel Home', 690],
   ['parrot', 'parrot', 'Tiki Hut', 480], ['feather', 'parrot', 'Rainbow Feather House', 645], ['beakbay', 'parrot', 'Beak Bay House', 555], ['echo', 'parrot', 'Echo House', 600],
-  ['owl', 'owl', 'Moon Tower', 480], ['moonlib', 'owl', 'Moon Library', 555], ['hollowoak', 'owl', 'Hollow Oak House', 615], ['observatory', 'owl', 'Silent Flight Observatory', 720]
+  ['owl', 'owl', 'Moon Tower', 480], ['moonlib', 'owl', 'Moon Library', 555], ['hollowoak', 'owl', 'Hollow Oak House', 615], ['observatory', 'owl', 'Silent Flight Observatory', 720],
+  ['frog', 'frog', 'Reed Hop House', 465], ['stonehop', 'frog', 'Stone Hop Arch', 555], ['raindrop', 'frog', 'Raindrop Glasshouse', 645], ['pondchorus', 'frog', 'Pond Chorus House', 690],
+  ['octopus', 'octopus', 'Tide Rock Nook', 465], ['inkbottle', 'octopus', 'Ink Bottle House', 585], ['coralcurl', 'octopus', 'Coral Curl House', 615], ['tideglass', 'octopus', 'Tide Glass Studio', 690],
+  ['capybara', 'capybara', 'Moonlight House', 495], ['orangecottage', 'capybara', 'Orange Cottage', 585], ['hotspring', 'capybara', 'Hot Spring Cabin', 645], ['lotuslodge', 'capybara', 'Lotus Lodge', 690],
 ];
 const HOUSES = Object.fromEntries(HOUSE_LIST.map(([k, kind, name, price]) => [k, { k, kind, name, price, fee: Math.round(price * Math.min(0.10, Math.max(0.05, 0.05 + 0.05 * (price / 3 - 150) / 90))) }]));
 const ownsH = k => !!S.owned['h-' + k];
@@ -129,6 +132,9 @@ function migrateRoom(p, f) {
       p.room.sp = 2; p.room.lv = 1; p.room.wy = st.wy || 380; useRoom(p.room); p.room.items.forEach(i => { if (!FURN[i.k].set) clampItem(i); }); useRoom(null);
     }
   }
+  if (p.room && !p.room.fit1) {                               // Nov 2026: rugs flatter and nothing past the room's edges
+    useRoom(p.room); p.room.items.forEach(i => { if (FURN[i.k] && !i.on) clampItem(i); }); useRoom(null); p.room.fit1 = 1;
+  }
   if (p.room) return;
   p.room = defaultRoom();
   Object.keys(LEGACY_DECOR).forEach(k => {
@@ -141,7 +147,10 @@ function migrateRoom(p, f) {
 // ---- geometry ----
 function itemSize(k) {
   const F = FURN[k], im = SPR['it-' + k]; const iw = im ? im.width : 100, ih = im ? im.height : 100;
-  if (F.place === 'rug') { const w = F.size; return { w, h: w * ih / iw * 0.82 }; }
+  if (F.place === 'rug') {                                    // flatter on a set room's shallow floor; never deeper than the floor
+    let w = F.size, h = w * ih / iw * (CUR_WY > WALL_Y ? 0.6 : 0.82); const cap = ROOM_H - CUR_WY - 16;
+    if (h > cap) { w *= cap / h; h = cap; } return { w, h };
+  }
   return { h: F.size, w: F.size * iw / ih };
 }
 function itemRect(it) {
@@ -152,11 +161,11 @@ function itemRect(it) {
 }
 function clampItem(it) {
   const F = FURN[it.k], { w, h } = itemSize(it.k);
-  const over = Math.min(20, w * 0.15); it.x = Math.round(Math.max(w / 2 - over, Math.min(ROOM_W - w / 2 + over, it.x)));
+  it.x = Math.round(Math.max(w / 2 + 2, Math.min(ROOM_W - w / 2 - 2, it.x)));     // whole piece stays inside the room
   if (it.on) return;                                         // sitting on another piece: its y comes from that piece
   if (F.place === 'wall') it.y = Math.round(Math.max(h + 14, Math.min(CUR_WY - 6, it.y)));
   else if (F.place === 'floor') it.y = Math.round(Math.max(CUR_WY + 26, Math.min(ROOM_H - 4, it.y)));
-  else if (F.place === 'rug') it.y = Math.round(Math.max(Math.min(CUR_WY + 20 + h / 2, ROOM_H - h / 2 + 10), Math.min(ROOM_H - h / 2 + 10, it.y)));
+  else if (F.place === 'rug') it.y = Math.round(Math.max(Math.min(CUR_WY + 8 + h / 2, ROOM_H - h / 2 - 4), Math.min(ROOM_H - h / 2 - 4, it.y)));
   else it.y = 0;
 }
 // ---- stacking: small things can sit on tables, beds, shelves and window sills ----
@@ -400,7 +409,7 @@ function applySet(set, pet, own = true) {
   if (own) S.owned['set-' + set.k] = 1;
   const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !FURN[i.k].set && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
   pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, lv: 1, wy: set.wy || 380, items: setItems(set).concat(keep) };
-  fixRiders(pet.room);
+  fixRiders(pet.room); pet.room.items.forEach(i => { if (!i.on) clampItem(i); }); useRoom(null);
 }
 const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
 function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; delete room.wy; useRoom(room); room.items = room.items.filter(i => !i.lock && !FURN[i.k].set); room.items = room.items.concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); fixRiders(room); }

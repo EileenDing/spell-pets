@@ -3,7 +3,7 @@
 import base64, io, json, os
 from PIL import Image
 here = os.path.dirname(os.path.abspath(__file__)); os.chdir(here)
-from compose_v9 import SETS, SLOT, G, RW, background, compose, surface_frac
+from compose_v9 import SETS, SLOT, G, RW, RH, WALL, RUG_SQ, background, compose, surface_frac
 def enc(im, q=88):
     b = io.BytesIO(); im.save(b, 'WEBP', method=6, quality=q, alpha_quality=100); return 'data:image/webp;base64,' + base64.b64encode(b.getvalue()).decode()
 WN = {'forest': ('Warm Wood', 'Honey Plank'), 'cottage': ('Cream Plaster', 'Wood Wainscot'), 'pastel': ('Pink Stripe', 'Pale Boards'), 'starry': ('Blue Star Panel', 'Medium Wood'),
@@ -56,7 +56,11 @@ def layout(k):
             box = (x - w / 2, y - h, x + w / 2, y)
         else:
             x, ay, h, mw, anc = SLOT[slot]; x = o.get('x', x); ay = o.get('y', ay); h = o.get('h', h) * G; mw = o.get('mw', mw) * G
-            if slot == 'rug': w = mw; h = im.height * w / im.width
+            if slot == 'rug':                                   # lying flat on a shallow floor: squashed, and never deeper than the floor
+                w = mw; h = im.height * w / im.width * RUG_SQ
+                cap = (RH - WALL) - 16
+                if h > cap: w *= cap / h; h = cap
+                ay = min(ay, RH - h / 2 - 6)
             else:
                 w = im.width * h / im.height
                 if w > mw: w = mw; h = im.height * w / im.width

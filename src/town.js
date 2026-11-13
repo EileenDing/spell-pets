@@ -1,23 +1,23 @@
 // ================= PET TOWN (painted map; one lot per kind of pet) =================
-const TOWN_W = 1536, TOWN_H = 1024;
-// lx/ly = centre of the lot's gate (where the lock is); x0..x1 = lot width
-const LOTS = {
-  dragon: { lx: 264, ly: 236, x0: 118, x1: 378, row: 0 }, dinosaur: { lx: 535, ly: 235, x0: 408, x1: 632, row: 0 },
-  dog: { lx: 784, ly: 235, x0: 660, x1: 878, row: 0 }, cat: { lx: 1043, ly: 236, x0: 910, x1: 1146, row: 0 },
-  turtle: { lx: 1304, ly: 236, x0: 1165, x1: 1412, row: 0 },
-  rabbit: { lx: 323, ly: 421, x0: 170, x1: 445, row: 1 }, pig: { lx: 629, ly: 421, x0: 483, x1: 748, row: 1 },
-  rat: { lx: 939, ly: 421, x0: 790, x1: 1055, row: 1 }, monkey: { lx: 1248, ly: 421, x0: 1095, x1: 1365, row: 1 },
-  trex: { lx: 311, ly: 614, x0: 152, x1: 440, row: 2 }, snake: { lx: 628, ly: 614, x0: 480, x1: 745, row: 2 },
-  parrot: { lx: 939, ly: 614, x0: 790, x1: 1055, row: 2 }, owl: { lx: 1257, ly: 614, x0: 1100, x1: 1385, row: 2 }
-};
-const ROAD_Y = [268, 457, 655];          // the sandy road in front of each row of lots
+const TOWN_W = 1536, TOWN_H = TOWN4.H;    // 4 x 4 lots (assets/v16/town4.py), shops along the bottom
+// lx/ly = centre of the lot's gate; x0..x1 = lot width; patch = grass that replaces the fence once a house is built; sign = the board beside the gate
+const LOTS = TOWN4.lots;
+const ROAD_Y = TOWN4.roads;              // the sandy road in front of each row of lots
 const V_ROADS = [464, 769, 1075];        // north-south roads between the lots
 const TOWN_SHOPS = [                      // painted buildings along the bottom
   { id: 'skins', x0: 92, y0: 690, x1: 330, y1: 880, label: 'Pet Salon' },
   { id: 'food', x0: 385, y0: 680, x1: 622, y1: 890, label: 'Food Shop' },
   { id: 'clothes', x0: 925, y0: 680, x1: 1162, y1: 890, label: 'Clothes Shop' },
   { id: 'shelter', x0: 1215, y0: 680, x1: 1478, y1: 890, label: 'Home Builder' }
-];
+].map(b => ({ ...b, y0: b.y0 + TOWN4.shopDy, y1: b.y1 + TOWN4.shopDy }));
+// each lot's sign shows its animal as a brown silhouette, like the painted ones
+const SIGN_C = {};
+function signImg(kind) {
+  if (SIGN_C[kind]) return SIGN_C[kind]; const im = SPR['pet-' + kind]; if (!im) return null;
+  const c = document.createElement('canvas'); c.width = im.width; c.height = im.height; const x = c.getContext('2d');
+  x.drawImage(im, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#5b3a1f'; x.fillRect(0, 0, c.width, c.height);
+  return SIGN_C[kind] = c;
+}
 const lotOf = pet => LOTS[pet.kind];
 const SHELTER_C = {};
 function shelterCanvas(key) {
@@ -29,8 +29,8 @@ function shelterCanvas(key) {
 function drawLotHome(c, L, pet) {
   const w = (L.x1 - L.x0), cx = (L.x0 + L.x1) / 2;
   const has = !!(pet.house && SPR['house-' + pet.house]), img = has ? SPR['house-' + pet.house] : SPR['it-boxbed'];
-  const kind = Object.keys(LOTS).find(k => LOTS[k] === L), R = LOT_PATCH[kind];
-  if (has && R && SPR['lot-' + kind]) c.drawImage(SPR['lot-' + kind], R[0], R[1], R[2] - R[0], R[3] - R[1]);   // a house needs no fence
+  const R = L.patch;
+  if (has && R && SPR['lot-' + L.src]) c.drawImage(SPR['lot-' + L.src], R[0], R[1], R[2] - R[0], R[3] - R[1]);   // a house needs no fence
   else c.drawImage(SPR['gate-open'], L.lx - 49, L.ly - 24, 100, 47);
   if (!img) return;
   let hw = has ? w * 1.04 : 92, hh = img.height * hw / img.width;
@@ -86,8 +86,8 @@ function drawTown(c, t) {
   if (!reduceMotion) updateWalkers(dt);
   c.setTransform(1, 0, 0, 1, 0, 0);
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
-  if (SPR.town) c.drawImage(SPR.town, 0, 0, TOWN_W, TOWN_H);
-  c.fillStyle = 'rgba(255,248,232,0.3)'; c.fillRect(0, 0, TOWN_W, TOWN_H);            // softer surroundings so the houses stand out
+  if (SPR.town4) c.drawImage(SPR.town4, 0, 0, TOWN_W, TOWN_H);
+  for (const k in LOTS) { const sg = signImg(k), L = LOTS[k]; if (!sg) continue; const sc = Math.min(40 / sg.width, 30 / sg.height); c.drawImage(sg, L.sign[0] - sg.width * sc / 2, L.sign[1] - sg.height * sc / 2, sg.width * sc, sg.height * sc); }
   S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
   const PH = 92, PW = PH * PET_CW / PET_CH;
   const order = S.pets.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);

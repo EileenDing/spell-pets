@@ -53,6 +53,7 @@ SLOT = {
   'plant': (45, 410, 172, 120, 'bottom'), 'plant_r': (735, 410, 166, 115, 'bottom'), 'lamp': (432, 410, 192, 108, 'bottom'),
   'rug': (400, 470, 0, 300, 'centre'), 'soft': (300, 508, 60, 125, 'bottom'), 'front_r': (722, 508, 92, 100, 'bottom'),
 }
+RUG_SQ = 0.6                             # rugs seen from the side in a set room
 WALL_SLOTS = ('window', 'walltop', 'rack', 'wall_l', 'wall_m', 'ceil', 'ceil2')
 def regeo(plan):
     """overrides written for the old 300-unit wall -> the new tall-wall room"""
@@ -142,7 +143,11 @@ def compose(k):
             box = (x - w / 2, y - h, x + w / 2, y)
         else:
             x, ay, h, mw, anc = SLOT[slot]; x = o.get('x', x); ay = o.get('y', ay); h = o.get('h', h) * G; mw = o.get('mw', mw) * G
-            if slot == 'rug': w = mw; h = im.height * w / im.width
+            if slot == 'rug':                                   # lying flat on a shallow floor: squashed, and never deeper than the floor
+                w = mw; h = im.height * w / im.width * RUG_SQ
+                cap = (RH - WALL) - 16
+                if h > cap: w *= cap / h; h = cap
+                ay = min(ay, RH - h / 2 - 6)
             else:
                 w = im.width * h / im.height
                 if w > mw: w = mw; h = im.height * w / im.width
