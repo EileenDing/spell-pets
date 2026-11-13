@@ -321,16 +321,18 @@ const profDoc = id => cloudDb.doc(id === TEST_ID ? 'dev/test' : 'profiles/' + id
 const visibleProfiles = () => PROFILES.filter(p => !p.test || DEV_OPEN);
 const isEddie = () => !!PROFILE && (/^eddie$/i.test(PROFILE.name.trim()) || isTester());
 let REMOTE_IDS = new Set();
+// a thing only being tried on in a room is never saved: the saved copy keeps the room as it was
+const savedState = () => DECO.trial ? { ...S, pets: S.pets.map((p, i) => i === DECO.trial.pet ? { ...p, room: DECO.trial.backup } : p) } : S;
 function save() {
   S.savedAt = Date.now();
   if (!PROFILE) return;
-  lsSet(lsKey(PROFILE.id), JSON.stringify(S));
+  lsSet(lsKey(PROFILE.id), JSON.stringify(savedState()));
   const e = PROFILES.find(p => p.id === PROFILE.id); if (e) { e.savedAt = S.savedAt; storeProfiles(); }
   if (cloudDb) { clearTimeout(cloudTimer); cloudTimer = setTimeout(flushCloud, 1500); }
 }
 async function pushProfile(id) {
   const prof = PROFILES.find(p => p.id === id); if (!prof || !cloudDb) return;
-  const st = id === (PROFILE && PROFILE.id) ? S : localSave(id); if (!st) return;
+  const st = id === (PROFILE && PROFILE.id) ? savedState() : localSave(id); if (!st) return;
   await profDoc(id).set({ name: prof.name, test: !!prof.test, json: JSON.stringify(st), savedAt: st.savedAt || 0, created: prof.created || 0 });
   REMOTE_IDS.add(id);
 }
@@ -510,6 +512,8 @@ function route(name) {
   currentScreen = name;
   if (name === 'play' && P) PLAY_FROM = P.mode || 'en';
   if (name === 'who') $('#whoBack').hidden = !PROFILE;
+  if (name !== 'deco' && DECO.trial) endTrial(false);        // leaving the room shop takes off anything only tried on
+  if (name !== 'shop') TRY = null;
   ['who', 'home', 'play', 'shop', 'room', 'book', 'town', 'chal', 'deco'].forEach(n => { $('#scr-' + n).hidden = n !== name; });
   renderHud();
   if (name === 'who') renderWho(); else if (name === 'home') renderHome(); else if (name === 'shop') renderShop(); else if (name === 'room') renderRoom(); else if (name === 'book') renderBook(); else if (name === 'town') renderTown(); else if (name === 'chal') renderChal(); else if (name === 'deco') renderDeco();
@@ -1156,6 +1160,16 @@ function boot() {
   $('#shopTabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) { shopTab = b.dataset.t; renderShop(); } });
   $('#shopGrid').addEventListener('click', e => { const hk = e.target.closest('[data-hkind]'); if (hk) { shopHouseKind = hk.dataset.hkind; renderShop(); return; }
     const sb = e.target.closest('[data-sell]'); if (sb) { if (armSell(sb)) { sellThing(sb.dataset.sell); renderShop(); } return; }
+    if (e.target.closest('#tryOffC')) { TRY = null; SFX.tap(); return renderShop(); }
+    const tb = e.target.closest('#tryBuyC'); if (tb) { const it = SHOP.find(i => i.id === TRY); if (!it) return;
+      if (S.coins < it.price) { toast(`You need $${money(it.price - S.coins)} more. Play a session to earn coins!`); return; }
+      if (!armBuy(tb, `Tap again to pay $${it.price}`)) return; TRY = null; buy(it.id); return; }
+    const wb = e.target.closest('[data-wear]'); if (wb) { const it = SHOP.find(i => i.id === wb.dataset.wear), pet = S.pets[shopPet]; if (!it || !pet) return;
+      const on = wearing(pet, it), slot = it.cat === 'skins' ? 'skin' : it.cat === 'costumes' ? 'costume' : it.slot;
+      pet[slot] = on ? null : it.key; if (!on && it.cat === 'clothes') pet.costume = null; TRY = null; save(); SFX.tap(); return renderShop(); }
+    const ty = e.target.closest('[data-try]'); if (ty) { const it = SHOP.find(i => i.id === ty.dataset.try); if (!it) return;
+      if (S.owned[it.id]) { const wb2 = ty.querySelector('[data-wear]'); if (wb2) wb2.click(); return; }
+      TRY = TRY === it.id ? null : it.id; SFX.tap(); renderShop(); const tr = $('.tryroom'); if (tr && TRY) tr.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
     const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });

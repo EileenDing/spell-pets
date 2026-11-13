@@ -493,6 +493,17 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .prevbox.swatch { background-size: 150px auto; background-repeat: repeat; }
 .sellbtn { font-size: 13px; padding: 3px 8px; margin-top: 4px; --c: #f3e6cf; --cd: #c9b48f; color: var(--ink); text-shadow: none; }
 .sellbtn.armed, .btn.bad.armed { --c: var(--bad); --cd: var(--bad-d); color: #fff; }
+/* try before you buy */
+.trytag { display: inline-block; background: #7a5cff; color: #fff; font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 6px; letter-spacing: .5px; }
+.decocard.trying { background: #efe9ff; box-shadow: inset 0 0 0 3px #7a5cff; } .decocard.trying em { color: #5b3fd6; font-weight: 700; }
+#tryBuy.armed, #tryBuyC.armed { --c: #ff9f1c; --cd: #c9730a; color: #fff; }
+.tryroom { display: flex; gap: 18px; align-items: center; background: #fff6e3; border: 3px solid var(--ink); border-radius: 12px; padding: 12px 16px; margin: 4px 0 16px; box-shadow: 0 4px 0 rgba(42,29,51,.25); }
+.trystage { flex: none; width: 150px; height: 170px; display: grid; place-items: end center; background: radial-gradient(ellipse at 50% 92%, rgba(42,29,51,.18) 0 28%, transparent 30%), linear-gradient(#e8f4ff, #fff6e3); border-radius: 10px; }
+.trypet { width: 142px; }
+.tryinfo { display: grid; gap: 6px; } .tryinfo h3 { margin: 0; font-size: 20px; } .tryinfo p { margin: 0; } .tryinfo .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.card.tryable { cursor: pointer; } .card.tryingcard { box-shadow: inset 0 0 0 3px #7a5cff, 0 4px 0 rgba(42,29,51,.25); background: #f5f0ff; }
+.card.nofit { opacity: .55; } .btn.trying { --c: #7a5cff; --cd: #5b3fd6; color: #fff; }
+@media (max-width: 520px) { .tryroom { flex-direction: column; text-align: center; } .tryinfo .row { justify-content: center; } }
 .roomhouse { display: flex; gap: 12px; align-items: center; } .roomhouse img { width: 140px; flex: none; } .roomhouse img.shadow { filter: grayscale(.8) opacity(.6); }
 @media (max-width: 560px) {
   .hf-top { grid-template-columns: auto auto; } .hf-title { grid-column: 1 / -1; grid-row: 1; font-size: 19px; } .hf-plaque { font-size: 14px; }
@@ -9461,8 +9472,8 @@ function buyThing(kind, k, pet) {
 function setPrice(set) { return S.owned['set-' + set.k] ? 0 : Math.round(set.price * FURN_PRICE_UP); }
 const setItems = set => set.items.map(i => ({ ...i }));
 function fixRiders(room) { useRoom(room); room.items.forEach(i => { if (i.on && !room.items.some(h => h.k === i.on)) { delete i.on; clampItem(i); } }); }
-function applySet(set, pet) {
-  S.owned['set-' + set.k] = 1;
+function applySet(set, pet, own = true) {
+  if (own) S.owned['set-' + set.k] = 1;
   const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !FURN[i.k].set && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
   pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, lv: 1, wy: set.wy || 380, items: setItems(set).concat(keep) };
   fixRiders(pet.room);
@@ -9472,7 +9483,8 @@ function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.fl
 
 // ================= SHOP =================
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
-const SHOP_TABS = [['homes', 'Homes'], ['furniture', 'Furniture'], ['decor', 'Decor'], ['walls', 'Walls & Floors'], ['sets', 'Room Sets'], ['food', 'Food'], ['clothes', 'Clothes'], ['costumes', 'Costumes'], ['skins', 'Skins']];
+const SHOP_TABS = [['homes', 'Homes'], ['room', 'Room & Furniture'], ['clothes', 'Clothes'], ['costumes', 'Costumes'], ['skins', 'Skins'], ['food', 'Food']];
+const ROOM_TABS = { room: null, furniture: 'beds', decor: 'lights', walls: 'walls', sets: 'sets' };   // these open the room shop (Decorate) to try things in the room
 // costume sets are sold and worn as a whole
 if (typeof COSTUMES !== 'undefined') SHOP.push(...Object.entries(COSTUMES).map(([k, c]) => ({ id: 'cos-' + k, cat: 'costumes', key: k, name: c.name, price: c.price, slot: 'costume' })));
 const imgSrc = k => SPR[k] ? SPR[k].src : '';
@@ -9481,8 +9493,8 @@ function priceBtn(data, price, owned, label, sell) {
   const can = S.coins >= price;
   return `<button class="btn buy ${can ? 'go' : 'off'}" ${data} ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${price}</button>`;
 }
-function itemPreview(it) {
-  let pet = S.pets[S.active] || { kind: 'cat' };
+function itemPreview(it, forPet) {
+  let pet = forPet || S.pets[S.active] || { kind: 'cat' };
   if (it.petKind && pet.kind !== it.petKind) pet = S.pets.find(p => p.kind === it.petKind) || { kind: it.petKind };
   if (it.cat === 'costumes') return `<img class="prev wear cosset" src="${imgSrc('cosset-' + it.key)}" alt=""><img class="pxi prev pet onpet" src="${petURL(pet, { costume: it.key, skin: pet.skin })}" alt="">`;
   if (it.cat === 'skins') return `<img class="pxi prev pet" src="${petURL(pet, { skin: it.key, hat: null, eyes: null, neck: null, back: null, body: null, costume: null })}" alt="">`;
@@ -9501,13 +9513,33 @@ function swatchCards(list, kind) {
   return `<div class="shopgrid">${list.filter(x => x.price > 0).map(x => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k);
     return `<div class="card ${own ? 'owned' : ''}"><div class="prevbox swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></div><b>${esc(x.name)}</b>${priceBtn(`data-buy="${kind}:${x.k}"`, x.price, own, '', kind + ':' + x.k)}</div>`; }).join('')}</div>`;
 }
+// ---- the dressing room: clothes, costumes and skins are tried on the chosen pet before buying ----
+let TRY = null;                                             // id of the shop item being tried on
+const WEARS = ['clothes', 'costumes', 'skins'];
+function tryLook(pet, it) {                                  // what the pet looks like wearing it
+  if (!it) return {};
+  if (it.cat === 'skins') return { skin: it.key };
+  if (it.cat === 'costumes') return { costume: it.key };
+  return { [it.slot]: it.key, costume: null };
+}
+const wearing = (pet, it) => it.cat === 'skins' ? pet.skin === it.key : it.cat === 'costumes' ? pet.costume === it.key : pet[it.slot] === it.key && !pet.costume;
+function dressingRoom(pet) {
+  const it = TRY && SHOP.find(i => i.id === TRY);
+  const can = it && S.coins >= it.price;
+  return `<div class="tryroom"><div class="trystage"><img class="pxi trypet" src="${petURL(pet, tryLook(pet, it))}" alt=""></div><div class="tryinfo">
+    ${it ? `<span class="trytag">Trying on</span><h3>${esc(it.name)}</h3><p class="muted small">on ${esc(pet.name)}${it.cat === 'costumes' ? ' · a whole set, worn all together' : ''}</p>
+      <div class="row"><button class="btn ${can ? 'go' : 'off'}" id="tryBuyC">${can ? `${icon('coin', 'coin')} Buy $${it.price}` : `Need $${money(it.price - S.coins)} more`}</button><button class="btn" id="tryOffC">Take it off</button></div>`
+    : `<h3>${esc(pet.name)}'s dressing room</h3><p class="muted small">Tap anything below to try it on ${esc(pet.name)}. Nothing is bought until you tap Buy and confirm.</p>`}</div></div>`;
+}
 function renderShop() {
+  if (shopTab in ROOM_TABS) { const t = ROOM_TABS[shopTab]; if (t) DECO.tab = t; shopTab = 'homes'; openDeco(Math.min(shopPet, S.pets.length - 1) >= 0 ? shopPet : S.active, 'shop'); return; }
+  if (!WEARS.includes(shopTab)) TRY = null;
   $('#shopTabs').innerHTML = SHOP_TABS.map(([k, n]) => `<button class="tab ${k === shopTab ? 'sel' : ''}" data-t="${k}" aria-pressed="${k === shopTab}">${n}</button>`).join('');
   $('#shopWallet').innerHTML = `You have ${coinAmt(S.coins)}`;
   if (shopPet >= S.pets.length) shopPet = S.active;
-  const perPet = shopTab === 'sets' || shopTab === 'homes';
+  const perPet = shopTab === 'sets' || shopTab === 'homes' || WEARS.includes(shopTab);
   $('#shopFor').hidden = !perPet || !S.pets.length;
-  $('#shopFor').innerHTML = `<span>${shopTab === 'homes' ? 'Moving in' : 'For the room of'}</span>` + S.pets.map((p, i) => `<button class="petthumb mini ${i === shopPet ? 'sel' : ''}" data-shoppet="${i}" aria-pressed="${i === shopPet}"><img class="pxi" src="${petURL(p)}" alt=""><span>${esc(p.name)}</span></button>`).join('');
+  $('#shopFor').innerHTML = `<span>${shopTab === 'homes' ? 'Moving in' : WEARS.includes(shopTab) ? 'Dressing' : 'For the room of'}</span>` + S.pets.map((p, i) => `<button class="petthumb mini ${i === shopPet ? 'sel' : ''}" data-shoppet="${i}" aria-pressed="${i === shopPet}"><img class="pxi" src="${petURL(p)}" alt=""><span>${esc(p.name)}</span></button>`).join('');
   const me = S.pets[S.active];
   const note = t => `<p class="muted shopnote">${t}</p>`;
   let h = '';
@@ -9549,8 +9581,16 @@ function renderShop() {
       return `<div class="card ltd ${has ? 'owned' : 'locked'}"><span class="ltdtag">Limited</span><div class="prevbox"><img class="pxi prev pet ${has ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
         <b>${has ? esc(LTD[p.kind].name) + ' ' + esc(PETS[p.kind].name) : '???'}</b><span class="muted small">${has ? 'Unlocked! Wear it in the room.' : 'Not for sale. Keep playing with ' + esc(p.name) + ' to discover it.'}</span></div>`;
     }).join('');
-    h = (shopTab === 'costumes' ? note('Each costume comes as a whole set and is worn all together. Change outfits in your pet\'s room.') : '') + `<div class="shopgrid">${ltd}${items.map(it => {
+    const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);
+    h = (wears && dp ? dressingRoom(dp) : '') + `<div class="shopgrid">${ltd}${items.map(it => {
       const owned = it.cat !== 'food' && S.owned[it.id];
+      if (wears && dp) {                                      // dressing-room cards: tap to try; owned things are worn straight away
+        const fits = !it.petKind || it.petKind === dp.kind, on = owned && wearing(dp, it), tr = TRY === it.id;
+        const btn = !fits ? `<span class="muted small">Only for ${esc(PETS[it.petKind].name)}s</span>`
+          : owned ? `<button class="btn small ${on ? '' : 'go'}" data-wear="${it.id}">${on ? 'Take off' : 'Wear'}</button>${it.price ? `<button class="btn small sellbtn" data-sell="i:${it.id}">Sell $${sellPrice(it.price)}</button>` : ''}`
+          : `<button class="btn small ${tr ? 'trying' : ''}" data-try="${it.id}">${tr ? 'Trying on' : `Try on · $${it.price}`}</button>`;
+        return `<div class="card ${owned ? 'owned' : ''} ${tr ? 'tryingcard' : ''} ${fits ? 'tryable' : 'nofit'}" ${fits ? `data-try="${it.id}"` : ''}><div class="prevbox">${itemPreview(it, dp)}</div><b>${esc(it.name)}</b>${on ? `<span class="ownedtag">${icon('check')} Wearing</span>` : owned ? '<span class="muted small">Yours</span>' : ''}${btn}</div>`;
+      }
       const forPet = it.petKind ? S.pets.find(p => p.kind === it.petKind) : me;
       const extra = it.cat === 'food' ? `<span class="muted small">Fills ${FOODS[it.key].fill}% · you have ${S.food[it.key] || 0}</span>`
         : it.cat === 'costumes' ? `<span class="muted small">Whole set · on ${esc((me || {}).name || "your pet")}</span>`
@@ -9566,12 +9606,13 @@ function buy(id) {
   S.coins -= it.price;
   if (it.cat === 'food') S.food[it.key] = (S.food[it.key] || 0) + 1;
   else {
-    S.owned[it.id] = 1; let pet = S.pets[S.active];
+    S.owned[it.id] = 1; let pet = WEARS.includes(it.cat) ? (S.pets[shopPet] || S.pets[S.active]) : S.pets[S.active];
     if (it.petKind && (!pet || pet.kind !== it.petKind)) pet = S.pets.find(p => p.kind === it.petKind);
-    if (it.cat === 'skins' && pet) pet.skin = it.key; if (it.cat === 'clothes' && pet) pet[it.slot] = it.key; if (it.cat === 'costumes' && pet) pet.costume = it.key;
+    if (it.cat === 'skins' && pet) pet.skin = it.key; if (it.cat === 'clothes' && pet) { pet[it.slot] = it.key; pet.costume = null; } if (it.cat === 'costumes' && pet) pet.costume = it.key;
   }
   save(); SFX.coin(); renderHud(); renderShop();
-  toast(it.cat === 'food' ? `Bought ${it.name}. Feed it in a pet's room.` : `Bought ${it.name}!`);
+  const wp = WEARS.includes(it.cat) && (S.pets[shopPet] || S.pets[S.active]);
+  toast(it.cat === 'food' ? `Bought ${it.name}. Feed it in a pet's room.` : wp ? `Bought ${it.name}! ${wp.name} is wearing it now.` : `Bought ${it.name}!`);
 }
 function shopBuy(code) {
   const [kind, k] = code.split(':'), me = S.pets[S.active];
@@ -9600,9 +9641,36 @@ function shopBuy(code) {
 }
 
 // ================= DECORATE =================
-const DECO = { pet: 0, tab: 'beds', sel: -1, drag: null };
+const DECO = { pet: 0, tab: 'beds', sel: -1, drag: null, trial: null, from: 'home' };
+// ---- try before you buy: an unbought thing goes into the room for a look; only "Buy" + a second tap pays for it ----
+function endTrial(keep) { const t = DECO.trial; if (!t) return; const pet = S.pets[t.pet]; if (!keep && pet) pet.room = t.backup; DECO.trial = null; DECO.sel = -1; }
+function startTrial(pet, kind, k) {
+  endTrial(false);
+  const backup = JSON.parse(JSON.stringify(pet.room)); let name, price;
+  if (kind === 'f') { name = FURN[k].name; price = FURN[k].price; DECO.sel = placeItem(pet.room, k); }
+  else if (kind === 's') { const st = ROOM_SETS.find(x => x.k === k); name = st.name; price = setPrice(st); applySet(st, pet, false); DECO.sel = -1; }
+  else {
+    const x = (kind === 'w' ? WALLPAPERS : FLOORS).find(v => v.k === k); name = x.name + (kind === 'w' ? ' wallpaper' : ' floor'); price = x.price;
+    if (pet.room.scene) { const st = roomSet(pet.room); delete pet.room.scene; delete pet.room.wy; if (st) { pet.room.wall = st.wall; pet.room.floor = st.floor; } }
+    pet.room[kind === 'w' ? 'wall' : 'floor'] = k; DECO.sel = -1;
+  }
+  DECO.trial = { pet: DECO.pet, kind, k, name, price, backup }; SFX.tap();
+}
+function buyTrial() {
+  const t = DECO.trial; if (!t) return;
+  if (S.coins < t.price) { toast(`You need $${money(t.price - S.coins)} more. Play a session to earn coins!`); return; }
+  S.coins -= t.price; S.owned[(t.kind === 's' ? 'set' : t.kind) + '-' + t.k] = 1; DECO.trial = null;
+  save(); renderHud(); SFX.fanfare(); toast(`Bought ${t.name}! It's in ${S.pets[t.pet].name}'s room now.`);
+}
+function armBuy(b, label) {                                     // first tap asks, second tap pays
+  if (b.dataset.armed) return true;
+  b.dataset.armed = 1; const t = b.innerHTML; b.innerHTML = label; b.classList.add('armed');
+  setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.innerHTML = t; b.classList.remove('armed'); } }, 4000);
+  return false;
+}
+const trying = (kind, k) => !!DECO.trial && DECO.trial.kind === kind && DECO.trial.k === k;
 const DECO_TABS = [['sets', 'Room sets'], ...FURN_GROUPS.map(([k, n]) => [k, n.split(' ')[0]]), ['walls', 'Wallpaper'], ['floors', 'Floor']];
-function openDeco(i) { DECO.pet = i; DECO.sel = -1; route('deco'); }
+function openDeco(i, from) { endTrial(false); DECO.pet = i; DECO.sel = -1; DECO.from = from || 'home'; route('deco'); }
 function renderDeco() {
   if (DECO.pet >= S.pets.length) DECO.pet = S.active;
   const pet = S.pets[DECO.pet]; if (!pet) { route('home'); return; }
@@ -9615,29 +9683,45 @@ function renderDeco() {
   const room = pet.room; let h = '';
   if (DECO.tab === 'sets') {
     h = ROOM_SETS.map(st => { const own = !!S.owned['set-' + st.k], on = room.scene === st.k, p = setPrice(st), can = S.coins >= p;
-      return `<button class="decocard setcard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-set="${st.k}"><img src="${imgSrc('setprev-' + st.k)}" alt=""><b>${esc(st.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + p}</em></button>`; }).join('');
+      const tr = trying('s', st.k);
+      return `<button class="decocard setcard ${on && !tr ? 'on' : ''} ${tr ? 'trying' : ''} ${own ? '' : 'locked'}" data-set="${st.k}"><img src="${imgSrc('setprev-' + st.k)}" alt=""><b>${esc(st.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${tr ? 'Trying on' : on ? 'Using' : own ? 'Use' : 'Try · $' + p}</em></button>`; }).join('');
   } else if (DECO.tab === 'walls' || DECO.tab === 'floors') {
     const list = DECO.tab === 'walls' ? WALLPAPERS : FLOORS, kind = DECO.tab === 'walls' ? 'w' : 'fl', cur = DECO.tab === 'walls' ? room.wall : room.floor;
     h = list.map(x => { const own = kind === 'w' ? ownsW(x.k) : ownsFl(x.k), on = cur === x.k, can = S.coins >= x.price;
-      return `<button class="decocard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-${kind}="${x.k}"><span class="swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></span><b>${esc(x.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'Using' : own ? 'Use' : '$' + x.price}</em></button>`; }).join('');
+      const tr = trying(kind, x.k);
+      return `<button class="decocard ${on && !tr ? 'on' : ''} ${tr ? 'trying' : ''} ${own ? '' : 'locked'}" data-${kind}="${x.k}"><span class="swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></span><b>${esc(x.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${tr ? 'Trying on' : on ? 'Using' : own ? 'Use' : 'Try · $' + x.price}</em></button>`; }).join('');
   } else {
     h = FURN_LIST.filter(f => f[2] === DECO.tab && (!f[8] || ownsF(f[0]))).map(([k, name, , price]) => { const own = ownsF(k), on = room.items.some(i => i.k === k), can = S.coins >= price;
       const swap = !on && swapGroup(k) && room.items.some(i => swapGroup(k).includes(i.k));
-      return `<button class="decocard ${on ? 'on' : ''} ${own ? '' : 'locked'}" data-f="${k}"><img src="${imgSrc('it-' + k)}" alt=""><b>${esc(name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${on ? 'In the room' : own ? (swap ? 'Swap in' : 'Put in') : '$' + price}</em></button>`; }).join('');
+      const tr = trying('f', k);
+      return `<button class="decocard ${on && !tr ? 'on' : ''} ${tr ? 'trying' : ''} ${own ? '' : 'locked'}" data-f="${k}"><img src="${imgSrc('it-' + k)}" alt=""><b>${esc(name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${tr ? 'Trying on' : on ? 'In the room' : own ? (swap ? 'Swap in' : 'Put in') : 'Try · $' + price}</em></button>`; }).join('');
   }
   $('#decoGrid').innerHTML = h;
 }
 function renderDecoTools() {
-  const pet = S.pets[DECO.pet], it = pet && pet.room.items[DECO.sel], st = pet && roomSet(pet.room);
+  const pet = S.pets[DECO.pet], it = pet && pet.room.items[DECO.sel], st = pet && roomSet(pet.room), t = DECO.trial;
+  if (t) {
+    const can = S.coins >= t.price;
+    $('#decoTools').innerHTML = `<span class="trytag">Trying on</span><b>${esc(t.name)}</b>${t.kind === 'f' ? '<span class="muted small">Drag it to see it in different spots.</span>' : ''}
+      <button class="btn small ${can ? 'go' : 'off'}" id="tryBuy">${can ? `${icon('coin', 'coin')} Buy $${t.price}` : `Need $${money(t.price - S.coins)} more`}</button><button class="btn small" id="tryOff">Take it off</button>`;
+    return;
+  }
   if (!it && st) { $('#decoTools').innerHTML = `<span class="muted">This room is the <b>${esc(st.name)}</b>. Drag any piece to move it, or tap it to flip or put it away. Put-away pieces wait in the tabs below.</span><button class="btn small" id="decoSetOff">Take the set off</button>`; return; }
   $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small" id="decoAway">Put away</button>${FURN[it.k].price ? `<button class="btn small bad" data-sell="f:${it.k}">Sell $${sellPrice(FURN[it.k].price)}</button>` : ''}<button class="btn small go" id="decoDone">Done</button>`
-    : `<span class="muted">Drag things to move them. Small things can sit on tables, beds and window sills. Tap one to flip, put away or sell it.</span>`;
+    : `<span class="muted">Tap anything below with a price to try it in the room first; nothing is bought until you tap Buy and confirm. Drag things to move them; tap one to flip, put away or sell it.</span>`;
 }
 function decoClick(e) {
   const pet = S.pets[DECO.pet]; if (!pet) return;
   const b = e.target.closest('button'); if (!b) return;
-  if (b.dataset.decopet !== undefined) { DECO.pet = +b.dataset.decopet; DECO.sel = -1; return renderDeco(); }
+  if (b.dataset.decopet !== undefined) { endTrial(false); DECO.pet = +b.dataset.decopet; DECO.sel = -1; return renderDeco(); }
+  if (b.id === 'tryOff') { endTrial(false); SFX.tap(); return renderDeco(); }
+  if (b.id === 'tryBuy') { const t = DECO.trial; if (!t) return; if (S.coins < t.price) { toast(`You need $${money(t.price - S.coins)} more. Play a session to earn coins!`); return; }
+    if (!armBuy(b, `Tap again to pay $${t.price}`)) return; buyTrial(); return renderDeco(); }
   if (b.dataset.t) { DECO.tab = b.dataset.t; return renderDeco(); }
+  // trying something on: an unbought thing goes in for a look (tapping the same card again takes it off)
+  const tk = b.dataset.f ? ['f', b.dataset.f, ownsF(b.dataset.f)] : b.dataset.w ? ['w', b.dataset.w, ownsW(b.dataset.w)] : b.dataset.fl ? ['fl', b.dataset.fl, ownsFl(b.dataset.fl)] : b.dataset.set ? ['s', b.dataset.set, !!S.owned['set-' + b.dataset.set]] : null;
+  if (tk && !tk[2]) { if (trying(tk[0], tk[1])) endTrial(false); else startTrial(pet, tk[0], tk[1]); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+  if (DECO.trial && (tk || ['decoAway', 'decoSetOff'].includes(b.id) || b.dataset.sell)) endTrial(false);
   if (b.id === 'decoFlip') { const it = pet.room.items[DECO.sel]; if (it) { it.f = it.f ? 0 : 1; save(); SFX.tap(); } return; }
   if (b.id === 'decoAway') { const it = pet.room.items[DECO.sel]; if (it) dropRiders(pet.room, it.k); pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
   if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell); DECO.sel = -1; return renderDeco(); }
@@ -9682,7 +9766,7 @@ function wireDeco() {
   const end = () => { if (DECO.drag) { if (DECO.drag.moved) save(); DECO.drag = null; } };
   cv.addEventListener('pointerup', end); cv.addEventListener('pointercancel', end);
   $('#scr-deco').addEventListener('click', decoClick);
-  $('#decoBack').addEventListener('click', () => { DECO.sel = -1; route('home'); });
+  $('#decoBack').addEventListener('click', () => { endTrial(false); DECO.sel = -1; route(DECO.from === 'shop' ? 'shop' : 'home'); });
 }
 // ================= core helpers =================
 const ALL = parseWords();
@@ -10007,16 +10091,18 @@ const profDoc = id => cloudDb.doc(id === TEST_ID ? 'dev/test' : 'profiles/' + id
 const visibleProfiles = () => PROFILES.filter(p => !p.test || DEV_OPEN);
 const isEddie = () => !!PROFILE && (/^eddie$/i.test(PROFILE.name.trim()) || isTester());
 let REMOTE_IDS = new Set();
+// a thing only being tried on in a room is never saved: the saved copy keeps the room as it was
+const savedState = () => DECO.trial ? { ...S, pets: S.pets.map((p, i) => i === DECO.trial.pet ? { ...p, room: DECO.trial.backup } : p) } : S;
 function save() {
   S.savedAt = Date.now();
   if (!PROFILE) return;
-  lsSet(lsKey(PROFILE.id), JSON.stringify(S));
+  lsSet(lsKey(PROFILE.id), JSON.stringify(savedState()));
   const e = PROFILES.find(p => p.id === PROFILE.id); if (e) { e.savedAt = S.savedAt; storeProfiles(); }
   if (cloudDb) { clearTimeout(cloudTimer); cloudTimer = setTimeout(flushCloud, 1500); }
 }
 async function pushProfile(id) {
   const prof = PROFILES.find(p => p.id === id); if (!prof || !cloudDb) return;
-  const st = id === (PROFILE && PROFILE.id) ? S : localSave(id); if (!st) return;
+  const st = id === (PROFILE && PROFILE.id) ? savedState() : localSave(id); if (!st) return;
   await profDoc(id).set({ name: prof.name, test: !!prof.test, json: JSON.stringify(st), savedAt: st.savedAt || 0, created: prof.created || 0 });
   REMOTE_IDS.add(id);
 }
@@ -10196,6 +10282,8 @@ function route(name) {
   currentScreen = name;
   if (name === 'play' && P) PLAY_FROM = P.mode || 'en';
   if (name === 'who') $('#whoBack').hidden = !PROFILE;
+  if (name !== 'deco' && DECO.trial) endTrial(false);        // leaving the room shop takes off anything only tried on
+  if (name !== 'shop') TRY = null;
   ['who', 'home', 'play', 'shop', 'room', 'book', 'town', 'chal', 'deco'].forEach(n => { $('#scr-' + n).hidden = n !== name; });
   renderHud();
   if (name === 'who') renderWho(); else if (name === 'home') renderHome(); else if (name === 'shop') renderShop(); else if (name === 'room') renderRoom(); else if (name === 'book') renderBook(); else if (name === 'town') renderTown(); else if (name === 'chal') renderChal(); else if (name === 'deco') renderDeco();
@@ -10842,6 +10930,16 @@ function boot() {
   $('#shopTabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (b) { shopTab = b.dataset.t; renderShop(); } });
   $('#shopGrid').addEventListener('click', e => { const hk = e.target.closest('[data-hkind]'); if (hk) { shopHouseKind = hk.dataset.hkind; renderShop(); return; }
     const sb = e.target.closest('[data-sell]'); if (sb) { if (armSell(sb)) { sellThing(sb.dataset.sell); renderShop(); } return; }
+    if (e.target.closest('#tryOffC')) { TRY = null; SFX.tap(); return renderShop(); }
+    const tb = e.target.closest('#tryBuyC'); if (tb) { const it = SHOP.find(i => i.id === TRY); if (!it) return;
+      if (S.coins < it.price) { toast(`You need $${money(it.price - S.coins)} more. Play a session to earn coins!`); return; }
+      if (!armBuy(tb, `Tap again to pay $${it.price}`)) return; TRY = null; buy(it.id); return; }
+    const wb = e.target.closest('[data-wear]'); if (wb) { const it = SHOP.find(i => i.id === wb.dataset.wear), pet = S.pets[shopPet]; if (!it || !pet) return;
+      const on = wearing(pet, it), slot = it.cat === 'skins' ? 'skin' : it.cat === 'costumes' ? 'costume' : it.slot;
+      pet[slot] = on ? null : it.key; if (!on && it.cat === 'clothes') pet.costume = null; TRY = null; save(); SFX.tap(); return renderShop(); }
+    const ty = e.target.closest('[data-try]'); if (ty) { const it = SHOP.find(i => i.id === ty.dataset.try); if (!it) return;
+      if (S.owned[it.id]) { const wb2 = ty.querySelector('[data-wear]'); if (wb2) wb2.click(); return; }
+      TRY = TRY === it.id ? null : it.id; SFX.tap(); renderShop(); const tr = $('.tryroom'); if (tr && TRY) tr.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
     const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });
