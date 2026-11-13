@@ -2392,6 +2392,12 @@ const SHOP = [
  {id:'back-backpack', cat:'clothes', slot:'back', key:'backpack', name:'Backpack', price:14},
  {id:'body-overalls', cat:'clothes', slot:'body', key:'overalls', name:'Overalls', price:18},
  {id:'body-raincoat', cat:'clothes', slot:'body', key:'raincoat', name:'Raincoat', price:20},
+ // whole looks: drawn on every pet by the artist (fit/<pet>-<key>.webp), worn on their own
+ ...[['wuxialight','Wuxia Traveler',28],['moneybag','Money Bag',30],['wingcape','Dragon Wing Cape',22],['fernkerchief','Fern Kerchief',14],['rescuevest','Rescue Vest',18],
+   ['yarnberet','Yarn Beret',14],['shellmantle','Shell Mantle',20],['bunnyhood','Bunny Hood',18],['mudponcho','Mud Puddle Poncho',16],['seedapron','Seed Pocket Apron',16],
+   ['vinesash','Vine Explorer Sash',16],['spikecape','T-Rex Spike Cape',22],['scalecollar','Scale Collar',16],['feathercape','Rainbow Feather Cape',24],['moonreadercap','Moon Reader Cap',16],
+   ['citrusrobe','Citrus Bath Robe',20],['orangehead','Orange Headpiece',14],['lotushat','Lotus Leaf Hat',16],['checkscarf','Blue Check Scarf',12],['swimring','Swim Ring',14],['crossbag','Tan Crossbody Bag',14]]
+   .map(([k,n,p])=>({id:'look-'+k, cat:'clothes', slot:'look', key:k, name:n, price:p})),
  {id:'food-apple', cat:'food', key:'apple', name:'Apple', price:2},
  {id:'food-carrot', cat:'food', key:'carrot', name:'Carrot', price:2},
  {id:'food-strawberry', cat:'food', key:'strawberry', name:'Strawberry', price:2},

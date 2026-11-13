@@ -103,7 +103,7 @@ const LEGACY_DECOR = { ball: 'blocks', plant: 'monstera', poster: 'pawframe', ru
 // old shelter/decor shop items are replaced by this set
 SHOP.forEach(i => { if (i.cat === 'shelter' || i.cat === 'decor') i.legacy = 1; });
 // Party Hat and Wizard Hat have no picture of their own yet: out of the shop; anyone who bought one gets the coins back
-const RETIRED = ['hat-party', 'hat-wizard'];
+const RETIRED = [];   // Party Hat and Wizard Hat are back (Nov 2026): every pet has a drawn picture wearing them
 SHOP.forEach(i => { if (RETIRED.includes(i.id)) i.legacy = 1; });
 
 const ownsF = k => { const F = FURN[k]; return F.set ? F.set.some(s => !!S.owned['set-' + s]) : (!F.price || !!S.owned['f-' + k]); };   // set pieces come with their set
@@ -420,10 +420,10 @@ function priceBtn(data, price, owned, label, sell) {
 function itemPreview(it, forPet) {
   let pet = forPet || S.pets[S.active] || { kind: 'cat' };
   if (it.petKind && pet.kind !== it.petKind) pet = S.pets.find(p => p.kind === it.petKind) || { kind: it.petKind };
-  if (it.cat === 'costumes') return `<img class="prev wear cosset" src="${imgSrc('cosset-' + it.key)}" alt=""><img class="pxi prev pet onpet" src="${petURL(pet, { costume: it.key, skin: pet.skin })}" alt="">`;
-  if (it.cat === 'skins') return `<img class="pxi prev pet" src="${petURL(pet, { skin: it.key, hat: null, eyes: null, neck: null, back: null, body: null, costume: null })}" alt="">`;
+  if (it.cat === 'costumes') return `<img class="prev wear cosset" src="${imgSrc('cosset-' + it.key)}" alt=""><img class="pxi prev pet onpet" src="${petURL(pet, { costume: it.key, look: null, hat: null, eyes: null, neck: null, back: null, body: null })}" alt="">`;
+  if (it.cat === 'skins') return `<img class="pxi prev pet" src="${petURL(pet, { skin: it.key, hat: null, eyes: null, neck: null, back: null, body: null, costume: null, look: null })}" alt="">`;
   if (it.cat === 'clothes') {
-    const bare = { hat: null, eyes: null, neck: null, back: null, body: null, [it.slot]: it.key };
+    const bare = { hat: null, eyes: null, neck: null, back: null, body: null, look: null, costume: null, [it.slot]: it.key };
     const wear = WEAR[it.key] && SPR[WEAR[it.key]];
     return `${wear ? `<img class="prev wear" src="${wear.src}" alt="">` : ''}<img class="pxi prev pet ${wear ? 'onpet' : ''}" src="${petURL(pet, bare)}" alt="">`;
   }
@@ -443,10 +443,10 @@ const WEARS = ['clothes', 'costumes', 'skins'];
 function tryLook(pet, it) {                                  // what the pet looks like wearing it
   if (!it) return {};
   if (it.cat === 'skins') return { skin: it.key };
-  if (it.cat === 'costumes') return { costume: it.key };
-  return { [it.slot]: it.key, costume: null };
+  if (it.cat === 'costumes') return { costume: it.key, look: null };
+  return it.slot === 'look' ? { look: it.key, costume: null } : { [it.slot]: it.key, costume: null, look: null };
 }
-const wearing = (pet, it) => it.cat === 'skins' ? pet.skin === it.key : it.cat === 'costumes' ? pet.costume === it.key : pet[it.slot] === it.key && !pet.costume;
+const wearing = (pet, it) => it.cat === 'skins' ? pet.skin === it.key : it.cat === 'costumes' ? pet.costume === it.key : it.slot === 'look' ? pet.look === it.key && !pet.costume : pet[it.slot] === it.key && !pet.costume && !pet.look;
 function dressingRoom(pet) {
   const it = TRY && SHOP.find(i => i.id === TRY);
   const can = it && S.coins >= it.price;
@@ -506,6 +506,7 @@ function renderShop() {
         <b>${has ? esc(LTD[p.kind].name) + ' ' + esc(PETS[p.kind].name) : '???'}</b><span class="muted small">${has ? 'Unlocked! Wear it in the room.' : 'Not for sale. Keep playing with ' + esc(p.name) + ' to discover it.'}</span></div>`;
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);
+    if (wears && dp) preloadFits(dp.kind, items.filter(i => i.cat !== 'skins').map(i => i.key));
     h = (wears && dp ? dressingRoom(dp) : '') + `<div class="shopgrid">${ltd}${items.map(it => {
       const owned = it.cat !== 'food' && S.owned[it.id];
       if (wears && dp) {                                      // dressing-room cards: tap to try; owned things are worn straight away
@@ -532,7 +533,7 @@ function buy(id) {
   else {
     S.owned[it.id] = 1; let pet = WEARS.includes(it.cat) ? (S.pets[shopPet] || S.pets[S.active]) : S.pets[S.active];
     if (it.petKind && (!pet || pet.kind !== it.petKind)) pet = S.pets.find(p => p.kind === it.petKind);
-    if (it.cat === 'skins' && pet) pet.skin = it.key; if (it.cat === 'clothes' && pet) { pet[it.slot] = it.key; pet.costume = null; } if (it.cat === 'costumes' && pet) pet.costume = it.key;
+    if (it.cat === 'skins' && pet) pet.skin = it.key; if (it.cat === 'clothes' && pet) { pet[it.slot] = it.key; pet.costume = null; if (it.slot !== 'look') pet.look = null; } if (it.cat === 'costumes' && pet) { pet.costume = it.key; pet.look = null; }
   }
   save(); SFX.coin(); renderHud(); renderShop();
   const wp = WEARS.includes(it.cat) && (S.pets[shopPet] || S.pets[S.active]);

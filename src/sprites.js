@@ -166,6 +166,47 @@ function costumeLayers(ctx, lx, G, c, when) {
   }
 }
 
+// ---- fitted pictures: the artist drew every pet in every outfit; used when a pet wears one thing ----
+const FIT_KEY = { crown: 'crown', shades: 'sunglasses', wizard: 'wizard', party: 'party', strawhat: 'strawhat', cap: 'bluecap', round: 'roundglasses', bowtie: 'bowtie', scarf: 'redscarf', backpack: 'backpack', overalls: 'overalls', raincoat: 'raincoat' };
+const FITIMG = {}; let fitTimer = 0;
+function fitImg(kind, key) {
+  if (typeof FIT_META === 'undefined' || !FIT_META.img[kind + '-' + key]) return null;
+  let f = FITIMG[kind];                                       // one picture per pet holds all its outfits
+  if (!f) {
+    const im = new Image(); f = FITIMG[kind] = { im, ok: false };
+    im.onload = () => { f.ok = true; clearTimeout(fitTimer); fitTimer = setTimeout(() => window.onFitLoaded && window.onFitLoaded(), 120); };
+    im.src = 'fit/' + kind + '.webp';
+  }
+  return f;
+}
+const preloadFits = (kind, keys) => keys.forEach(k => fitImg(kind, FIT_KEY[k] || k));
+function bodyHue(kind) {                                     // the pet's own fur colour, so a skin only recolours the pet and not its clothes
+  if (bodyHue[kind] != null) return bodyHue[kind];
+  const f = FITIMG[kind], m = typeof FIT_META !== 'undefined' && FIT_META.img[kind + '-bowtie'];   // the drawn pictures' own fur colour
+  let im = SPR['pet-' + kind], sx = 0, sy = 0, w = im && im.width, h = im && im.height;
+  if (f && f.ok && m) { im = f.im; [w, h, , sx, sy] = m; }
+  if (!im) return null; const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(im, sx, sy, w, h, 0, 0, w, h);
+  const d = x.getImageData(0, 0, c.width, c.height).data, hs = [];
+  for (let i = 0; i < d.length; i += 16) if (d[i + 3] > 200 && isBodyPx(d[i], d[i + 1], d[i + 2], kind)) { const [h, s] = rgbHSL(d[i], d[i + 1], d[i + 2]); if (s > 0.15) hs.push(h); }
+  if (!hs.length) return null;                                // most common hue (10-degree bins), not the median: bellies and clothes pull a median
+  const bins = new Array(36).fill(0); hs.forEach(v => bins[Math.floor(v / 10) % 36]++); const top = bins.indexOf(Math.max(...bins));
+  const near = hs.filter(v => Math.abs(v - (top * 10 + 5)) <= 15); return bodyHue[kind] = near.reduce((a, b) => a + b, 0) / near.length;
+}
+function recolorFur(ctx, kind, pal, pat) {
+  const hue = bodyHue(kind); if (hue == null) return;
+  const id = ctx.getImageData(0, 0, PET_CW, PET_CH), d = id.data, keep = new Uint8Array(d.length / 4);
+  for (let i = 0, p = 0; i < d.length; i += 4, p++) { if (d[i + 3] < 30) continue; const [h, s] = rgbHSL(d[i], d[i + 1], d[i + 2]); const dh = Math.min(Math.abs(h - hue), 360 - Math.abs(h - hue)); if (dh > 22 || s < 0.12) keep[p] = 1; }
+  const save = new Uint8ClampedArray(d); recolor(ctx, PET_CW, PET_CH, kind, pal, pat);
+  const n = ctx.getImageData(0, 0, PET_CW, PET_CH); for (let p = 0; p < keep.length; p++) if (keep[p]) { const i = p * 4; n.data[i] = save[i]; n.data[i + 1] = save[i + 1]; n.data[i + 2] = save[i + 2]; }
+  ctx.putImageData(n, 0, 0);
+}
+function drawFitted(lx, f, kind, key) {
+  const [w, h, cx, sx, sy] = FIT_META.img[kind + '-' + key], bw = (SPR['pet-' + kind] || {}).width || w, bcx = FIT_META.base[kind] != null ? FIT_META.base[kind] : bw / 2;
+  const k = Math.min(1, (PET_CH - 2) / h, PET_CW / w), dw = w * k, dh = h * k;
+  let left = PET_CW / 2 + (bcx - bw / 2) - cx * k; left = Math.max(0, Math.min(PET_CW - dw, left));
+  lx.imageSmoothingEnabled = true; lx.drawImage(f.im, sx, sy, w, h, Math.round(left), Math.round(PET_CH - 2 - dh), Math.round(dw), Math.round(dh));
+}
+
 function petImage(kind, skin) {                             // colour skins drawn for this kind of pet
   const a = skin && skin.startsWith('a-') && SPR['pet-' + kind + '-' + skin.slice(2)];
   return a || SPR['pet-' + kind];
@@ -177,7 +218,21 @@ function renderPet(pet, o = {}) {
   if (!im0) return c;
   const G = petGeom(kind);
   const get = k => (o[k] !== undefined ? o[k] : pet[k]);
-  const skin = get('skin'), cos = get('costume') && typeof COSTUMES !== 'undefined' && COSTUMES[get('costume')];
+  const skin = get('skin'), look = get('look'), cos = get('costume') && typeof COSTUMES !== 'undefined' && COSTUMES[get('costume')];
+  // one thing worn and a drawn picture of it -> use the picture
+  const singles = ['hat', 'eyes', 'neck', 'back', 'body'].map(get).filter(Boolean);
+  const fitKey = get('costume') && cos ? get('costume') : look ? look : singles.length === 1 ? FIT_KEY[singles[0]] : null;
+  const artSkin = skin && skin.startsWith('a-'), procedural = !!cos || (!look && singles.length > 0);
+  if (fitKey && (look || !artSkin || !procedural)) {           // drawn pictures for everything; colour skins recolour only the fur
+    const f = fitImg(kind, fitKey);
+    if (f && f.ok) {
+      const L = document.createElement('canvas'); L.width = PET_CW; L.height = PET_CH; const lx = L.getContext('2d', { willReadFrequently: true });
+      drawFitted(lx, f, kind, fitKey);
+      if (skin === 'ltd' && LTD[kind]) recolorFur(lx, kind, LTD[kind].pal, LTD[kind].pat); else if (skin && SKINS[skin]) recolorFur(lx, kind, SKINS[skin].pal);
+      ctx.drawImage(L, 0, 0); return c;
+    }
+    if (look) o = { ...o, look: null };                       // still loading: the plain pet for a moment
+  }
   const hat = cos ? null : get('hat'), eyes = cos ? null : get('eyes'), neck = cos ? null : get('neck'), back = cos ? null : get('back'), body = cos ? null : get('body');
   const im = petImage(kind, skin);
   // the pet itself (own layer so skins only touch the pet)
