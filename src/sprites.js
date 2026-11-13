@@ -265,10 +265,10 @@ function renderPet(pet, o = {}) {
   if (neck === 'bowtie' && SPR['wear-bow']) drawFit(ctx, SPR['wear-bow'], G.ex, G.neckY - G.es * 0.3, G.es * 0.95);
   if (eyes === 'round' && SPR['wear-glasses']) { const gw = G.es * 1.8; drawFit(ctx, SPR['wear-glasses'], G.ex, G.ey - gw * 56 / 139 / 2, gw); }
   if (eyes === 'shades' && shadesImg()) { const gw = G.es * 1.8; drawFit(ctx, shadesImg(), G.ex, G.ey - gw * 56 / 139 / 2, gw); }
-  if (hat) {
-    const bottom = G.ey - G.es * 0.42;
-    if (WEAR[hat] && SPR[WEAR[hat]]) { const img = SPR[WEAR[hat]], wd = G.es * (hat === 'strawhat' ? 2.35 : 1.95); drawFit(ctx, img, G.ex + (hat === 'cap' ? -G.es * .12 : 0), bottom - img.height * wd / img.width, wd); }
-    else { const ph = pixelHat(hat); if (ph) { const wd = G.es * 1.7; drawFit(ctx, ph, G.ex, bottom - ph.height * wd / ph.width + G.es * .12, wd, false); } }
+  if (hat) {                                                  // sized by the head (wide-set eyes like a frog's would make it huge) and never above the picture
+    const hes = Math.min(G.es, 56), bottom = G.ey - hes * 0.42, room = Math.max(24, bottom - 3);
+    if (WEAR[hat] && SPR[WEAR[hat]]) { const img = SPR[WEAR[hat]]; let wd = hes * (hat === 'strawhat' ? 2.35 : 1.95); if (img.height * wd / img.width > room) wd = room * img.width / img.height; drawFit(ctx, img, G.ex + (hat === 'cap' ? -hes * .12 : 0), Math.max(3, bottom - img.height * wd / img.width), wd); }
+    else { const ph = pixelHat(hat); if (ph) { let wd = hes * 1.7; if (ph.height * wd / ph.width - hes * .12 > room) wd = (room + hes * .12) * ph.width / ph.height; drawFit(ctx, ph, G.ex, Math.max(3, bottom - ph.height * wd / ph.width + hes * .12), wd, false); } }
   }
   // limited editions sparkle
   if (ltd) {
