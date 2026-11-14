@@ -4,14 +4,21 @@ const BY_ID = Object.fromEntries(ALL.map(w => [w.id, w]));
 const gradeWords = g => ALL.filter(w => w.g === g);
 const HEAD = 6; // empty rows above a pet for hats
 const SESSION_SIZE = 10;
-// ---- six levels, easy to hard; inside each level words go from easy/common to hard/rare ----
+// ---- word groups A-F (easy to hard; inside each, easy/common to hard/rare). Daily Quest = the core words in five levels; the rest is the English Challenge ----
+const GROUP = Object.fromEntries(Object.keys(LEVEL_GROUPS).map(k => [k, LEVEL_GROUPS[k].split(',').map(x => { const [id, z] = x.split(':'); return { id, z: +z / 10 }; }).filter(x => BY_ID[x.id])]));
+const ALL_ORDER = 'ABCDEF'.split('').flatMap(k => GROUP[k].map(x => x.id));     // every word, easy to hard (used to move old progress)
+const isChal = id => CHAL_IDS.has(id);
 const LEVEL_INFO = [
-  { k: 'A', name: 'Level 1', sub: 'Grades 1\u20132' }, { k: 'B', name: 'Level 2', sub: 'Grades 3\u20134' },
-  { k: 'C', name: 'Level 3', sub: 'Grade 5' }, { k: 'D', name: 'Level 4', sub: 'Grades 5\u20136' }, { k: 'E', name: 'Level 5', sub: 'Grades 6\u20137' },
-  { k: 'F', name: 'Level 6', sub: 'Grades 7\u20138 challenge' }];
-const LEVELS = LEVEL_INFO.map((L, gi) => ({ ...L, gi, ids: LEVEL_GROUPS[L.k].split(',').map(x => { const [id, z] = x.split(':'); return { id, z: +z / 10 }; }).filter(x => BY_ID[x.id]) }));
+  { k: 'A', name: 'Level 1', sub: 'Grades 1\u20132', from: 'A' }, { k: 'B', name: 'Level 2', sub: 'Grades 3\u20134', from: 'B' },
+  { k: 'C', name: 'Level 3', sub: 'Grade 5', from: 'C' }, { k: 'D', name: 'Level 4', sub: 'Grades 5\u20136', from: 'D' }, { k: 'E', name: 'Level 5', sub: 'Grades 6\u20138', from: 'EF' }];
+const LEVELS = LEVEL_INFO.map((L, gi) => ({ ...L, gi, ids: L.from.split('').flatMap(k => GROUP[k]).filter(x => !isChal(x.id)) }));
 let acc = 0; LEVELS.forEach(L => { L.off = acc; acc += L.ids.length; });
 const ORDER = LEVELS.flatMap(L => L.ids.map(x => x.id));
+const CH_ORDER = ALL_ORDER.filter(isChal);
+const CH_PARTS = [['Stage 1', 'Grades 5\u20136'], ['Stage 2', 'Grade 6'], ['Stage 3', 'Grades 6\u20137'], ['Stage 4', 'Grades 7\u20138']].map(([name, sub], i, arr) => {
+  const a = Math.round(i * CH_ORDER.length / arr.length), b = Math.round((i + 1) * CH_ORDER.length / arr.length);
+  return { i, name, sub, ids: CH_ORDER.slice(a, b) };
+});
 const levelAt = pos => LEVELS.reduce((f, L) => (pos >= L.off ? L : f), LEVELS[0]);
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -296,8 +303,12 @@ function migrate(o) {
     f.perPetHomes = 1;
   }
   if (!f.wl68) {                                         // Ontario grade 6-8 words (Nov 2026) were mixed into levels 4-5 and a new level 6: keep each player on the same word
-    if (f.place && f.place.pos) { const old = ORDER.filter(id => !NEW68.has(id)), id = old[f.place.pos]; f.place.pos = id ? ORDER.indexOf(id) : LEVELS[LEVELS.length - 1].off; }
+    if (f.place && f.place.pos) { const old = ALL_ORDER.filter(id => !NEW68.has(id)), id = old[f.place.pos]; f.place.pos = id ? ALL_ORDER.indexOf(id) : ALL_ORDER.length; }
     f.wl68 = 1;
+  }
+  if (!f.core1) {                                        // Daily Quest keeps only core words (Nov 2026): move to the first core word at or after the old place
+    if (f.place && f.place.pos) { let i = f.place.pos; while (i < ALL_ORDER.length && isChal(ALL_ORDER[i])) i++; f.place.pos = i < ALL_ORDER.length ? ORDER.indexOf(ALL_ORDER[i]) : ORDER.length; }
+    f.core1 = 1;
   }
   (f.pets || []).forEach(p => migrateRoom(p, f));
   return f;
@@ -458,7 +469,7 @@ function notePetDay(pet) {                               // one practice day wit
   if (d.last !== t) { d.n++; d.last = t; }
   if (d.n >= LTD_DAYS && !S.owned['ltd-' + pet.kind]) { S.owned['ltd-' + pet.kind] = 1; LTD_QUEUE.push(pet.kind); }
 }
-const seenTotal = () => ALL.filter(w => S.seen[w.id]).length;
+const seenTotal = () => ORDER.filter(id => S.seen[id]).length;
 function currentLevel() {
   const start = (S.place && S.place.pos) || 0;
   let pos = ORDER.findIndex((id, i) => i >= start && !S.seen[id] && !S.mistakes[id]);
@@ -466,8 +477,8 @@ function currentLevel() {
   if (pos < 0) { const Lz = LEVELS[LEVELS.length - 1]; return { L: Lz, done: Lz.ids.length, pos: ORDER.length }; }
   const L = levelAt(pos); return { L, done: L.ids.filter(x => S.seen[x.id]).length, pos };
 }
-const dueMistakes = () => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && S.mistakes[id] < t); };
-const laterMistakes = () => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && S.mistakes[id] >= t); };
+const dueMistakes = (ch = false) => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && !BY_ID[id].lab && isChal(id) === ch && S.mistakes[id] < t); };
+const laterMistakes = (ch = false) => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && !BY_ID[id].lab && isChal(id) === ch && S.mistakes[id] >= t); };
 function petFull(pet) { if (!pet) return 0; const gap = pet.fedDay ? Math.max(0, daysBetween(pet.fedDay, today())) : 0; return Math.max(0, Math.min(100, (pet.full ?? 70) - gap * 20)); }
 
 function buildSession() {
@@ -551,13 +562,13 @@ function renderHome() {
   $('#homeFull').className = full < 35 ? 'low' : '';
   $('#homeFullNum').textContent = full + '%';
   const due = dueMistakes().length, later = laterMistakes().length;
-  const left = ALL.length - seenTotal();
+  const left = ORDER.length - seenTotal();
   const bubble = !pet ? '' : full < 35 ? "I'm hungry! Can we buy a snack?" : S.lastDay === today() ? 'Great job today! Want to play more?' : liveStreak() > 0 ? `Keep our ${liveStreak()}-day streak going!` : "Let's spell together!";
   $('#bubble').textContent = bubble; $('#bubble').hidden = !bubble;
   let note;
   if (due) note = `${due} word${due > 1 ? 's' : ''} from your Mistake Notebook ${due > 1 ? 'are' : 'is'} in this session. Each one you get right is worth ${coinAmt(2)}.`;
   else if (left) { const c = currentLevel(); note = !S.place ? `First, a quick level test finds the right words for you. Then every word you get right in all 3 rounds earns ${coinAmt(1)}.` : `<b>${c.L.name}</b> <span class="muted">(${c.L.sub})</span> \u00b7 ${c.done} of ${c.L.ids.length} words done. Every word you get right in all 3 rounds earns ${coinAmt(1)}.`; }
-  else note = `You have seen all ${ALL.length.toLocaleString()} words! Practice sessions still earn ${coinAmt(1)} a word.`;
+  else note = `You have seen all ${ORDER.length.toLocaleString()} Daily Quest words! Try the English Challenge for harder ones. Practice sessions still earn ${coinAmt(1)} a word.`;
   if (later) note += ` <span class="muted">${later} mistake word${later > 1 ? 's' : ''} from today will come back tomorrow.</span>`;
   $('#playNote').innerHTML = note;
   $('#questSub').textContent = !S.place ? 'Level test first' : S.lastDay === today() ? 'Play 10 more words' : 'Spell 10 words';
@@ -684,7 +695,7 @@ function roundIntro() {
     $('#goRound').addEventListener('click', () => { P.idx = 0; showQuestion(); }); $('#goRound').focus(); return;
   }
   $('#stage').innerHTML = `<div class="panel intro">
-    <p class="eyebrow">${P.mode === 'lab' ? `Brainpower Lab \u00b7 Unit ${P.unit} \u00b7 ` : ''}Round ${n} of 3</p>
+    <p class="eyebrow">${P.mode === 'lab' ? `Brainpower Lab \u00b7 Unit ${P.unit} \u00b7 ` : P.mode === 'chal' ? `English Challenge \u00b7 ${CH_PARTS[P.part].name} \u00b7 ` : ''}Round ${n} of 3</p>
     <h2 class="rt">${['', 'Shoot it', 'Spell it', 'Use it'][n]}</h2>
     <p>${P.mode === 'lab' && n === 3 ? 'Read the sentence and pick the vocabulary word that fits best.' : ROUND_INFO[n].how}</p>
     ${n === 1 ? `<p class="muted">${P.items.length} words this session${reviews ? `, including ${reviews} from your Mistake Notebook (worth $2 each)` : ''}. A word earns coins when you get it right in all 3 rounds.</p>` : ''}
@@ -754,7 +765,7 @@ function askExit() {
 }
 function exitPlay() {
   const m = P ? P.mode : PLAY_FROM; stopArena(); P = null; $('#quitBar').hidden = true;
-  if (m === 'lab') { chalId = 'en'; route('chal'); } else if (m === 'zh' || m === 'zhplace') { chalId = 'zh'; route('chal'); } else route('home');
+  if (m === 'lab') { chalId = 'lab'; route('chal'); } else if (m === 'chal') { chalId = 'en'; route('chal'); } else if (m === 'zh' || m === 'zhplace') { chalId = 'zh'; route('chal'); } else route('home');
 }
 
 // ---- choose first, then confirm (so a stray tap never answers) ----
@@ -922,7 +933,7 @@ function placementIntro() {
     <p class="center small"><button class="linkbtn" id="placeLater">✕ Not now, go back</button></p>`, true);
   $('#placeLater').addEventListener('click', () => { closeModal(true); if (P && P.mode === 'place') { P = null; } route('home'); });
   $('#placeGo').addEventListener('click', () => { closeModal(true); startPlacement(); });
-  $('#placeSkip').addEventListener('click', () => { S.place = { pos: 0, gi: 0, start: 0, at: today(), skipped: true }; S.wl68 = 1; save(); closeModal(true); renderHome(); startSession(); });
+  $('#placeSkip').addEventListener('click', () => { S.place = { pos: 0, gi: 0, start: 0, at: today(), skipped: true }; S.wl68 = 1; S.core1 = 1; save(); closeModal(true); renderHome(); startSession(); });
 }
 function startPlacement() {
   const sets = LEVELS.slice(0, 3).map(placementSet);
@@ -952,7 +963,7 @@ function placeGroupDone() {
 }
 function placeFinish(gi, start) {
   const L = LEVELS[gi];
-  S.place = { gi, start, pos: L.off + start, at: today(), wrongs: P.wrongs }; S.wl68 = 1;
+  S.place = { gi, start, pos: L.off + start, at: today(), wrongs: P.wrongs }; S.wl68 = 1; S.core1 = 1;
   save(); P = null;
   const where = start === 0 ? 'from the beginning' : start >= L.ids.length * 0.6 ? 'from the harder words' : 'from the middle';
   route('home');
@@ -968,7 +979,7 @@ function placeFinish(gi, start) {
 function finishSession() {
   stopArena();
   const t = today(); let earned = 0, right = 0; const pet0 = S.pets[S.active];
-  const LB = P.mode === 'lab' ? labState() : null, labU = LB ? P.unit : 0;
+  const LB = P.mode === 'lab' ? labState() : null, labU = LB ? P.unit : 0, CHP = P.mode === 'chal' ? P.part : -1;
   const rows = P.items.map(it => {
     const r = P.res[it.id], all = r.every(v => v === true), w = BY_ID[it.id];
     const pay = all ? (it.review ? 2 : 1) : 0; earned += pay; if (all) right++;
@@ -987,15 +998,15 @@ function finishSession() {
   $('#roundLabel').textContent = 'Results'; $('#pips').innerHTML = ''; $('#quitBar').hidden = true;
   $('#stage').innerHTML = `<div class="panel results">
     <div class="res-head"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><div>
-      <p class="eyebrow">${LB ? `Brainpower Lab \u00b7 Unit ${labU}` : 'Session done'}</p><h2 class="rt">${right} of ${P.items.length} words mastered</h2>
+      <p class="eyebrow">${LB ? `Brainpower Lab \u00b7 Unit ${labU}` : CHP >= 0 ? `English Challenge \u00b7 ${CH_PARTS[CHP].name}` : 'Session done'}</p><h2 class="rt">${right} of ${P.items.length} words mastered</h2>
       <p class="earn">You earned ${coinAmt(earned)}</p>
       ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw">${esc(x.w.w)}${x.review ? '<em>review</em>' : ''}</span><span class="marks">${x.r.map((v, i) => `<span title="Round ${i + 1}">${icon(v ? 'check' : 'cross')}</span>`).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + x.pay : '$0'}</span></li>`).join('')}</ul>
-    ${rows.some(x => !x.pay) ? `<p class="muted">${LB ? 'Missed words come back first next time you play this unit, worth $2 each.' : 'Missed words go into your Mistake Notebook and come back tomorrow, worth $2 each.'}</p>` : ''}
-    <div class="row"><button class="btn go big" id="again">${LB ? 'Play again' : 'Play 10 more'}</button><button class="btn" id="toHome">${LB ? 'Back to the Lab' : 'Home'}</button></div></div>`;
+    ${rows.some(x => !x.pay) ? `<p class="muted">${LB ? 'Missed words come back first next time you play this unit, worth $2 each.' : CHP >= 0 ? 'Missed words come back in this stage from tomorrow, worth $2 each.' : 'Missed words go into your Mistake Notebook and come back tomorrow, worth $2 each.'}</p>` : ''}
+    <div class="row"><button class="btn go big" id="again">${LB ? 'Play again' : 'Play 10 more'}</button><button class="btn" id="toHome">${LB ? 'Back to the Lab' : CHP >= 0 ? 'Back to the Challenge' : 'Home'}</button></div></div>`;
   P = null;
-  const backTo = () => { if (LB) { chalId = 'en'; route('chal'); } else route('home'); };
-  $('#again').addEventListener('click', () => claimRewards(LB ? () => startLab(labU) : startSession));
+  const backTo = () => { if (LB) { chalId = 'lab'; route('chal'); } else if (CHP >= 0) { chalId = 'en'; route('chal'); } else route('home'); };
+  $('#again').addEventListener('click', () => claimRewards(LB ? () => startLab(labU) : CHP >= 0 ? () => startChal(CHP) : startSession));
   $('#toHome').addEventListener('click', () => claimRewards(backTo));
   setTimeout(() => { if (rewardQueue().length || LTD_QUEUE.length) claimRewards(backTo); }, 900);
 }
@@ -1013,13 +1024,51 @@ function ltdModal(kind, then) {
 }
 // ================= CHALLENGES (words to be added) =================
 const CHALLENGES = [
-  { id: 'zh', title: '\u4e2d\u6587\u6311\u6218', sub: 'Chinese Challenge', words: ZH_PARTS.flatMap(p => p.chars) },
-  { id: 'en', title: 'English Challenge', sub: 'Harder words', words: [] }
+  { id: 'zh', title: '\u4e2d\u6587\u6311\u6218', sub: 'Chinese Challenge' },
+  { id: 'en', title: 'English Challenge', sub: 'Harder words, when you want them' },
+  { id: 'lab', title: 'Brainpower Lab', sub: 'Top secret \u00b7 Eddie only', eddie: true }
 ];
+const chalList = () => CHALLENGES.filter(c => !c.eddie || isEddie());
 function renderChallenges() {
-  $('#challenges').innerHTML = CHALLENGES.map(c => `<div class="chal ${c.id}"><div><b class="${c.id === 'zh' ? 'zh' : ''}">${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span></div>
-    <p class="muted small ${c.id === 'zh' ? 'zh' : ''}">${c.id === 'zh' ? '\u4e00\u4e8c\u5e74\u7ea7 1600 \u5b57 \u00b7 \u56db\u5173' : c.words.length ? c.words.length + ' words' : isEddie() ? 'Something secret is waiting inside\u2026' : 'Coming soon. New words are on the way!'}</p>
-    <button class="btn small go" data-chal="${c.id}">${c.id === 'zh' ? '<span class="zh">\u8fdb\u5165</span>' : 'Open'}</button></div>`).join('');
+  $('#challenges').innerHTML = chalList().map(c => {
+    const note = c.id === 'zh' ? '<span class="zh">\u4e00\u4e8c\u5e74\u7ea7 1600 \u5b57 \u00b7 \u56db\u5173</span>'
+      : c.id === 'en' ? `${CH_ORDER.filter(id => S.seen[id]).length} of ${CH_ORDER.length.toLocaleString()} words done \u00b7 4 stages`
+      : `Your class vocabulary \u00b7 ${LAB.length} words`;
+    return `<div class="chal ${c.id}"><div><b class="${c.id === 'zh' ? 'zh' : ''}">${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span></div>
+    <p class="muted small">${note}</p>
+    <button class="btn small go" data-chal="${c.id}">${c.id === 'zh' ? '<span class="zh">\u8fdb\u5165</span>' : 'Open'}</button></div>`;
+  }).join('');
+}
+// ---- English Challenge: the words that are not in the Daily Quest, in 4 stages from easier to hardest ----
+function chalPartFresh(p) { return CH_PARTS[p].ids.filter(id => !S.seen[id] && !S.mistakes[id]); }
+function buildChalSession(p) {
+  const inPart = new Set(CH_PARTS[p].ids);
+  const due = shuffle(dueMistakes(true).filter(id => inPart.has(id))).slice(0, SESSION_SIZE);
+  const items = due.map(id => ({ id, review: true })), used = new Set(due);
+  for (const id of CH_PARTS[p].ids) { if (items.length >= SESSION_SIZE) break; if (!used.has(id) && !S.seen[id] && !S.mistakes[id]) { items.push({ id, review: false }); used.add(id); } }
+  if (items.length < SESSION_SIZE) for (const id of shuffle(CH_PARTS[p].ids)) { if (items.length >= SESSION_SIZE) break; if (S.seen[id] && !S.mistakes[id] && !used.has(id)) { items.push({ id, review: false, practice: true }); used.add(id); } }
+  return shuffle(items);
+}
+function startChal(p) {
+  if (!S.pets.length) { maybeFirstPet(); return; }
+  const items = buildChalSession(p);
+  if (!items.length) { toast('No words left in this stage for today. Missed words come back tomorrow!'); return; }
+  P = { mode: 'chal', part: p, items, round: 1, idx: 0, order: { 1: shuffle(items), 2: shuffle(items), 3: shuffle(items) }, res: Object.fromEntries(items.map(i => [i.id, [null, null, null]])), busy: false, typed: '' };
+  route('play'); roundIntro();
+}
+function enChalHub() {
+  const pet = S.pets[S.active], dueAll = dueMistakes(true);
+  return `<div class="panel enchal">
+    <div class="enhead">${pet ? `<img class="pxi petimg" src="${petURL(pet)}" alt="">` : ''}<div><h2>English Challenge</h2>
+    <p>Harder words that are not in your Daily Quest. Play them whenever you like: 10 words a session, 3 rounds, and each word you get right in all 3 rounds earns ${coinAmt(1)}. Missed words come back the next day in the same stage, worth ${coinAmt(2)}.</p></div></div>
+    <div class="enparts">${CH_PARTS.map(P_ => {
+      const n = P_.ids.length, done = P_.ids.filter(id => S.seen[id] && !S.mistakes[id]).length, fix = P_.ids.filter(id => S.mistakes[id]).length, due = dueAll.filter(id => P_.ids.includes(id)).length;
+      return `<div class="enpart"><div><b>${P_.name}</b> <span class="muted small">${P_.sub}</span></div>
+        <div class="bar"><i style="width:${Math.round(done / n * 100)}%"></i></div>
+        <p class="small muted">${done} of ${n} words mastered${fix ? ` \u00b7 <span class="fixn">${fix} to fix${due ? `, ${due} ready today` : ''}</span>` : ''}</p>
+        <button class="btn small go" data-chpart="${P_.i}">${done || fix ? 'Play 10 words' : 'Start'}</button></div>`;
+    }).join('')}</div>
+    <p class="center"><button class="btn" data-back-home>Back home</button></p></div>`;
 }
 
 // (shop lives in home2.js)
@@ -1107,27 +1156,23 @@ function renderChal() {
   const pet = S.pets[S.active];
   $('#chalTitle').textContent = ch.title; $('#chalTitle').className = ch.id === 'zh' ? 'zh' : '';
   if (ch.id === 'zh') { $('#chalBody').innerHTML = renderZhHub(); return; }
-  const secret = ch.id === 'en' && isEddie() ? labHub() : '';
-  if (ch.id === 'en' && secret) { $('#chalBody').innerHTML = secret + `<p class="center"><button class="btn" data-back-home>Back home</button></p>`; return; }
-  if (ch.id === 'en') { $('#chalBody').innerHTML = `<div class="panel chalempty">${pet ? `<img class="pxi petimg big" src="${petURL(pet)}" alt="">` : ''}<p class="zhbig">No words here yet!</p><p>Harder words are coming soon. Check back later for the English Challenge.</p><button class="btn" data-back-home>Back home</button></div>`; return; }
-  $('#chalBody').innerHTML = ch.words.length ? '' : `<div class="panel chalempty ${ch.id === 'zh' ? 'zhbox' : ''}">
-    ${pet ? `<img class="pxi petimg big" src="${petURL(pet)}" alt="">` : ''}
-    ${ch.id === 'zh' ? `<p class="zh zhbig">\u8fd9\u91cc\u8fd8\u6ca1\u6709\u8bcd\u8bed\u54e6\uff01</p><p class="zh">\u7b49\u65b0\u7684\u8bcd\u8bed\u52a0\u8fdb\u6765\uff0c\u5c31\u53ef\u4ee5\u5f00\u59cb\u4e2d\u6587\u6311\u6218\u5566\u3002</p>`
-      : `<p class="zhbig">No words here yet!</p><p>Harder words are coming soon. Check back later for the English Challenge.</p>`}
-    <button class="btn" data-back-home>${ch.id === 'zh' ? '<span class="zh">\u8fd4\u56de</span>' : 'Back home'}</button></div>`;
+  if (ch.id === 'lab') { $('#chalBody').innerHTML = isEddie() ? labHub() + `<p class="center"><button class="btn" data-back-home>Back home</button></p>` : ''; return; }
+  $('#chalBody').innerHTML = enChalHub();
 }
 
 // ================= NOTEBOOK =================
 function renderBook() {
   const due = dueMistakes(), later = laterMistakes();
-  const row = (id, ready) => { const w = BY_ID[id]; return `<li><button class="btn speak tiny" data-say="${esc(hearText(w))}" aria-label="Hear ${esc(w.w)}">${icon('speaker', 'spk')}</button><span class="rw">${esc(w.w)}<small class="bdef">${esc(w.mean)}</small></span><span class="gtag">${w.g === 6 ? 'Grade 5\u20136' : 'Grade ' + w.g}</span><span class="${ready ? 'pay' : 'muted small'}">${ready ? '$2' : 'tomorrow'}</span></li>`; };
+  const row = (id, ready) => { const w = BY_ID[id]; return `<li><button class="btn speak tiny" data-say="${esc(hearText(w))}" aria-label="Hear ${esc(w.w)}">${icon('speaker', 'spk')}</button><span class="rw">${esc(w.w)}<small class="bdef">${esc(w.mean)}</small></span><span class="gtag">${NEW68.has(id) ? 'Grade 6\u20138' : w.g === 6 ? 'Grade 5\u20136' : 'Grade ' + w.g}</span><span class="${ready ? 'pay' : 'muted small'}">${ready ? '$2' : 'tomorrow'}</span></li>`; };
   const LBk = isEddie() ? labState() : null, labMiss = LBk ? Object.keys(LBk.miss).filter(id => BY_ID[id]) : [];
   const labBox = labMiss.length ? `<div class="panel"><h2>Brainpower Lab <small>${labMiss.length}</small></h2><p class="muted">These come first the next time you play their unit in the Lab.</p><ul class="booklist">${labMiss.map(id => { const w = BY_ID[id]; return `<li><button class="btn speak tiny" data-say="${esc(w.w)}" aria-label="Hear ${esc(w.w)}">${icon('speaker', 'spk')}</button><span class="rw">${esc(w.w)}<small class="bdef">${esc(w.mean)}</small></span><span class="gtag">Unit ${w.unit}</span><span class="pay">$2</span></li>`; }).join('')}</ul></div>` : '';
+  const chMiss = [...dueMistakes(true), ...laterMistakes(true)];
+  const chBox = chMiss.length ? `<div class="panel"><h2>English Challenge <small>${chMiss.length}</small></h2><p class="muted">These come back in their stage of the English Challenge, worth $2 each.</p><ul class="booklist">${chMiss.map(id => row(id, dueMistakes(true).includes(id))).join('')}</ul></div>` : '';
   const zhMiss = Object.keys(zhState().mistakes).filter(c => ZH_BY[c]);
   const zhBox = zhMiss.length ? `<div class="panel"><h2 class="zh">\u4e2d\u6587\u9519\u5b57 <small>${zhMiss.length}</small></h2><p class="muted zh">\u8fd9\u4e9b\u5b57\u4f1a\u6df7\u5728\u4e2d\u6587\u6311\u6218\u7684\u4e0b\u4e00\u8bfe\u91cc\u590d\u4e60\u3002</p><p class="zh zhbookchars">${zhMiss.map(c => `<span>${esc(c)}</span>`).join('')}</p></div>` : '';
-  $('#bookBody').innerHTML = (!due.length && !later.length) ? (labBox || zhBox ? labBox + zhBox : `<div class="panel"><p>No mistakes saved right now. Nice work!</p></div>`) : `
+  $('#bookBody').innerHTML = (!due.length && !later.length) ? (chBox || labBox || zhBox ? chBox + labBox + zhBox : `<div class="panel"><p>No mistakes saved right now. Nice work!</p></div>`) : `
     ${due.length ? `<div class="panel"><h2>Ready to review <small>${due.length}</small></h2><p class="muted">These words are mixed into your next session. Get one right in all 3 rounds to earn $2 and clear it.</p><ul class="booklist">${due.map(id => row(id, true)).join('')}</ul><button class="btn go big" id="bookPlay">Practice them now</button></div>` : ''}
-    ${later.length ? `<div class="panel"><h2>Back tomorrow <small>${later.length}</small></h2><p class="muted">Words you missed today. Study them, and they will come back in tomorrow's sessions.</p><ul class="booklist">${later.map(id => row(id, false)).join('')}</ul></div>` : ''}${labBox}${zhBox}`;
+    ${later.length ? `<div class="panel"><h2>Back tomorrow <small>${later.length}</small></h2><p class="muted">Words you missed today. Study them, and they will come back in tomorrow's sessions.</p><ul class="booklist">${later.map(id => row(id, false)).join('')}</ul></div>` : ''}${chBox}${labBox}${zhBox}`;
   const bp = $('#bookPlay'); if (bp) bp.addEventListener('click', startSession);
 }
 
@@ -1157,7 +1202,7 @@ function boot() {
   wireDeco();
   $('#townPlots').addEventListener('click', e => { const b = e.target.closest('[data-house]'); if (b) return openRoom(+b.dataset.house); const sh = e.target.closest('[data-townshop]'); if (sh) { shopTab = sh.dataset.townshop === 'shelter' ? 'homes' : sh.dataset.townshop; route('shop'); } });
   $('#challenges').addEventListener('click', e => { const b = e.target.closest('[data-chal]'); if (b) { chalId = b.dataset.chal; route('chal'); } });
-  $('#chalBody').addEventListener('click', e => { if (e.target.closest('[data-back-home]')) return route('home'); if (chalId === 'en' && labClick(e)) return; zhHubClick(e); });
+  $('#chalBody').addEventListener('click', e => { if (e.target.closest('[data-back-home]')) return route('home'); if (chalId === 'lab' && labClick(e)) return; const cp = e.target.closest('[data-chpart]'); if (chalId === 'en' && cp) return startChal(+cp.dataset.chpart); zhHubClick(e); });
   $('#chalBody').addEventListener('change', e => { if (e.target.id === 'zhVoicePick') { S.zhVoice = e.target.value; save(); ZHVOICE = zhVoices().find(v => v.name === S.zhVoice) || ZHVOICE; zhVoiceDemo(); } });
   $('#roomBack').addEventListener('click', () => route('town'));
   $('#shopFor').addEventListener('click', e => { const b = e.target.closest('[data-shoppet]'); if (b) { shopPet = +b.dataset.shoppet; renderShop(); } });
