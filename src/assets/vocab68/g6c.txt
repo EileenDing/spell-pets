@@ -1,0 +1,94 @@
+define|defind,deffine,difine|Can you _ the word "habitat"?|define,definition,defined,refine||to explain what a word means|Use a dictionary to {define} new words.
+determine|determin,deturmine,determene|We did a test to _ which ball bounces highest.|determine,determined,determination,terminate||to find out or decide something|The judges will {determine} the winner.
+distribute|distrubute,distribut,dystribute|Please _ the papers to everyone in your row.|distribute,distribution,distributor,contribute||to give out or spread around|We will {distribute} snacks after the game.
+establish|establesh,estabish,esstablish|They want to _ a new park by the river.|establish,established,establishment,stabilize||to start or set up something that will last|The settlers worked to {establish} a town by the lake.
+examine|examen,exammine,examin|The doctor will _ your sore throat.|examine,examined,examination,example||to look at something closely|We used a magnifying glass to {examine} the leaf.
+illustrate|ilustrate,illistrate,illustrait|She will _ the book with her own drawings.|illustrate,illustration,illustrator,illuminate||to draw pictures for something; or to explain with an example|Use a diagram to {illustrate} your idea.
+investigate|investagate,invesigate,investigait|The detective came to _ the missing bike.|investigate,investigation,investigator,instigate||to look into something carefully to find the truth|Scientists {investigate} how animals survive winter.
+predict|preddict,predikt,perdict|Can you _ what will happen next in the story?|predict,prediction,predictable,predicate||to say what you think will happen|Weather experts {predict} rain for Saturday.
+represent|reprezent,represint,repersent|The stars on the flag _ the states.|represent,represents,representation,present||to stand for something; or to speak for others|Two students will {represent} our class at the meeting.
+research|reserch,reaserch,reasearch|I did _ on whales for my project.|research,researcher,researched,search||careful study to find facts|We used library books for our {research}.
+select|selekt,sellect,selct|Please _ one card from the deck.|select,selection,selected,elect||to choose carefully|The teacher will {select} three stories to read aloud.
+sequence|sequense,sekwence,seqence|Put the pictures in the right _.|sequence,sequences,sequential,consequence||the order in which things happen|The {sequence} of the seasons is winter, spring, summer, fall.
+summarize|sumarize,summerize,summarrize|_ the story in three sentences.|Summarize,Summary,Summer,Summon||to tell only the main ideas in a short way|Can you {summarize} the movie for me?
+approximate|aproximate,approximite,approximat|The _ distance to the lake is two kilometres.|approximate,approximately,appropriate,proximity||close to exact, but not exact|Give an {approximate} answer by rounding.
+compare|compair,comparre,campare|_ the two maps to see what changed.|Compare,Comparison,Compared,Compete||to look at how things are alike and different|We will {compare} a frog and a toad.
+convert|convurt,convirt,konvert|_ the metres into centimetres.|Convert,Converter,Conversion,Concert||to change something into a different form|You can {convert} sunlight into electricity.
+demonstrate|demonstrait,demenstrate,demonstate|The coach will _ the right way to kick the ball.|demonstrate,demonstration,demonstrated,monster||to show how something works or is done|She used a magnet to {demonstrate} attraction.
+detail|detale,detial,deetail|Add more _ to your drawing.|detail,details,detailed,retail||a small part or fact|Every {detail} of the costume was perfect.
+justify|justafy,justifie,justiffy|_ your answer with evidence from the text.|Justify,Justice,Justified,Justly||to give good reasons for something|Can you {justify} why you chose that answer?
+maintain|maintane,maintian,mantain|It takes work to _ a garden.|maintain,maintenance,maintained,mountain||to keep something in good condition|Cyclists should {maintain} their bikes.
+method|methid,methud,meathod|Show the _ you used to solve the problem.|method,methods,methodical,meteor||a way of doing something|My {method} for memorizing words is to write them three times.
+modify|modifie,moddify,modafy|We had to _ our plan when it started to rain.|modify,modified,modification,model||to change something a little|You can {modify} the recipe to make it less sweet.
+outline|out-line,outlien,outlyne|Make an _ before you start writing your essay.|outline,outlines,outlined,online||a plan that lists the main points; or a line around the edge|Trace the {outline} of your hand.
+participate|participait,partisipate,particapate|Everyone can _ in the school sports day.|participate,participation,participant,anticipate||to take part in something|I like to {participate} in class discussions.
+perceive|percieve,perseive,purceive|Owls can _ tiny sounds in the dark.|perceive,perception,perceived,receive||to notice or become aware of something|Some animals {perceive} colours we cannot see.
+primary|primery,primarey,primmary|Red, yellow and blue are the _ colours.|primary,primarily,prime,primate||first or most important|Our {primary} goal is to have fun.
+process|proses,prosess,proccess|Making paper from trees is a long _.|process,processes,processed,progress||a series of steps to get something done|Learning to read is a slow {process}.
+review|reveiw,reviw,revue|Let's _ the spelling words before the test.|review,reviews,reviewed,preview||to look at again; or a report about a book or movie|I wrote a {review} of my favourite book.
+revise|revize,reviese,revyse|_ your story to make it clearer.|Revise,Revision,Revised,Revive||to change and improve a piece of writing|Always {revise} your work before you hand it in.
+support|suport,supprt,supporte|Strong beams will _ the roof.|support,supports,supported,sport||to hold up; or to help and encourage|Our families came to {support} the team.
+topic|topick,toppic,topik|The _ of my speech is ocean pollution.|topic,topics,tropic,topical||the subject that something is about|Pick a {topic} you care about for your report.
+unicorn|unicorne,unacorn,unicorm|The _ in the story had a silver horn.|unicorn,unicorns,uniform,unicycle||an imaginary horse with one horn on its head|My sister drew a {unicorn} with a rainbow mane.
+unify|unafy,unifie,uniffy|The new flag helped _ the country.|unify,unified,unity,uniform||to bring together into one|A common goal can {unify} a team.
+bilingual|bilingul,bylingual,bilinguel|Canada is a _ country with two official languages.|bilingual,language,linguist,bilaterally||able to speak two languages|My cousin is {bilingual} in English and French.
+binoculars|binocculars,binoculers,bynoculars|We watched the birds through _.|binoculars,binocular,binary,bicycles||a tool with two lenses for seeing faraway things|Bring your {binoculars} on the nature walk.
+biweekly|bi-weekly,biweakly,biweekley|The club has a _ meeting, every two weeks.|biweekly,weekly,weekend,biannual||happening every two weeks|Dad gets a {biweekly} pay cheque.
+triathlon|triathalon,triathelon,tryathlon|In a _, you swim, bike and run.|triathlon,triathlete,marathon,decathlon||a race with three parts: swimming, biking and running|My uncle trained all year for the {triathlon}.
+trilogy|trillogy,trilogie,trilagy|The story is told in a _ of three books.|trilogy,trilogies,triangle,tricycle||a set of three books or movies that tell one story|I finished the last book of the {trilogy}.
+centipede|centapede,sentipede,centipeed|A _ has many legs, but not a hundred.|centipede,centipedes,centimetre,millipede||a small creature with a long body and many legs|We found a {centipede} under a rock.
+centimetre|centimetter,centimettre,sentimetre|Each tick on the ruler marks one _.|centimetre,centimetres,century,metre||one hundredth of a metre|An ant is about one {centimetre} long.
+kilogram|killogram,kilogramme,kilagram|A litre of water weighs about one _.|kilogram,kilograms,kilometre,telegram||a unit of mass equal to 1000 grams|The puppy weighs one {kilogram}.
+admirable|admirible,admireable,admirabel|Helping your neighbour was an _ thing to do.|admirable,admire,admiration,admiral||deserving praise and respect|Her courage was {admirable}.
+breakable|breakible,brakeable,breakabel|Wrap the _ dishes carefully.|breakable,break,breakage,unbreakable||able to break easily|Glass is very {breakable}.
+enjoyable|enjoyible,enjoiable,enjoyabel|We had an _ day at the beach.|enjoyable,enjoy,enjoyment,enjoyed||pleasant and fun|The movie was very {enjoyable}.
+favourable|favorible,favourible,favourabel|The weather was _ for a picnic.|favourable,favour,favourite,favoured||good or helpful; showing approval|The teacher gave my story a {favourable} review.
+honourable|honourible,honorabel,onourable|Returning the lost wallet was the _ thing to do.|honourable,honour,honoured,honest||honest and good|He is an {honourable} person who keeps his promises.
+laughable|laughible,laffable,laughabel|His excuse was so silly it was _.|laughable,laugh,laughter,laughing||so silly that it makes you laugh|The idea of a flying pig is {laughable}.
+likeable|likeible,likeabel,likeeable|The new student is friendly and _.|likeable,like,likely,likeness||easy to like; pleasant|The hero of the story is very {likeable}.
+movable|movible,movabel,moovable|The classroom has _ desks we can push together.|movable,move,movement,moving||able to be moved|The robot has {movable} arms.
+predictable|predictible,predicable,predictabel|The ending was so _ that I guessed it early.|predictable,predict,prediction,unpredictable||easy to guess what will happen|My dog's habits are very {predictable}.
+remarkable|remarkible,remarkabel,remarcable|She has a _ memory for names.|remarkable,remark,remarkably,remarked||worth noticing; unusual and amazing|The view from the mountain was {remarkable}.
+suitable|suitible,sutable,suitabel|These boots are _ for hiking in the snow.|suitable,suit,suitably,suitcase||right for the purpose|Find a {suitable} place to plant the tree.
+legible|legable,ledgible,legibel|Write neatly so your work is _.|legible,illegible,legend,eligible||clear enough to read|Her handwriting is very {legible}.
+sensible|sensable,sensibel,sencible|Wearing a helmet is the _ thing to do.|sensible,sense,sensitive,senseless||showing good judgment|It is {sensible} to bring an umbrella when it looks like rain.
+appearance|appearence,apperance,apearance|She changed her _ with a new haircut.|appearance,appear,appeared,disappearance||how someone or something looks; or the act of showing up|The sudden {appearance} of the deer surprised us.
+attendance|attendence,atendance,attandance|The teacher takes _ every morning.|attendance,attend,attendant,attention||being present; or the number of people present|The {attendance} at the concert was very high.
+distance|distence,distanse,distnace|The _ from my house to school is one kilometre.|distance,distant,distances,instance||how far apart two places are|We could see the mountains in the {distance}.
+entrance|entrence,enterance,entrnce|Meet me at the front _ of the museum.|entrance,entrances,enter,entry||a way to go into a place|The cave {entrance} was dark and narrow.
+importance|importence,importanse,importants|Our teacher stressed the _ of reading every day.|importance,important,importantly,impotence||being very valuable or meaningful|Never forget the {importance} of being kind.
+resistance|resistence,resistanse,resistince|Air _ slows down a falling parachute.|resistance,resist,resistant,assistance||a force that works against something; or refusing to give in|Water gives more {resistance} than air when you move.
+tolerance|tolerence,tolarance,tollerance|_ means respecting people who are different from you.|Tolerance,Tolerant,Tolerate,Toleration||accepting people and ideas that are different|Our school teaches {tolerance} and kindness.
+confidence|confidance,confidense,confadence|Practice gave her the _ to sing on stage.|confidence,confident,confidential,coincidence||believing in yourself|He answered with {confidence}.
+excellence|excelence,excellance,exellence|The school gives an award for _ in science.|excellence,excellent,excel,excelled||being extremely good|The team is known for its {excellence}.
+independence|independance,indapendence,independense|Canada gained full _ from Britain over many years.|independence,independent,dependence,interdependence||being free and able to take care of yourself|Learning to cook gave my brother more {independence}.
+intelligence|inteligence,intelligance,intellegence|Dolphins are known for their _.|intelligence,intelligent,intellectual,intelligible||the ability to learn and understand|Crows show great {intelligence} when solving puzzles.
+patience|patiance,paitience,patients|Learning an instrument takes a lot of _.|patience,patient,patiently,patients||being able to wait calmly|Fishing requires {patience}.
+silence|silense,silance,silents|There was total _ in the library.|silence,silent,silently,science||complete quiet|We stood in {silence} on Remembrance Day.
+violence|violance,violense,vilence|The movie had too much _ for young kids.|violence,violent,violet,violin||actions that hurt people or damage things|Our school does not allow any {violence}.
+attraction|atraction,attracsion,attractoin|The CN Tower is a popular tourist _.|attraction,attract,attractive,distraction||something that people want to see; or a pull toward something|The magnet's {attraction} pulled the nail closer.
+construction|constuction,construcion,construcsion|The road is closed for _.|construction,construct,constructive,instruction||building something|The {construction} crew is building a new school.
+decoration|decoratoin,decorasion,deccoration|We hung paper stars as a _.|decoration,decorations,decorate,declaration||something added to make a place look nicer|The cake had a tiny chocolate {decoration} on top.
+invention|invension,inventoin,invenshun|The telephone was an important _.|invention,inventions,invent,inventor||something new that someone creates|My {invention} is a machine that feeds my cat.
+location|locasion,locatoin,locaton|Mark the _ of the school on the map.|location,locations,locate,locator||a place or position|The treasure's {location} was a secret.
+pollution|polution,pollusion,pollutoin|Car exhaust adds to air _.|pollution,pollute,polluted,solution||harmful materials in air, water or land|We picked up litter to reduce {pollution}.
+explosion|explotion,explosian,exploshun|The fireworks ended with a giant _ of colour.|explosion,explode,explosive,exposure||a sudden, loud burst|The volcano's {explosion} was heard far away.
+admission|admision,admisson,addmission|_ to the museum is free on Sundays.|Admission,Admit,Admitted,Omission||being allowed to enter; or the price to get in|The {admission} price for kids is five dollars.
+generous|generouse,generus,jenerous|It was _ of you to share your lunch.|generous,generosity,generously,general||happy to give and share|My grandpa is {generous} with his time.
+humorous|humourous,humerous,humorus|The book was so _ that I laughed out loud.|humorous,humour,humorist,humid||funny|She told a {humorous} story about her cat.
+adventurous|adventurus,adventerous,adventurouse|My _ cousin wants to climb a mountain.|adventurous,adventure,adventurer,venturous||willing to try new and exciting things|The {adventurous} kids explored the forest trail.
+furious|furiouse,fureous,furius|The coach was _ when the team was late.|furious,fury,furiously,curious||very angry|The cat looked {furious} after its bath.
+glorious|gloriouse,glorius,glourious|It was a _ sunny morning.|glorious,glory,gloriously,glamorous||wonderful and beautiful; full of glory|The fireworks lit up the {glorious} night sky.
+knuckle|nuckle,knuckel,knukle|He bumped his _ on the door.|knuckle,knuckles,knock,buckle||a joint in your finger|She tapped the table with her {knuckle}.
+wrinkle|rinkle,wrinkel,wrinckle|Iron the shirt to get rid of every _.|wrinkle,wrinkles,wrinkled,sprinkle||a small fold or line in skin or cloth|Grandma smiled and every {wrinkle} on her face crinkled.
+soften|sofen,soffen,softin|Leave the butter out to _ it.|soften,softer,softened,often||to make or become softer|Rain will {soften} the hard ground.
+subtle|suttle,subtel,sutle|There was a _ smell of lemon in the room.|subtle,subtly,subtitle,settle||small and hard to notice|The {subtle} change in colour was hard to see.
+chief|cheif,cheaf,chiefe|The fire _ led the team into the building.|chief,chiefs,chiefly,chef||a leader; or most important|The {chief} reason for the trip is to see Grandma.
+grief|greif,greef,grieff|She felt deep _ when her dog died.|grief,grieve,grieving,brief||deep sadness, especially after a loss|The whole town shared its {grief}.
+niece|neice,neece,neise|My sister's daughter is my _.|niece,nieces,nephew,piece||the daughter of your brother or sister|My aunt took her {niece} to the zoo.
+relief|releif,releaf,relieff|It was a _ to find my lost wallet.|relief,relieve,relieved,belief||a happy, calm feeling when worry is gone|I sighed with {relief} when the test was over.
+shield|sheild,sheeld,shiled|The knight held up his _.|shield,shields,shielded,shied||something used to protect|Sunscreen is a {shield} against sunburn.
+thief|theif,theaf,thiefe|The _ stole a bike from the rack.|thief,thieves,theft,thief's||a person who steals|The police caught the {thief} quickly.
+conceit|conceet,conciet,consceit|His _ made him think he was the best at everything.|conceit,conceited,concept,deceit||thinking too highly of yourself|Her {conceit} annoyed her teammates.
+seize|sieze,seaze,seiz|The dog tried to _ the ball from my hand.|seize,seized,seizure,size||to grab suddenly and firmly|You should {seize} the chance to try something new.
+helicopter|helecopter,helicoptor,hellicopter|The rescue _ landed on the roof of the hospital.|helicopter,helicopters,copter,helix||an aircraft with spinning blades on top that can fly straight up|A {helicopter} flew over the lake looking for the lost boat.

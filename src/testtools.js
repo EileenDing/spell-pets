@@ -41,7 +41,7 @@ function testToolChange(e) {
   if (!isTester() || P) return;
   const v = +e.target.value;
   if (e.target.dataset.tt === 'en') {
-    if (v < 0) S.place = null; else S.place = { gi: v, start: 0, pos: LEVELS[v].off, at: today(), skipped: true };
+    if (v < 0) S.place = null; else S.place = { gi: v, start: 0, pos: LEVELS[v].off, at: today(), skipped: true }; S.wl68 = 1;
     toast(v < 0 ? 'The English level test will run before the next session.' : `English starts at ${LEVELS[v].name} now.`);
   } else {
     const z = zhState(); z.place = v < 0 ? null : { k: v, lv: 0, at: today(), skipped: true }; zhPartSel = Math.max(0, v);

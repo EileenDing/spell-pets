@@ -4,10 +4,11 @@ const BY_ID = Object.fromEntries(ALL.map(w => [w.id, w]));
 const gradeWords = g => ALL.filter(w => w.g === g);
 const HEAD = 6; // empty rows above a pet for hats
 const SESSION_SIZE = 10;
-// ---- five levels, easy to hard; inside each level words go from easy/common to hard/rare ----
+// ---- six levels, easy to hard; inside each level words go from easy/common to hard/rare ----
 const LEVEL_INFO = [
   { k: 'A', name: 'Level 1', sub: 'Grades 1\u20132' }, { k: 'B', name: 'Level 2', sub: 'Grades 3\u20134' },
-  { k: 'C', name: 'Level 3', sub: 'Grade 5' }, { k: 'D', name: 'Level 4', sub: 'Grades 5\u20136' }, { k: 'E', name: 'Level 5', sub: 'Grade 6 challenge' }];
+  { k: 'C', name: 'Level 3', sub: 'Grade 5' }, { k: 'D', name: 'Level 4', sub: 'Grades 5\u20136' }, { k: 'E', name: 'Level 5', sub: 'Grades 6\u20137' },
+  { k: 'F', name: 'Level 6', sub: 'Grades 7\u20138 challenge' }];
 const LEVELS = LEVEL_INFO.map((L, gi) => ({ ...L, gi, ids: LEVEL_GROUPS[L.k].split(',').map(x => { const [id, z] = x.split(':'); return { id, z: +z / 10 }; }).filter(x => BY_ID[x.id]) }));
 let acc = 0; LEVELS.forEach(L => { L.off = acc; acc += L.ids.length; });
 const ORDER = LEVELS.flatMap(L => L.ids.map(x => x.id));
@@ -294,6 +295,10 @@ function migrate(o) {
     p.shelter = f.shelter || 'box'; p.decor = Object.assign({}, f.decor || {});
     f.perPetHomes = 1;
   }
+  if (!f.wl68) {                                         // Ontario grade 6-8 words (Nov 2026) were mixed into levels 4-5 and a new level 6: keep each player on the same word
+    if (f.place && f.place.pos) { const old = ORDER.filter(id => !NEW68.has(id)), id = old[f.place.pos]; f.place.pos = id ? ORDER.indexOf(id) : LEVELS[LEVELS.length - 1].off; }
+    f.wl68 = 1;
+  }
   (f.pets || []).forEach(p => migrateRoom(p, f));
   return f;
 }
@@ -458,7 +463,7 @@ function currentLevel() {
   const start = (S.place && S.place.pos) || 0;
   let pos = ORDER.findIndex((id, i) => i >= start && !S.seen[id] && !S.mistakes[id]);
   if (pos < 0) pos = ORDER.findIndex(id => !S.seen[id] && !S.mistakes[id]);
-  if (pos < 0) return { L: LEVELS[4], done: LEVELS[4].ids.length, pos: ORDER.length };
+  if (pos < 0) { const Lz = LEVELS[LEVELS.length - 1]; return { L: Lz, done: Lz.ids.length, pos: ORDER.length }; }
   const L = levelAt(pos); return { L, done: L.ids.filter(x => S.seen[x.id]).length, pos };
 }
 const dueMistakes = () => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && S.mistakes[id] < t); };
@@ -917,7 +922,7 @@ function placementIntro() {
     <p class="center small"><button class="linkbtn" id="placeLater">✕ Not now, go back</button></p>`, true);
   $('#placeLater').addEventListener('click', () => { closeModal(true); if (P && P.mode === 'place') { P = null; } route('home'); });
   $('#placeGo').addEventListener('click', () => { closeModal(true); startPlacement(); });
-  $('#placeSkip').addEventListener('click', () => { S.place = { pos: 0, gi: 0, start: 0, at: today(), skipped: true }; save(); closeModal(true); renderHome(); startSession(); });
+  $('#placeSkip').addEventListener('click', () => { S.place = { pos: 0, gi: 0, start: 0, at: today(), skipped: true }; S.wl68 = 1; save(); closeModal(true); renderHome(); startSession(); });
 }
 function startPlacement() {
   const sets = LEVELS.slice(0, 3).map(placementSet);
@@ -947,7 +952,7 @@ function placeGroupDone() {
 }
 function placeFinish(gi, start) {
   const L = LEVELS[gi];
-  S.place = { gi, start, pos: L.off + start, at: today(), wrongs: P.wrongs };
+  S.place = { gi, start, pos: L.off + start, at: today(), wrongs: P.wrongs }; S.wl68 = 1;
   save(); P = null;
   const where = start === 0 ? 'from the beginning' : start >= L.ids.length * 0.6 ? 'from the harder words' : 'from the middle';
   route('home');

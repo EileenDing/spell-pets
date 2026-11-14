@@ -1,0 +1,90 @@
+dilation|dialation,dilasion,dillation|A _ makes a shape bigger or smaller without changing its form.|dilation,dilate,dilated,dilution||making a shape bigger or smaller by the same scale; or widening|The eye doctor checked the {dilation} of my pupils.
+congruence|congruance,congrewence,congreunce|We proved the _ of the two triangles by measuring every side.|congruence,congruent,congress,confluence||being exactly the same size and shape|The {congruence} of the two tiles made them fit perfectly.
+similarity|similarty,simalarity,similiarity|There is a strong _ between the twins.|similarity,similar,similarly,familiarity||being alike|The {similarity} between the two songs was surprising.
+theoretical|theoreticle,theoritical,therotical|The _ probability of rolling a six is one out of six.|theoretical,theory,theoretically,theatrical||based on ideas or math rather than real tests|The {theoretical} answer was different from what we measured.
+experimental|experimentle,expermental,experimentel|Our _ results showed heads came up 27 times out of 50.|experimental,experiment,experimented,environmental||based on real tests; or new and being tried out|The {experimental} car runs on sunlight.
+histogram|histagram,histogramm,histrogram|The _ shows how many students fall into each height range.|histogram,histograms,hologram,diagram||a bar graph that shows how often values fall into ranges|Each bar of the {histogram} covers ten years.
+inference|inferance,infrence,inferrence|From the muddy boots, I made the _ that he had been outside.|inference,infer,inferred,interference||a conclusion you reach from clues|Good readers make an {inference} when the author doesn't say something directly.
+prediction|predicsion,predicton,perdiction|My _ is that the ice will melt in an hour.|prediction,predict,predicted,production||a guess about what will happen|The weather {prediction} said it would snow.
+synthesize|synthesise,sinthesize,synthasize|Try to _ the ideas from all three articles into one paragraph.|synthesize,synthesis,synthesized,sympathize||to combine ideas or parts into something new|Plants {synthesize} sugar from sunlight.
+argument|arguement,argumint,argumant|She made a strong _ for a longer lunch break.|argument,arguments,argue,augment||reasons given to support an idea; or a disagreement|His {argument} convinced the whole class.
+thesis|thesus,thesiss,theesis|The first paragraph of the essay states the _.|thesis,theses,hypothesis,synthesis||the main idea that an essay argues|Every paragraph should support your {thesis}.
+counterclaim|counter-claim,countercliam,counterclaime|Address the _ before you finish your essay.|counterclaim,counterclaims,counter,reclaim||an argument against your main claim|She answered the {counterclaim} with strong evidence.
+rebuttal|rebutal,rebbutal,rebuttle|In the debate, each team gives a _ to the other side.|rebuttal,rebut,rebutted,rebuttals||an answer that argues against what someone said|Her {rebuttal} won the debate.
+narrator|narater,narrater,narator|The _ of the story is a ten-year-old boy.|narrator,narrate,narration,narrative||the person telling a story|The {narrator} told us what the dog was thinking.
+protagonist|protaganist,protagonest,protagonnist|The _ of the book is a brave girl named Lin.|protagonist,protagonists,antagonist,agonist||the main character in a story|The {protagonist} must find her lost brother.
+antagonist|antaganist,antagonest,antagonnist|The _ tries to stop the hero at every turn.|antagonist,antagonists,protagonist,antagonize||the character who works against the main character|The wicked wizard is the {antagonist}.
+climax|climacks,climaks,climacs|The _ of the story is when the hero faces the dragon.|climax,climactic,climaxes,climate||the most exciting or important point of a story|At the {climax}, the bridge collapsed.
+foreshadowing|forshadowing,foreshaddowing,foreshadoing|The dark clouds at the start were _ of trouble ahead.|foreshadowing,foreshadow,foreshadowed,shadowing||clues an author gives about what will happen later|The author used {foreshadowing} to build suspense.
+flashback|flash-back,flashbak,flasback|The chapter is a _ to when Grandpa was a boy.|flashback,flashbacks,flash,feedback||a scene that goes back to an earlier time|The movie opened with a {flashback}.
+personification|personafication,personificasion,personifacation|"The wind whispered" is an example of _.|personification,personify,personal,personality||giving human qualities to something that is not human|The poem uses {personification} to make the moon smile.
+alliteration|aliteration,alliterasion,allitteration|"Silly snakes slide slowly" uses _.|alliteration,alliterate,literature,illiteration||repeating the same first sound in nearby words|Tongue twisters are full of {alliteration}.
+onomatopoeia|onomatopeia,onomatopoea,onnomatopoeia|"Buzz" and "sizzle" are examples of _.|onomatopoeia,onomatopoeic,anatomy,pneumonia||a word that sounds like what it means|"Crash!" is my favourite {onomatopoeia}.
+hyperbole|hyperboll,hyperbowl,hiperbole|"I've told you a million times" is _.|hyperbole,hyperbolic,hyperactive,parabola||huge exaggeration used for effect|Saying the bag weighs a ton is {hyperbole}.
+article|artical,articel,artickle|I read a newspaper _ about the bridge.|article,articles,artistic,particle||a piece of writing in a newspaper or magazine; or a word like "a" or "the"|"The" is a definite {article}.
+headline|head-line,hedline,headlien|The _ was printed in big, bold letters.|headline,headlines,deadline,headlight||the title of a news story|The {headline} said "Local Team Wins!"
+caption|capshun,captoin,capption|Write a _ under each photo.|caption,captions,captain,capture||words that explain a picture|The {caption} named everyone in the photo.
+glossary|glosary,glossery,glossarry|Look up hard words in the _ at the back of the book.|glossary,glossaries,glossy,dictionary||a list of hard words and their meanings in a book|The {glossary} explained the word "fossil."
+bibliography|bibliografy,biblography,bibleography|List every book you used in the _.|bibliography,biography,bibliographies,geography||a list of sources used for a report|My {bibliography} had six books and two websites.
+citation|citasion,sitation,citaton|Add a _ for every fact you took from a website.|citation,cite,cited,situation||a note showing where information came from|The teacher asked for a {citation} after the quote.
+transport|transpoart,tranport,transprot|Big trucks can _ food to the grocery stores.|transport,transportation,transported,passport||to carry from one place to another|Pipelines {transport} oil across the country.
+portable|portible,portabel,portabble|A laptop is a _ computer.|portable,port,porter,potable||easy to carry|We brought a {portable} speaker to the beach.
+deport|deporte,depport,deoprt|The government can _ people who break certain laws.|deport,deported,deportation,report||to send someone out of a country|The ship was used to {deport} people across the sea.
+erupt|errupt,eruptt,erupte|The volcano could _ at any moment.|erupt,erupted,eruption,interrupt||to burst out suddenly|The crowd will {erupt} in cheers.
+rupture|rupchure,ruptur,rupptur|The pipe could _ if the water freezes.|rupture,ruptured,rapture,erupture||to break or burst open|A {rupture} in the dam flooded the valley.
+inspect|enspect,inspekt,insspect|The guards _ every bag at the gate.|inspect,inspector,inspection,respect||to look at closely|We {inspect} our bikes before every ride.
+spectacle|spectical,spectackle,spectacel|The fireworks were an amazing _.|spectacle,spectacles,spectacular,obstacle||an amazing sight; or (plural) old word for glasses|The dancing lights in the sky were a {spectacle}.
+dictate|dictait,dicktate,dictat|The teacher will _ the spelling words.|dictate,dictated,dictation,dictator||to say words aloud for someone to write; or to give orders|You can't {dictate} what everyone else does.
+verdict|verdick,vurdict,verdickt|The jury gave a _ of not guilty.|verdict,verdicts,predict,addict||a decision, especially in a court|The judges' {verdict} was that our cake was the best.
+construct|constuct,construkt,construckt|Engineers will _ a bridge strong enough for trucks.|construct,construction,constructed,constrict||to build|We will {construct} a model of the solar system.
+destruct|distruct,destrukt,destrucked|The robot was set to self-_ after the mission.|destruct,destruction,destructive,instruct||to destroy itself|The secret message will self-{destruct}.
+instruct|instrukt,enstruct,instrucht|The coach will _ us on how to dive.|instruct,instruction,instructor,construct||to teach or give directions|The guide will {instruct} us on safety.
+supervise|supervize,suppervise,supervice|An adult must _ swimmers at the pool.|supervise,supervisor,supervision,surprise||to watch over people while they work or play|A lifeguard will {supervise} the swim.
+abolish|abollish,abolishe,abolsh|Many people fought to _ slavery.|abolish,abolished,abolition,polish||to end something officially|The school decided to {abolish} homework on Fridays.
+accelerate|accellerate,acelerate,acclerate|The car can _ quickly on the highway.|accelerate,acceleration,accelerated,celebrate||to speed up|Pedal harder to {accelerate} up the hill.
+accumulate|acumulate,accumalate,accummulate|Snow will _ on the roads overnight.|accumulate,accumulated,accumulation,calculate||to gather or pile up over time|Dust can {accumulate} under the bed.
+acquire|aquire,acquier,accquire|The museum hopes to _ a dinosaur skeleton.|acquire,acquired,acquisition,require||to get or gain|You will {acquire} new skills with practice.
+allocate|alocate,allokate,allacate|The school will _ money for new books.|allocate,allocated,allocation,locate||to give out for a certain purpose|We need to {allocate} time for homework.
+alter|altar,allter,aulter|The tailor will _ the pants so they fit.|alter,altered,alteration,altar||to change|Don't {alter} the experiment halfway through.
+analogy|anology,analagy,annalogy|The teacher used an _ comparing the heart to a pump.|analogy,analogies,anatomy,apology||a comparison that explains something by showing how it is like something else|Her {analogy} made the idea easy to understand.
+cease|ceese,seace,ceace|The rain finally began to _.|cease,ceased,ceasefire,crease||to stop|The noise did not {cease} until midnight.
+coherent|coherant,cohearent,coheerent|Make sure your paragraph is clear and _.|coherent,coherence,incoherent,inherent||clear and logical|After the nap, she was {coherent} again.
+coincide|coinside,coincied,coincidd|My birthday will _ with the school trip this year.|coincide,coincidence,coincided,collide||to happen at the same time|The holiday and the full moon {coincide}.
+compile|compiel,compyle,complie|We will _ a list of everyone's favourite books.|compile,compiled,compilation,complete||to gather into one list, book or collection|She will {compile} the photos into an album.
+comprehensive|comprehensiv,comprehinsive,comprahensive|The guide gives a _ list of all the trails.|comprehensive,comprehend,comprehension,expensive||including everything; complete|The final test was {comprehensive}.
+comprise|comprize,compryse,comprice|The team will _ ten players and two coaches.|comprise,comprised,compromise,surprise||to be made up of|Canada's provinces and territories {comprise} thirteen regions.
+concurrent|concurent,concurrant,concurrint|The two events were _, so I could not go to both.|concurrent,concurrently,current,concur||happening at the same time|The movie has two {concurrent} storylines.
+confer|confur,conferr,conferre|The teachers will _ before deciding.|confer,conferred,conference,infer||to talk together to decide something; or to give an honour|The university will {confer} a degree on her.
+consent|consint,concent,consentt|You need a parent's _ to go on the trip.|consent,consented,consensus,content||permission or agreement|Ask for {consent} before borrowing something.
+considerable|considerible,considerabel,considrable|The storm caused _ damage.|considerable,consider,considerably,considerate||large in amount or importance|It took a {considerable} amount of time.
+constitute|constatute,constitoot,constitude|It takes ten players to _ a full team.|constitute,constitution,constituted,substitute||to make up or form|These rules {constitute} our class agreement.
+constrain|constrane,constraine,contsrain|Rules help _ how fast the cars can go.|constrain,constraint,constrained,restrain||to limit or hold back|A small budget will {constrain} our choices.
+contemporary|contempory,contemporery,contemprary|The gallery shows _ art by living artists.|contemporary,temporary,contemporaries,temporarily||modern; or living at the same time|Shakespeare and Galileo were {contemporary} thinkers.
+convene|conveen,convein,convenne|The council will _ next Tuesday.|convene,convened,convention,convenient||to come together for a meeting|Leaders will {convene} for the summit.
+criteria|critiria,criterea,critteria|The judges explained the _ for winning.|criteria,criterion,critical,critic||standards used to judge something|Our project met all the {criteria}.
+deduce|deduse,diduce,deduece|From the footprints, we can _ that a deer passed by.|deduce,deduction,deduced,reduce||to figure out from clues|Detectives {deduce} who did it.
+deny|denie,deney,deni|He tried to _ eating the last cookie.|deny,denied,denial,deni||to say something is not true; or to refuse|You can't {deny} that the movie was funny.
+deviate|deveate,deviait,deviatte|Don't _ from the trail.|deviate,deviation,deviated,devote||to move away from the usual path or plan|Do not {deviate} from the instructions.
+differentiate|differenciate,differentate,diferentiate|Can you _ between a frog and a toad?|differentiate,different,difference,differential||to see or show the difference|Colour helps us {differentiate} the two maps.
+discrete|discreet,descrete,discreat|Counting people gives _ data, not measurements.|discrete,discreet,secrete,concrete||separate and distinct|The fence is built from {discrete} panels.
+displace|displase,dissplace,displais|The new dam will _ hundreds of families.|displace,displacement,displaced,replace||to move something from its usual place|Your body will {displace} water in the bathtub.
+domain|domane,domian,doemain|The forest is the bear's _.|domain,domains,dominion,remain||an area someone controls or knows about|Science is her {domain}.
+duration|durasion,dureation,duraton|We had to stay inside for the _ of the storm.|duration,durable,during,endurance||how long something lasts|The {duration} of the movie was two hours.
+eliminate|elimanate,eliminait,elliminate|We need to _ the mistakes in this paragraph.|eliminate,elimination,eliminated,illuminate||to remove or get rid of|The goalie helped {eliminate} the other team in the first round.
+empirical|emperical,empiricle,empiracal|Scientists collect _ evidence by testing.|empirical,empire,empiric,imperial||based on observation and experiment|We need {empirical} data, not guesses.
+enable|enabel,inable,enaible|My new glasses will _ me to see the board clearly.|enable,enabled,unable,able||to make possible|A ramp will {enable} wheelchairs to enter.
+enhance|enhanse,inhance,enhanc|Good lighting can _ a photograph.|enhance,enhanced,enhancement,enchant||to make better|Spices {enhance} the flavour of the soup.
+ensure|insure,ensuer,enshure|Please _ that the door is locked.|ensure,ensured,insure,assure||to make sure|Practice will {ensure} a good show.
+entity|entety,entitty,entitey|The school board is a separate _ from the city.|entity,entities,identity,entirety||a thing that exists on its own|Each club is its own {entity}.
+evolve|evolv,evolvve,ivolve|Over millions of years, animals can slowly _.|evolve,evolution,evolved,involve||to change slowly over time|Our plans will {evolve} as we learn more.
+exceed|exeed,excede,exceeed|Do not _ the speed limit.|exceed,exceeded,excess,succeed||to go beyond a limit|The cost may {exceed} our budget.
+exclude|exclood,excluede,exlude|Don't _ anyone from the game.|exclude,excluded,exclusion,include||to leave out|The price will {exclude} tax.
+expand|expande,ecspand,expanned|Metal will _ when it is heated.|expand,expansion,expanded,expend||to grow bigger|The store plans to {expand} next year.
+explicit|explicet,explisit,expliccit|The instructions were _: no running in the halls.|explicit,explicitly,implicit,exploit||stated clearly and directly|The teacher gave {explicit} directions.
+facilitate|facillitate,facilatate,fasilitate|A map will _ our search.|facilitate,facilitator,facility,felicitate||to make easier|Good tools {facilitate} the work.
+finite|finit,fynite,finnite|Earth has a _ supply of oil.|finite,infinite,define,finish||having limits or an end|There are a {finite} number of seats.
+fluctuate|fluctuait,fluctchuate,flucuate|Prices tend to _ from week to week.|fluctuate,fluctuation,fluctuated,flutter||to go up and down|Temperatures {fluctuate} in the spring.
+formulate|formulait,formalate,formullate|Scientists must _ a hypothesis before testing.|formulate,formula,formulated,formalize||to plan or express carefully|Take a minute to {formulate} your answer.
+framework|frame-work,framwork,frameworke|The steel _ holds up the building.|framework,frame,frameworks,teamwork||a basic structure that holds something up|We used a {framework} to organize our essay.
+hierarchy|hierarchey,heirarchy,hiearchy|A wolf pack has a strict _.|hierarchy,hierarchical,anarchy,monarchy||a system of ranking from top to bottom|The {hierarchy} of the army goes from general to private.
+implicit|implicet,implisit,impliccit|The message was _, so you had to read between the lines.|implicit,implicitly,explicit,implicate||suggested but not said directly|There was an {implicit} promise to help.
