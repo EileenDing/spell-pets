@@ -2,13 +2,13 @@
 import sys; sys.path.insert(0, '../v11')
 from PIL import Image; from cutlib import cut, sheet
 B = {
- 'midnight': {'bed-midnight': (15, 130, 372, 422), 'midnightstand': (392, 242, 578, 418), 'moonorb': (620, 262, 775, 412), 'win-midnight': (800, 128, 1104, 412),
-   'starpendant': (1130, 130, 1340, 412), 'starchartrug': (1362, 200, 1760, 405), 'telescope': (36, 500, 265, 790), 'midnightdresser': (282, 550, 580, 785),
+ 'midnight': {'bed-midnight': (15, 130, 372, 422), 'midnightstand': (392, 242, 578, 418), 'moonorb': (620, 240, 775, 414), 'win-midnight': (800, 128, 1104, 412),
+   'starpendant': (1130, 130, 1340, 412), 'starchartrug': (1362, 200, 1760, 420), 'telescope': (36, 500, 265, 790), 'midnightdresser': (282, 550, 580, 785),
    'armillary': (596, 535, 800, 785), 'bluebooks': (830, 575, 1045, 760)},
- 'library': {'chaise': (16, 180, 325, 345), 'archivebookcase': (360, 105, 595, 358), 'libladder': (636, 120, 875, 358), 'cardcatalog': (926, 140, 1160, 350),
+ 'library': {'chaise': (16, 160, 325, 345), 'archivebookcase': (360, 105, 595, 358), 'libladder': (636, 120, 875, 358), 'cardcatalog': (926, 140, 1160, 350),
    'win-library': (1210, 110, 1455, 350), 'chandelier': (1490, 110, 1755, 340), 'displaycase': (26, 400, 325, 615), 'writingdesk': (350, 425, 645, 610),
    'bankerlamp': (695, 410, 865, 610), 'footstool': (920, 430, 1120, 610), 'archiverug': (1140, 435, 1575, 600), 'globe': (1575, 405, 1750, 610),
-   'pottedivy': (150, 650, 350, 835), 'archivebooks': (430, 655, 730, 835)},
+   'pottedivy': (150, 650, 350, 841), 'archivebooks': (430, 655, 730, 835)},
 }
 TILES = {'midnight': {'wall': (1142, 545, 1385, 690), 'floor': (1508, 548, 1728, 760)}, 'library': {'wall': (905, 700, 1215, 752), 'floor': (1392, 678, 1565, 822)}}
 outs = []
