@@ -420,7 +420,28 @@ function choosePlayer(id) {
   route('home'); maybeFirstPet();
 }
 // one-time top-up for the parent's Test profile (Nov 2026: $10,000 for trying out the new things)
-function testGrant() { if (PROFILE && PROFILE.test && S && !S.grant10k) { S.coins = Math.max(S.coins || 0, 10000); S.grant10k = 1; save(); renderHud(); } }
+function testGrant() {
+  if (!PROFILE || !S) return;
+  if (PROFILE.test && !S.grant10k) { S.coins = Math.max(S.coins || 0, 10000); S.grant10k = 1; save(); renderHud(); }
+  // one-time: Jasper got every new word right on Nov 14, 2026, before the perfect-day bonus existed
+  if ((PROFILE.name || '').trim().toLowerCase() === 'jasper' && !S.grantPD1114) {
+    S.coins += PERFECT_BONUS; S.earned += PERFECT_BONUS; S.grantPD1114 = 1;
+    if (!S.pday || S.pday.d <= '2026-11-14') S.pday = { d: '2026-11-14', n: Math.max(1, (S.pday && S.pday.d === '2026-11-14' && S.pday.n) || 0), miss: 0, paid: 1 };
+    save(); renderHud(); setTimeout(() => toast(`Perfect day bonus for November 14: every new word right! +$${PERFECT_BONUS}`), 600);
+  }
+  settlePerfectDay();
+}
+// ---- perfect-day bonus: if every word you learn for the first time in a day is right in all 3 rounds, you get $2 (paid the next time you play) ----
+const PERFECT_BONUS = 2;
+function settlePerfectDay() {
+  const d = S && S.pday; if (!d || d.d >= today() || d.paid) return false;
+  if (d.n > 0 && !d.miss) {
+    S.coins += PERFECT_BONUS; S.earned += PERFECT_BONUS; d.paid = 1; save(); renderHud();
+    setTimeout(() => { toast(`Perfect day! Every new word you learned on ${new Date(d.d + 'T12:00').toLocaleDateString('en-CA', { month: 'long', day: 'numeric' })} was right in all 3 rounds. +$${PERFECT_BONUS}`); SFX.coin(); }, 700);
+    return true;
+  }
+  d.paid = 1; return false;
+}
 function addPlayer(name, fromState) {
   name = (name || '').trim().slice(0, 20); if (!name) return null;
   const id = newId(), prof = { id, name, created: Date.now(), savedAt: 0 };
@@ -987,6 +1008,13 @@ function finishSession() {
     else { S.seen[it.id] = 1; if (all) delete S.mistakes[it.id]; else S.mistakes[it.id] = t; }
     return { w, r, pay, review: it.review };
   });
+  settlePerfectDay();
+  if (!S.pday || S.pday.d !== t) S.pday = { d: t, n: 0, miss: 0 };
+  const freshRows = P.items.filter(it => !it.review && !it.practice), wasPerfect = !S.pday.miss;
+  S.pday.n += freshRows.length; if (freshRows.some(it => !P.res[it.id].every(v => v === true))) S.pday.miss = 1;
+  const pdayNote = !freshRows.length || S.pday.paid ? '' : !S.pday.miss
+    ? `<p class="pday">${icon('star', 'pstar')} Perfect day so far: all ${S.pday.n} new word${S.pday.n === 1 ? '' : 's'} right! Keep it up for a ${coinAmt(PERFECT_BONUS)} bonus next time.</p>`
+    : wasPerfect ? `<p class="pday miss">A new word was missed, so there is no perfect-day bonus today. Try again tomorrow!</p>` : '';
   const prevDay = S.lastDay, firstToday = prevDay !== t;
   if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
   S.best = Math.max(S.best || 0, S.streak);
@@ -1000,7 +1028,7 @@ function finishSession() {
     <div class="res-head"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><div>
       <p class="eyebrow">${LB ? `Brainpower Lab \u00b7 Unit ${labU}` : CHP >= 0 ? `English Challenge \u00b7 ${CH_PARTS[CHP].name}` : 'Session done'}</p><h2 class="rt">${right} of ${P.items.length} words mastered</h2>
       <p class="earn">You earned ${coinAmt(earned)}</p>
-      ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}</div></div>
+      ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}${pdayNote}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw">${esc(x.w.w)}${x.review ? '<em>review</em>' : ''}</span><span class="marks">${x.r.map((v, i) => `<span title="Round ${i + 1}">${icon(v ? 'check' : 'cross')}</span>`).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + x.pay : '$0'}</span></li>`).join('')}</ul>
     ${rows.some(x => !x.pay) ? `<p class="muted">${LB ? 'Missed words come back first next time you play this unit, worth $2 each.' : CHP >= 0 ? 'Missed words come back in this stage from tomorrow, worth $2 each.' : 'Missed words go into your Mistake Notebook and come back tomorrow, worth $2 each.'}</p>` : ''}
     <div class="row"><button class="btn go big" id="again">${LB ? 'Play again' : 'Play 10 more'}</button><button class="btn" id="toHome">${LB ? 'Back to the Lab' : CHP >= 0 ? 'Back to the Challenge' : 'Home'}</button></div></div>`;
