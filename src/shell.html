@@ -281,7 +281,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .card.owned { background: #eef8ea; }
 .prevbox { height: 104px; width: 100%; display: grid; place-items: center; background: repeating-conic-gradient(#f7ecd6 0 25%, #fff6e3 0 50%) 0 0 / 16px 16px; border: 2px solid #e2d4bb; }
 .prev { max-height: 92px; max-width: 92%; }
-.prev.pet { width: 64px; } .prev.food { width: 64px; } .prev.shelter { height: auto; max-height: 100px; }
+.prev.pet { width: 64px; } .prev.food { width: auto; height: auto; max-width: 84px; max-height: 76px; } .prev.shelter { height: auto; max-height: 100px; }
 .ownedtag { font-weight: 600; color: var(--go-d); display: inline-flex; align-items: center; gap: 4px; } .ownedtag .pxi { width: 14px; }
 .card .btn.buy { width: 100%; }
 .chip.wallet { font-family: var(--font-body); font-size: 17px; }
@@ -294,7 +294,13 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .chip-opt { font: inherit; font-size: 16px; background: #fff; border: 3px solid var(--ink); padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
 .chip-opt.sel { background: var(--ink); color: #fff; }
 .chip-opt .sw { width: 14px; height: 14px; border: 2px solid var(--ink); display: inline-block; }
-.chip-opt .fd { width: 32px; }
+.chip-opt .fd { width: auto; height: 30px; max-width: 40px; object-fit: contain; } .chip-opt small { color: #1d7a3a; font-weight: 700; margin-left: 2px; }
+.chip-opt.off { opacity: .45; filter: grayscale(.7); cursor: not-allowed; }
+.sickbox { display: flex; gap: 12px; align-items: center; background: #fdeef0; border: 3px solid #a3182c; padding: 10px 12px; margin: 0 0 12px; }
+.sickbox img { height: 56px; width: auto; flex: none; } .sickbox h3 { margin: 0 0 4px; color: #a3182c; } .sickbox p { margin: 0; }
+.sicktag { background: #a3182c; color: #fff; padding: 1px 6px; font-size: 13px; margin-left: 4px; }
+.bar i.sick { background: #a3182c !important; }
+.card.blocked { opacity: .55; } .card.potioncard { background: #f4efff; }
 
 /* modal & toast */
 .modal { position: fixed; inset: 0; background: rgba(42, 29, 51, .55); display: grid; place-items: center; z-index: 20; padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); overflow-y: auto; }
@@ -508,7 +514,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
     </div>
     <div class="panel petstrip">
       <div class="petline"><div><div class="petname" id="homePetName"></div><div class="petkind" id="homePetKind"></div></div>
-        <div class="meter"><span>Full</span><div class="bar"><i id="homeFull"></i></div><span id="homeFullNum"></span></div></div>
+        <div class="meter"><span>Health</span><div class="bar"><i id="homeFull"></i></div><span id="homeFullNum"></span></div></div>
       <p class="note" id="playNote"></p>
       <div><button class="btn" id="goBook">Mistake notebook <b id="bookCount"></b></button></div>
     </div>
@@ -520,7 +526,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
       <div class="panel">
         <div class="setrow"><label for="rate">Voice speed</label><select id="rate"><option value="0.7">Slow</option><option value="0.85">Normal</option><option value="1">Fast</option></select></div>
         <div class="setrow"><input type="checkbox" id="sound"><label for="sound">Sound effects</label></div>
-        <p class="small muted">3,238 words. The Daily Quest has the 2,058 core words in five levels, easy to hard: Level 1 (grades 1–2), Level 2 (grades 3–4), Level 3 (grade 5), Level 4 (grades 5–6) and Level 5 (grades 6–8). Core words are the whole grade 1–5 base list plus the more common grade 5–8 words. The other 1,180 harder words are in the English Challenge, in four stages from easier to hardest, to play whenever a child wants. Grade 1–5 words come from the Basic Spelling Vocabulary List (Graham, Harris &amp; Loynachan, 1993) plus extra grade 4 and 5 words. The grade 5–6 words were gathered from HMH Journeys, McGraw-Hill Reading Wonders, the UK National Curriculum Years 5–6 list, the Scripps school spelling bee lists, K5 Learning and Vocabulary.com, keeping only common words. The 705 grade 6–8 words follow the Ontario Language curriculum (2023), which has no set word list but asks students to spell words with prefixes, suffixes and Greek and Latin roots and to use subject vocabulary; they come from Ontario grade 6–8 science, history, geography, math, language, arts and health topics, placed by how common and how long each word is. Inside each level, words go from easy and common to harder and rarer. A 21-word level test (spelling and sentence questions) decides where to start. Every session is 10 words: mistake words from earlier days come first, then new words in order. If every word a child learns for the first time in a day is right in all 3 rounds, they get a $2 perfect-day bonus the next time they play. A mystery egg turns up after 50 sessions and hatches 30 sessions later, and each pet has a limited-edition skin unlocked by 30 days of practice with it. A word pays $1 only when it is right in all three rounds; missed words come back from the next day on, worth $2. Playing one session a day keeps the streak. Progress saves automatically on this device and to your Claude account when signed in.</p>
+        <p class="small muted">3,238 words. The Daily Quest has the 2,058 core words in five levels, easy to hard: Level 1 (grades 1–2), Level 2 (grades 3–4), Level 3 (grade 5), Level 4 (grades 5–6) and Level 5 (grades 6–8). Core words are the whole grade 1–5 base list plus the more common grade 5–8 words. The other 1,180 harder words are in the English Challenge, in four stages from easier to hardest, to play whenever a child wants. Grade 1–5 words come from the Basic Spelling Vocabulary List (Graham, Harris &amp; Loynachan, 1993) plus extra grade 4 and 5 words. The grade 5–6 words were gathered from HMH Journeys, McGraw-Hill Reading Wonders, the UK National Curriculum Years 5–6 list, the Scripps school spelling bee lists, K5 Learning and Vocabulary.com, keeping only common words. The 705 grade 6–8 words follow the Ontario Language curriculum (2023), which has no set word list but asks students to spell words with prefixes, suffixes and Greek and Latin roots and to use subject vocabulary; they come from Ontario grade 6–8 science, history, geography, math, language, arts and health topics, placed by how common and how long each word is. Inside each level, words go from easy and common to harder and rarer. A 21-word level test (spelling and sentence questions) decides where to start. Every session is 10 words: mistake words from earlier days come first, then new words in order. If every word a child learns for the first time in a day is right in all 3 rounds, they get a $2 perfect-day bonus the next time they play. Pets lose 20% health a day; food adds health (water $1 gives 8%, the biggest meals $5 give 45%). Under 30% a pet is sick: it can eat nothing and only potions can be bought until it gets the right potion (green for 20–30%, blue for 10–20%, purple under 10%), which cures it and adds 10%, 20% or 30%. A mystery egg turns up after 50 sessions and hatches 30 sessions later, and each pet has a limited-edition skin unlocked by 30 days of practice with it. A word pays $1 only when it is right in all three rounds; missed words come back from the next day on, worth $2. Playing one session a day keeps the streak. Progress saves automatically on this device and to your Claude account when signed in.</p>
         <div class="setrow"><button class="btn small" id="renamePlayer">Rename this player</button> <button class="btn small" id="removePlayer">Remove this player</button></div>
         <p class="muted small" id="cloudNote"></p>
         <div class="setrow"><button class="btn small" id="exportAll">Download a backup of all players</button></div>
@@ -550,7 +556,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
     <div class="roomgrid">
       <div class="panel"><canvas id="sceneRoom" class="scene room" width="1536" height="1024" aria-label="Your pet's room"></canvas>
         <div class="petname" id="roomName"></div>
-        <div class="meter"><span>Full</span><div class="bar"><i id="roomFull"></i></div><span id="roomFullNum"></span></div>
+        <div class="meter"><span>Health</span><div class="bar"><i id="roomFull"></i></div><span id="roomFullNum"></span></div>
         <div class="petrow" id="roomPets"></div></div>
       <div class="panel"><div class="tabs" id="roomTabs"></div><div id="roomPanel" class="wrap"></div></div>
     </div>

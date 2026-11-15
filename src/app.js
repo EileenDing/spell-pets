@@ -263,7 +263,15 @@ function drawScene(c, t, pet) {
   let y = 122 - PH + (reduceMotion ? 0 : Math.floor(t / 520) % 2);
   if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 8);
   c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(104, 120, 12, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  c.imageSmoothingEnabled = true; c.drawImage(petCanvas(pet, { blink: t % 4200 < 160 }), 104 - PW / 2, y, PW, PH); c.imageSmoothingEnabled = false;
+  c.imageSmoothingEnabled = true; drawPetSick(c, pet, () => c.drawImage(petCanvas(pet, { blink: t % 4200 < 160 }), 104 - PW / 2, y, PW, PH), 104 + PW * 0.28, y + 4, 16, t); c.imageSmoothingEnabled = false;
+}
+// a sick pet looks pale and shows the potion it needs, bobbing next to its head
+function drawPetSick(c, pet, draw, px, py, size, t) {
+  if (!isSick(pet)) return draw();
+  c.save(); c.filter = 'saturate(0.35) brightness(0.96)'; draw(); c.restore();
+  const im = SPR['food-' + potionFor(petFull(pet))]; if (!im) return;
+  const h = size, w = h * im.width / im.height, bob = reduceMotion ? 0 : Math.sin(t / 300) * size * 0.12;
+  c.drawImage(im, px - w / 2, py - h + bob, w, h);
 }
 function itemURL(kind, key) {
   const id = kind + key; if (URLS[id]) return URLS[id];
@@ -500,6 +508,10 @@ function currentLevel() {
 }
 const dueMistakes = (ch = false) => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && !BY_ID[id].lab && isChal(id) === ch && S.mistakes[id] < t); };
 const laterMistakes = (ch = false) => { const t = today(); return Object.keys(S.mistakes).filter(id => BY_ID[id] && !BY_ID[id].lab && isChal(id) === ch && S.mistakes[id] >= t); };
+// ---- health: pets lose 20% a day; under 30% they are sick, eat nothing, and need the potion for how low they are ----
+const SICK_BELOW = 30;
+const isSick = pet => !!pet && petFull(pet) < SICK_BELOW;
+const potionFor = h => h >= 20 ? 'potion-green' : h >= 10 ? 'potion-blue' : 'potion-purple';     // the potion a sick pet needs (a stronger one works too)
 function petFull(pet) { if (!pet) return 0; const gap = pet.fedDay ? Math.max(0, daysBetween(pet.fedDay, today())) : 0; return Math.max(0, Math.min(100, (pet.full ?? 70) - gap * 20)); }
 
 function buildSession() {
@@ -580,11 +592,11 @@ function renderHome() {
   $('#homePetKind').textContent = pet ? PETS[pet.kind].name : '';
   const full = petFull(pet);
   $('#homeFull').style.width = full + '%';
-  $('#homeFull').className = full < 35 ? 'low' : '';
-  $('#homeFullNum').textContent = full + '%';
+  $('#homeFull').className = full < SICK_BELOW ? 'sick' : full < 40 ? 'low' : '';
+  $('#homeFullNum').innerHTML = full + '%' + (isSick(pet) ? ' <b class="sicktag">Sick</b>' : '');
   const due = dueMistakes().length, later = laterMistakes().length;
   const left = ORDER.length - seenTotal();
-  const bubble = !pet ? '' : full < 35 ? "I'm hungry! Can we buy a snack?" : S.lastDay === today() ? 'Great job today! Want to play more?' : liveStreak() > 0 ? `Keep our ${liveStreak()}-day streak going!` : "Let's spell together!";
+  const bubble = !pet ? '' : isSick(pet) ? `I don't feel well\u2026 I need the ${FOODS[potionFor(full)].name.toLowerCase()}!` : full < 40 ? "I'm hungry! Can we buy a snack?" : S.lastDay === today() ? 'Great job today! Want to play more?' : liveStreak() > 0 ? `Keep our ${liveStreak()}-day streak going!` : "Let's spell together!";
   $('#bubble').textContent = bubble; $('#bubble').hidden = !bubble;
   let note;
   if (due) note = `${due} word${due > 1 ? 's' : ''} from your Mistake Notebook ${due > 1 ? 'are' : 'is'} in this session. Each one you get right is worth ${coinAmt(2)}.`;
@@ -1112,7 +1124,7 @@ function renderRoom() {
     : `<button class="btn small" data-buddy="${roomIdx}">Make ${esc(pet.name)} my study buddy</button>`;
   $('#roomTabs').innerHTML = [['outfit', 'Outfit'], ['food', 'Feed'], ['home', 'Home']].map(([k, n]) => `<button class="tab ${k === roomTab ? 'sel' : ''}" data-t="${k}" aria-pressed="${k === roomTab}">${n}</button>`).join('');
   const full = petFull(pet);
-  $('#roomFull').style.width = full + '%'; $('#roomFull').className = full < 35 ? 'low' : ''; $('#roomFullNum').textContent = full + '%';
+  $('#roomFull').style.width = full + '%'; $('#roomFull').className = full < SICK_BELOW ? 'sick' : full < 40 ? 'low' : ''; $('#roomFullNum').innerHTML = full + '%' + (isSick(pet) ? ' <b class="sicktag">Sick</b>' : '');
   $('#roomName').textContent = pet ? `${pet.name} the ${PETS[pet.kind].name}` : '';
   let h = '';
   const emptyShop = what => `<p class="muted">No ${what} yet. <button class="linkbtn" data-go="shop">Visit the shop</button></p>`;
@@ -1137,8 +1149,17 @@ function renderRoom() {
       ${lockedN ? `<p class="muted small">You own ${lockedN} other house${lockedN > 1 ? 's' : ''} made for other animals. Unlock ${lockedN > 1 ? 'them' : 'it'} for ${esc(pet.name)} in the house shop.</p>` : ''}
       <h3>Inside</h3><p class="muted small">Change the wallpaper and floor, add furniture and drag things where you like.</p><button class="btn go" data-deco="1">Decorate ${esc(pet.name)}'s home</button>`;
   } else if (roomTab === 'food') {
-    const foods = Object.keys(FOODS).filter(k => S.food[k] > 0);
-    h += `<h3>Feed ${esc(pet ? pet.name : '')}</h3>${foods.length ? `<div class="chips">${foods.map(k => `<button class="chip-opt" data-feed="${k}"><img class="pxi fd" src="${foodURL(k)}" alt=""><span>${FOODS[k].name} ×${S.food[k]}</span></button>`).join('')}</div><p class="muted small">Pets get 20% hungrier each day.</p>` : emptyShop('food')}`;
+    const have = k => S.food[k] > 0, foods = Object.keys(FOODS).filter(k => have(k) && !FOODS[k].potion), pots = POTIONS.map(p => p[0]).filter(have);
+    const fchip = (k, off) => `<button class="chip-opt ${off ? 'off' : ''}" data-feed="${k}" ${off ? 'aria-disabled="true"' : ''}><img class="pxi fd" src="${foodURL(k)}" alt=""><span>${FOODS[k].name} \u00d7${S.food[k]}</span><small>+${FOODS[k].fill}%</small></button>`;
+    if (isSick(pet)) {
+      const need = potionFor(full), N = FOODS[need];
+      h += `<div class="sickbox"><img class="pxi" src="${foodURL(need)}" alt=""><div><h3>${esc(pet.name)} is sick</h3><p>Health is under ${SICK_BELOW}%, so food won't help. ${esc(pet.name)} needs the <b>${N.name}</b> (for ${N.lo}\u2013${N.hi}% health). It cures and adds ${N.fill}%.${need !== 'potion-purple' ? ' A stronger potion works too.' : ''}</p></div></div>`;
+      h += `<h3>Medicine</h3>${pots.length ? `<div class="chips">${pots.map(k => fchip(k, FOODS[k].tier < FOODS[need].tier)).join('')}</div>` : `<p class="muted">No potions yet. <button class="linkbtn" data-go="shop">Buy one in the shop</button></p>`}`;
+      if (foods.length) h += `<h3>Food</h3><div class="chips">${foods.map(k => fchip(k, true)).join('')}</div><p class="muted small">Food can be eaten again once ${esc(pet.name)} is cured.</p>`;
+    } else {
+      h += `<h3>Feed ${esc(pet.name)}</h3>${foods.length ? `<div class="chips">${foods.map(k => fchip(k)).join('')}</div>` : emptyShop('food')}
+        <p class="muted small">Pets lose 20% health each day. Under ${SICK_BELOW}% they get sick and need a potion.</p>${pots.length ? `<p class="muted small">Potions in your bag: ${pots.map(k => `${FOODS[k].name} \u00d7${S.food[k]}`).join(', ')}. Keep them for when a pet is sick.</p>` : ''}`;
+    }
   }
   $('#roomPanel').innerHTML = h;
 }
@@ -1155,11 +1176,19 @@ function roomClick(e) {
   if (b.dataset.shel && pet) { pet.shelter = b.dataset.shel; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.dec && pet) { pet.decor[b.dataset.dec] = !pet.decor[b.dataset.dec]; save(); SFX.tap(); return renderRoom(); }
   if (b.dataset.feed && pet) {
-    const k = b.dataset.feed; if (!S.food[k]) return;
+    const k = b.dataset.feed, F = FOODS[k]; if (!S.food[k] || !F) return;
     const before = petFull(pet);
+    if (F.potion) {
+      if (!isSick(pet)) { toast(`${pet.name} isn't sick. Keep the potion for when it's needed.`); return; }
+      const need = FOODS[potionFor(before)];
+      if (F.tier < need.tier) { toast(`That potion is too weak. ${pet.name} needs the ${need.name}.`); return; }
+      S.food[k]--; pet.full = Math.min(100, before + F.fill); pet.fedDay = today();
+      hopUntil = performance.now() + 1800; save(); SFX.fanfare(); toast(`${pet.name} is all better! Health +${F.fill}%.`); return renderRoom();
+    }
+    if (isSick(pet)) { toast(`${pet.name} is sick and can't eat. Use a potion first.`); return; }
     if (before >= 100) { toast(`${pet.name} is full!`); return; }
-    S.food[k]--; pet.full = Math.min(100, before + FOODS[k].fill); pet.fedDay = today();
-    hopUntil = performance.now() + 1400; save(); SFX.good(); toast(`${pet.name} loved the ${FOODS[k].name.toLowerCase()}!`); renderRoom();
+    S.food[k]--; pet.full = Math.min(100, before + F.fill); pet.fedDay = today();
+    hopUntil = performance.now() + 1400; save(); SFX.good(); toast(`${pet.name} loved the ${F.name.toLowerCase()}! Health +${F.fill}%.`); renderRoom();
   }
 }
 

@@ -97,7 +97,7 @@ function drawTown(c, t) {
     const bob = moving ? (Math.floor(t / 140) % 2) * 3 : 0;
     const x = w.x - PW / 2, y = w.y - PH + 6 - bob;
     c.save(); c.globalAlpha = .25; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(w.x, w.y + 4, 18, 5, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    if (w.dir > 0) { c.save(); c.translate(x + PW, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, x, y, PW, PH);
+    drawPetSick(c, pet, () => { if (w.dir > 0) { c.save(); c.translate(x + PW, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, x, y, PW, PH); }, w.x + PW * 0.38, y + PH * 0.15, PH * 0.32, t);
     if (w.mode === 'visit' && !moving) { c.save(); c.imageSmoothingEnabled = false; drawSpriteScaled(c, ICONS.heart, BASEPAL, w.x - 12, y - 4 - (Math.floor(t / 300) % 2) * 4, 4); c.restore(); }
   });
 }

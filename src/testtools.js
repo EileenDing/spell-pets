@@ -7,7 +7,7 @@ function renderTestTools() {
     <div class="row"><button class="btn small go" data-tt="coins">+ $1,000</button><button class="btn small" data-tt="pets">Get all pets</button><button class="btn small" data-tt="egg">Hatch an egg now</button><button class="btn small" data-tt="unlock">Unlock all shop items</button></div>
     <div class="row"><label>English level <select data-tt="en">${['Not tested', ...LEVELS.map(L => L.name + ' · ' + L.sub)].map((n, i) => `<option value="${i - 1}" ${i - 1 === lvNow ? 'selected' : ''}>${n}</option>`).join('')}</select></label></div>
     <div class="row"><label><span class="zh">中文</span> <select data-tt="zh">${['Not tested', ...ZH_PARTS.map(p => p.title)].map((n, i) => `<option value="${i - 1}" ${z.place ? (i - 1 === z.place.k ? 'selected' : '') : (i === 0 ? 'selected' : '')} class="zh">${n}</option>`).join('')}</select></label></div>
-    <div class="row"><button class="btn small" data-tt="streak">Streak +1 day</button><button class="btn small" data-tt="hungry">Make pets hungry</button><button class="btn small bad" data-tt="reset">Start the test profile over</button></div>`;
+    <div class="row"><button class="btn small" data-tt="streak">Streak +1 day</button><button class="btn small" data-tt="hungry">Make pets hungry</button><button class="btn small" data-tt="sick">Make pets sick</button><button class="btn small bad" data-tt="reset">Start the test profile over</button></div>`;
   el.querySelectorAll('select').forEach(s => s.addEventListener('change', testToolChange));
 }
 function testAllPets() {
@@ -30,7 +30,8 @@ function testToolClick(e) {
     toast('Everything in the shop is unlocked, every house is built, and every limited skin is yours.');
   }
   if (t === 'streak') { S.streak = liveStreak() + 1; S.best = Math.max(S.best || 0, S.streak); S.lastDay = today(); S.days = [...new Set([...S.days, today()])]; toast(`Streak is now ${S.streak} days.`); }
-  if (t === 'hungry') { S.pets.forEach(p => { p.full = 20; p.fedDay = today(); }); toast('Every pet is hungry now.'); }
+  if (t === 'hungry') { S.pets.forEach(p => { p.full = 35; p.fedDay = today(); }); toast('Every pet is hungry now.'); }
+  if (t === 'sick') { S.pets.forEach((p, i) => { p.full = [25, 15, 5][i % 3]; p.fedDay = today(); }); toast('Pets are sick now (25%, 15% and 5% in turn).'); }
   if (t === 'reset') {
     if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = 'Tap again to start over'; setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.textContent = 'Start the test profile over'; } }, 4000); return; }
     S = freshState(); S.coins = 5000; testAllPets(); S.active = 0; toast('The test profile starts fresh, with all pets and $5,000.');

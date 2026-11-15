@@ -2363,19 +2363,35 @@ const SKINS = {
  mint:{name:'Mint', pal:{b:'#7be0b0',d:'#3aa877',l:'#e0fff0'}}
 };
 
+// Food and medicine. One price rule for all food (Nov 2026): water $1 gives +8% health; bigger meals give more health
+// for each dollar (health = 8p + p(p-1)/4 at price p, in half dollars), up to +45% for $5.
+// Potions cure a sick pet (health under 30%) and cost twice as much as food giving the same health.
+const FOOD_HEALTH = { 1: 8, 1.5: 12, 2: 17, 2.5: 21, 3: 26, 3.5: 30, 4: 35, 4.5: 40, 5: 45 };
+const FOOD_LIST = [   // key, name, price (health comes from the price)
+  ['water', 'Fresh Water', 1],
+  ['carrot', 'Carrot', 1.5], ['strawberry', 'Strawberry', 1.5], ['cabbage', 'Cabbage', 1.5], ['watermelon', 'Watermelon', 1.5], ['blueberries', 'Blueberries', 1.5], ['broccoli', 'Broccoli', 1.5], ['juice', 'Orange Juice', 1.5],
+  ['apple', 'Apple', 2], ['grapes', 'Grapes', 2], ['popsicle', 'Ice Pops', 2],
+  ['banana', 'Banana', 2.5], ['corn', 'Corn', 2.5], ['bone', 'Bone', 2.5], ['pudding', 'Caramel Pudding', 2.5], ['berrybowl', 'Berry Yogurt', 2.5], ['cocoa', 'Hot Cocoa', 2.5],
+  ['sweetpotato', 'Sweet Potato', 3], ['soup', 'Pumpkin Soup', 3],
+  ['onigiri', 'Rice Ball', 3.5], ['croissant', 'Croissant', 3.5], ['donut', 'Donut', 3.5],
+  ['kibble', 'Pet Kibble', 4],
+  ['buns', 'Steamed Buns', 4.5], ['salmon', 'Grilled Salmon', 4.5],
+  ['pancakes', 'Pancakes', 5]
+];
+const POTIONS = [     // key, name, health it adds, the health range it cures (from, to), price
+  ['potion-green', 'Green Potion', 10, 20, 30, 2.5],
+  ['potion-blue', 'Blue Potion', 20, 10, 20, 5],
+  ['potion-purple', 'Purple Potion', 30, 0, 10, 7]
+];
 const FOODS = {
- apple:{name:'Apple', fill:15, rows:["....i...","...oi...",".ozzzzo.","ozwzzzzo","ozzzzzzo","ozzzzzzo",".ozzzzo.","..oooo.."]},
- carrot:{name:'Carrot', fill:15, rows:["...i.i..","....ii..","...ojjo.","...ojjo.","...ojo..","...ojo..","....o..."]},
- fish:{name:'Fish', fill:25, rows:["........",".oooo..o","occccooc","ocxcccco","occccooc",".oooo..o"]},
- bone:{name:'Bone', fill:25, rows:["oo....oo","oyo..oyo",".oyyyyo.",".oyyyyo.","oyo..oyo","oo....oo"]},
+ ...Object.fromEntries(FOOD_LIST.map(([k, name, price]) => [k, { name, fill: FOOD_HEALTH[price], price }])),
+ ...Object.fromEntries(POTIONS.map(([k, name, fill, lo, hi, price], tier) => [k, { name, fill, lo, hi, price, potion: true, tier }])),
+ // no longer sold (some players still have them)
+ fish:{name:'Fish', fill:30, rows:["........",".oooo..o","occccooc","ocxcccco","occccooc",".oooo..o"]},
  seeds:{name:'Sunflower Seeds', fill:12, rows:["."]},
- strawberry:{name:'Strawberry', fill:15, rows:['.']},
- banana:{name:'Banana', fill:20, rows:['.']},
- cabbage:{name:'Cabbage', fill:20, rows:['.']},
- kibble:{name:'Pet Kibble', fill:35, rows:['.']},
- water:{name:'Fresh Water', fill:10, rows:['.']},
- cake:{name:'Cake', fill:50, rows:["...z....","...o....","oooooooo","offffffo","oyyyyyyo","offffffo","oyyyyyyo","oooooooo"]}
+ cake:{name:'Cake', fill:45, rows:["...z....","...o....","oooooooo","offffffo","oyyyyyyo","offffffo","oyyyyyyo","oooooooo"]}
 };
+
 
 const SHOP = [
  ...Object.entries(SKINS).map(([k,v])=>({id:'skin-'+k, cat:'skins', key:k, name:v.name+' skin', price:30})),
@@ -2398,14 +2414,8 @@ const SHOP = [
    ['vinesash','Vine Explorer Sash',16],['spikecape','T-Rex Spike Cape',22],['scalecollar','Scale Collar',16],['feathercape','Rainbow Feather Cape',24],['moonreadercap','Moon Reader Cap',16],
    ['citrusrobe','Citrus Bath Robe',20],['orangehead','Orange Headpiece',14],['lotushat','Lotus Leaf Hat',16],['checkscarf','Blue Check Scarf',12],['swimring','Swim Ring',14],['crossbag','Tan Crossbody Bag',14]]
    .map(([k,n,p])=>({id:'look-'+k, cat:'clothes', slot:'look', key:k, name:n, price:p})),
- {id:'food-apple', cat:'food', key:'apple', name:'Apple', price:2},
- {id:'food-carrot', cat:'food', key:'carrot', name:'Carrot', price:2},
- {id:'food-strawberry', cat:'food', key:'strawberry', name:'Strawberry', price:2},
- {id:'food-banana', cat:'food', key:'banana', name:'Banana', price:3},
- {id:'food-cabbage', cat:'food', key:'cabbage', name:'Cabbage', price:3},
- {id:'food-kibble', cat:'food', key:'kibble', name:'Pet Kibble', price:5},
- {id:'food-bone', cat:'food', key:'bone', name:'Bone', price:3},
- {id:'food-water', cat:'food', key:'water', name:'Fresh Water', price:1},
+ ...POTIONS.map(([k, name, , , , price]) => ({id:'food-'+k, cat:'food', key:k, name, price})),
+ ...FOOD_LIST.map(([k, name, price]) => ({id:'food-'+k, cat:'food', key:k, name, price})),
  {id:'home-cottage', cat:'shelter', key:'cottage', name:'Log Cabin', price:60},
  {id:'home-house', cat:'shelter', key:'house', name:'Blue Roof House', price:90},
  {id:'home-treehouse', cat:'shelter', key:'treehouse', name:'Treehouse', price:100},

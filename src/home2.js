@@ -326,7 +326,7 @@ function drawRoom(c, t, pet, o = {}) {
     if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 14);
     c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 36, 8, 0, 0, Math.PI * 2); c.fill(); c.restore();
     const img = petCanvas(pet, { blink: t % 4200 < 160 });
-    if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH);
+    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PW * 0.36, y + 18, 46, t);
   });
   if (o.sel != null && list[o.sel]) {
     const r = list[o.sel].r; c.save(); c.strokeStyle = '#ffcc33'; c.lineWidth = 4; c.setLineDash([10, 6]); c.lineDashOffset = -(t / 40) % 16;
@@ -522,7 +522,10 @@ function renderShop() {
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);
     if (wears && dp) preloadFits(dp.kind, items.filter(i => i.cat !== 'skins').map(i => i.key));
-    h = (wears && dp ? dressingRoom(dp) : '') + `<div class="shopgrid">${ltd}${items.map(it => {
+    const foodNote = shopTab !== 'food' ? '' : isSick(me) ? `<div class="sickbox"><img class="pxi" src="${foodURL(potionFor(petFull(me)))}" alt=""><div><h3>${esc(me.name)} is sick</h3><p>Only potions can be bought until ${esc(me.name)} is cured. ${esc(me.name)} needs the <b>${FOODS[potionFor(petFull(me))].name}</b>.</p></div></div>`
+      : note('Every food adds health. Bigger meals give more health for each dollar. If a pet drops under 30% health it gets sick and needs a potion.');
+    if (shopTab === 'food') items.sort((x, y) => (FOODS[y.key].potion ? 1 : 0) - (FOODS[x.key].potion ? 1 : 0) || x.price - y.price);
+    h = foodNote + (wears && dp ? dressingRoom(dp) : '') + `<div class="shopgrid">${ltd}${items.map(it => {
       const owned = it.cat !== 'food' && S.owned[it.id];
       if (wears && dp) {                                      // dressing-room cards: tap to try; owned things are worn straight away
         const fits = !it.petKind || it.petKind === dp.kind, on = owned && wearing(dp, it), tr = TRY === it.id;
@@ -532,18 +535,20 @@ function renderShop() {
         return `<div class="card ${owned ? 'owned' : ''} ${tr ? 'tryingcard' : ''} ${fits ? 'tryable' : 'nofit'}" ${fits ? `data-try="${it.id}"` : ''}><div class="prevbox">${itemPreview(it, dp)}</div><b>${esc(it.name)}</b>${on ? `<span class="ownedtag">${icon('check')} Wearing</span>` : owned ? '<span class="muted small">Yours</span>' : ''}${btn}</div>`;
       }
       const forPet = it.petKind ? S.pets.find(p => p.kind === it.petKind) : me;
-      const extra = it.cat === 'food' ? `<span class="muted small">Fills ${FOODS[it.key].fill}% · you have ${S.food[it.key] || 0}</span>`
+      const extra = it.cat === 'food' ? `<span class="muted small">${FOODS[it.key].potion ? `Cures a sick pet at ${FOODS[it.key].lo}\u2013${FOODS[it.key].hi}% \u00b7 +${FOODS[it.key].fill}%` : `Health +${FOODS[it.key].fill}%`} \u00b7 you have ${S.food[it.key] || 0}</span>`
         : it.cat === 'costumes' ? `<span class="muted small">Whole set · on ${esc((me || {}).name || "your pet")}</span>`
         : it.petKind ? `<span class="muted small">Only for ${esc(PETS[it.petKind].name)}s · on ${esc((forPet || {}).name || '')}</span>` : `<span class="muted small">Preview on ${esc((me || {}).name || 'your pet')}</span>`;
-      return `<div class="card ${owned ? 'owned' : ''}"><div class="prevbox">${itemPreview(it)}</div><b>${esc(it.name)}</b>${extra}${priceBtn(`data-id="${it.id}"`, it.price, owned, '', 'i:' + it.id)}</div>`;
+      const sickBlock = it.cat === 'food' && !FOODS[it.key].potion && isSick(me);
+      return `<div class="card ${owned ? 'owned' : ''} ${FOODS[it.key] && FOODS[it.key].potion ? 'potioncard' : ''} ${sickBlock ? 'blocked' : ''}"><div class="prevbox">${itemPreview(it)}</div><b>${esc(it.name)}</b>${extra}${sickBlock ? `<span class="btn buy off" aria-disabled="true">Potions only</span>` : priceBtn(`data-id="${it.id}"`, it.price, owned, '', 'i:' + it.id)}</div>`;
     }).join('')}</div>`;
   }
   $('#shopGrid').innerHTML = h;
 }
 function buy(id) {
   const it = SHOP.find(i => i.id === id); if (!it) return;
+  if (it.cat === 'food' && !FOODS[it.key].potion && isSick(S.pets[S.active])) { toast(`${S.pets[S.active].name} is sick. Only potions can be bought until ${S.pets[S.active].name} is cured.`); return; }
   if (S.coins < it.price) { toast(`You need $${money(it.price - S.coins)} more. Play a session to earn coins!`); return; }
-  S.coins -= it.price;
+  S.coins = Math.round((S.coins - it.price) * 10) / 10;
   if (it.cat === 'food') S.food[it.key] = (S.food[it.key] || 0) + 1;
   else {
     S.owned[it.id] = 1; let pet = WEARS.includes(it.cat) ? (S.pets[shopPet] || S.pets[S.active]) : S.pets[S.active];
@@ -552,7 +557,7 @@ function buy(id) {
   }
   save(); SFX.coin(); renderHud(); renderShop();
   const wp = WEARS.includes(it.cat) && (S.pets[shopPet] || S.pets[S.active]);
-  toast(it.cat === 'food' ? `Bought ${it.name}. Feed it in a pet's room.` : wp ? `Bought ${it.name}! ${wp.name} is wearing it now.` : `Bought ${it.name}!`);
+  toast(it.cat === 'food' ? `Bought ${it.name}. ${FOODS[it.key].potion ? 'Give it to a sick pet' : 'Feed it'} in a pet's room.` : wp ? `Bought ${it.name}! ${wp.name} is wearing it now.` : `Bought ${it.name}!`);
 }
 function shopBuy(code) {
   const [kind, k] = code.split(':'), me = S.pets[S.active];
