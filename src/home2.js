@@ -64,15 +64,16 @@ const FURN_LIST = [
   ...SET_FURN                                   // room set pieces (sets2.js); their 9th field lists the sets they belong to
 ];
 const FURN_PRICE_UP = 1.05;                     // all furniture 5% dearer than the listed price
+const WF_PRICE_UP = 1.08;                       // wallpapers and floors 8% dearer than the listed price (Nov 2026)
 FURN_LIST.forEach(f => { if (f[3]) f[3] = Math.round(f[3] * FURN_PRICE_UP); });
 const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y, set]) => { FURN[k] = { k, name, group, price, place, size, x, y, set }; });
 const FURN_GROUPS = [['beds', 'Beds & seats'], ['tables', 'Tables & storage'], ['lights', 'Lights & walls'], ['rugs', 'Rugs & windows'], ['plants', 'Plants & play'], ['cosy', 'Cosy details']];
 const WALLPAPERS = [['leafy', 'Leafy Cream', 0], ['cream', 'Cream', 12], ['sagestripe', 'Sage Stripe', 15], ['tinyblooms', 'Tiny Blooms', 15], ['forestleaves', 'Forest Leaves', 15], ['bluegingham', 'Blue Gingham', 15],
   ['peachdots', 'Peach Dots', 15], ['starrynight', 'Starry Night', 20], ['cloudsky', 'Cloud Sky', 20], ['pawprints', 'Paw Prints', 15], ['warmbrick', 'Warm Brick', 18], ['woodpanels', 'Wood Panels', 18], ['lavender', 'Lavender', 15]]
-  .concat(SET_WALLS).map(([k, name, price]) => ({ k, name, price: Math.round(price * 1.05) }));   // +5% like furniture
+  .concat(SET_WALLS).map(([k, name, price]) => ({ k, name, base: price, price: Math.round(price * WF_PRICE_UP) }));   // +8%
 const FLOORS = [['honeyoak', 'Honey Oak', 0], ['paleash', 'Pale Ash', 15], ['walnut', 'Walnut', 18], ['herringbone', 'Herringbone', 20], ['whitetile', 'White Tile', 15], ['bluetile', 'Blue Tile', 15],
   ['terracotta', 'Terracotta', 15], ['stone', 'Stone', 18], ['mossstone', 'Moss Stone', 20], ['cork', 'Cork', 12], ['pinkcheck', 'Pink Check', 15], ['woven', 'Woven Mat', 15]]
-  .concat(SET_FLOORS).map(([k, name, price]) => ({ k, name, price: Math.round(price * 1.05) }));   // +5% like furniture
+  .concat(SET_FLOORS).map(([k, name, price]) => ({ k, name, base: price, price: Math.round(price * WF_PRICE_UP) }));   // +8%
 // Houses for Pet Town. Every house is made for one kind of animal.
 // A pet can also live in another animal's house: that costs a one-time unlock fee (5-10% of the price, more for fancier houses),
 // after which any of your pets can use that house.
@@ -402,7 +403,12 @@ function buyThing(kind, k, pet) {
   toast(pet ? `Bought ${item.name}! It's in ${pet.name}'s home now.` : `Bought ${item.name}!`);
   return true;
 }
-function setPrice(set) { return S.owned['set-' + set.k] ? 0 : Math.round(set.price * FURN_PRICE_UP); }
+// a set's listed price = its wallpaper + its floor + its furniture: the furniture part rises 5% like furniture, the wallpaper and floor 8%
+function setFullPrice(set) {
+  const wf = ((WALLPAPERS.find(w => w.k === set.wall) || {}).base || 0) + ((FLOORS.find(f => f.k === set.floor) || {}).base || 0);
+  return Math.round((set.price - wf) * FURN_PRICE_UP + wf * WF_PRICE_UP);
+}
+function setPrice(set) { return S.owned['set-' + set.k] ? 0 : setFullPrice(set); }
 const setItems = set => set.items.map(i => ({ ...i }));
 function fixRiders(room) { useRoom(room); room.items.forEach(i => { if (i.on && !room.items.some(h => h.k === i.on)) { delete i.on; clampItem(i); } }); }
 function applySet(set, pet, own = true) {
