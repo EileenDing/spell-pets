@@ -431,6 +431,7 @@ function choosePlayer(id) {
 function testGrant() {
   if (!PROFILE || !S) return;
   if (PROFILE.test && !S.grant10k) { S.coins = Math.max(S.coins || 0, 10000); S.grant10k = 1; save(); renderHud(); }
+  if (PROFILE.test && S.pets.length && PET_ORDER.some(k => !S.pets.some(p => p.kind === k))) { testAllPets(); save(); renderHud(); }   // the Test profile always has every pet, new ones included
   // one-time: Jasper got every new word right on Nov 14, 2026, before the perfect-day bonus existed
   if ((PROFILE.name || '').trim().toLowerCase() === 'jasper' && !S.grantPD1114) {
     S.coins += PERFECT_BONUS; S.earned += PERFECT_BONUS; S.grantPD1114 = 1;

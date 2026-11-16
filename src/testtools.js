@@ -11,13 +11,13 @@ function renderTestTools() {
   el.querySelectorAll('select').forEach(s => s.addEventListener('change', testToolChange));
 }
 function testAllPets() {
-  PET_ORDER.forEach(k => { if (!S.pets.some(p => p.kind === k)) S.pets.push({ kind: k, name: PETS[k].name, skin: null, hat: null, eyes: null, neck: null, back: null, body: null, full: 80, fedDay: today(), shelter: 'box', decor: {}, items: {}, room: defaultRoom() }); });
+  PET_ORDER.forEach(k => { if (!S.pets.some(p => p.kind === k)) S.pets.push({ kind: k, name: PETS[k].name, house: S.owned['h-' + k] ? k : undefined, skin: null, hat: null, eyes: null, neck: null, back: null, body: null, full: 80, fedDay: today(), shelter: 'box', decor: {}, items: {}, room: defaultRoom() }); });
 }
 function testToolClick(e) {
   const b = e.target.closest('button[data-tt]'); if (!b || !isTester() || P) return;
   const t = b.dataset.tt;
   if (t === 'coins') { S.coins += 1000; toast('Added $1,000.'); }
-  if (t === 'pets') { testAllPets(); toast('All 13 pets are here.'); }
+  if (t === 'pets') { testAllPets(); toast(`All ${PET_ORDER.length} pets are here.`); }
   if (t === 'egg') {
     if (S.pets.length >= PET_ORDER.length) { toast('You already have every pet. Start over to test hatching.'); return; }
     S.sessions = (S.eggBase || 0) + (S.rewards.length + 1) * EGG_CYCLE; save(); renderHud(); claimRewards(() => route('home')); return;
