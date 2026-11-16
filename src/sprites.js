@@ -233,9 +233,12 @@ function renderPet(pet, o = {}) {
   }
   // one thing worn and a drawn picture of it -> use the picture
   const singles = ['hat', 'eyes', 'neck', 'back', 'body'].map(get).filter(Boolean);
-  const fitKey = get('costume') && cos ? get('costume') : look ? look : singles.length === 1 ? FIT_KEY[singles[0]] : null;
+  // a hat with its own drawn outfit (wizard robe, crown cape, party outfit) is worn as that whole picture, even with other things on
+  const hatFit = ['wizard', 'crown', 'party'].includes(get('hat')) && singles.length > 1 ? FIT_KEY[get('hat')] : null;
+  const fitKey = get('costume') && cos ? get('costume') : look ? look : singles.length === 1 ? FIT_KEY[singles[0]] : hatFit;
   const artSkin = skin && skin.startsWith('a-'), procedural = !!cos || (!look && singles.length > 0);
-  if (fitKey && (look || !artSkin || !procedural)) {           // drawn pictures for everything; colour skins recolour only the fur
+  const bigHat = ['wizard', 'crown', 'party'].includes(get('hat')) && !cos && !look && fitKey === FIT_KEY[get('hat')];   // never the old pixel wizard/crown/party hat
+  if (fitKey && (look || !artSkin || !procedural || bigHat)) {           // drawn pictures for everything; colour skins recolour only the fur
     const f = fitImg(kind, fitKey);
     if (f && f.ok) {
       const L = document.createElement('canvas'); L.width = PET_CW; L.height = PET_CH; const lx = L.getContext('2d', { willReadFrequently: true });

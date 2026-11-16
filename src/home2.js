@@ -515,7 +515,7 @@ function renderShop() {
         ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || S.pets.some(p => p.kind === i.petKind)));
-    const ltd = shopTab !== 'skins' ? '' : S.pets.map(p => {
+    const ltd = shopTab !== 'skins' ? '' : [S.pets[shopPet] || me].filter(Boolean).map(p => {   // only the legendary skin of the pet you're shopping for
       const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), days = Math.min(LTD_DAYS, (S.petDays[p.kind] || { n: 0 }).n), can = S.coins >= LTD_PRICE;
       return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
         <b>${ready ? esc(ltdTitle(p.kind)) : '???'}</b>
