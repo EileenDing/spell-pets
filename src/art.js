@@ -122,23 +122,24 @@ const PET_ART = {
       pE(25.6, 28, 3.2, 2.2, 'b', 1.2, { line: 1 }), pE(28.6, 26.4, 2.2, 1.8, 'b', 1.2, { line: 1 }), pT(28.5, 23, 32, 25.5, 28.6, 27.4, 'd', 1.1, { line: 1 })],
     nostrils: 1 }
 };
+// legendary skins: a finished picture for each pet (pet-<kind>-legend, assets/v18); pal/pat are the old recolour, used only if the picture is missing
 const LTD = {
-  dragon: { name: 'Galaxy', pal: { b: '#2f3180', d: '#1b1c4a', l: '#a8b0ff', g: '#6a5acd' }, pat: (x, y) => phash(x, y, 1) < .07 ? '#fff6b0' : null },
-  dinosaur: { name: 'Fossil', pal: { b: '#e9e2cf', d: '#b9ab8c', l: '#fffaf0' }, pat: (x, y) => phash(x >> 1, y >> 1, 2) < .12 ? '#cfc3a6' : null },
-  dog: { name: 'Dalmatian', pal: { b: '#f7f7f7', d: '#2b2b2b', l: '#ffffff' }, pat: (x, y) => phash(x / 3 | 0, y / 3 | 0, 3) < .2 ? '#2b2b2b' : null },
-  cat: { name: 'Calico', pal: { b: '#fffaf3', d: '#e98a3c', l: '#ffffff' }, pat: (x, y) => { const h = phash(x / 6 | 0, y / 5 | 0, 4); return h < .25 ? '#f0943f' : h < .4 ? '#3a3030' : null; } },
-  turtle: { name: 'Golden Shell', pal: { d: '#d9a520', g: '#ffe17a', b: '#9bd06a', l: '#fff1b8' } },
-  rabbit: { name: 'Sakura', pal: { b: '#ffd6e6', l: '#fff5f8', d: '#f5a8c4' }, pat: (x, y) => phash(x, y, 5) < .05 ? '#ff7fae' : null },
-  pig: { name: 'Choco', pal: { b: '#c9906b', l: '#e8c3a5', d: '#8a5a3c' }, pat: (x, y) => phash(x >> 1, y >> 1, 6) < .1 ? '#a8714f' : null },
-  rat: { name: 'Ninja', pal: { b: '#3a3647', l: '#6d6880', d: '#24212e', p: '#e5383b' }, pat: (x, y) => (y === 6 || y === 7) ? '#e5383b' : null },
-  monkey: { name: 'Golden', pal: { b: '#f2b632', d: '#c4861a', l: '#fff0c2' }, pat: (x, y) => phash(x, y, 7) < .045 ? '#ffffff' : null },
-  trex: { name: 'Volcano', pal: { b: '#4a3b46', d: '#2a2028', l: '#ff8c42' }, pat: (x, y) => phash(x, y, 8) < .07 ? '#ff5d2e' : null },
-  snake: { name: 'Emerald', pal: { b: '#2fbf71', d: '#1b7a48', l: '#b8f5d0' }, pat: (x, y) => ((x + y) % 5 === 0 ? '#ffd23f' : null) },
-  parrot: { name: 'Snowy', pal: { b: '#eef3ff', d: '#9fb0d4', l: '#ffffff' }, pat: (x, y) => phash(x, y, 9) < .06 ? '#9fd8ff' : null },
-  owl: { name: 'Moonlight', pal: { b: '#3b4a7a', d: '#232c4f', l: '#c9d4ff' }, pat: (x, y) => phash(x, y, 10) < .05 ? '#fff6b0' : null },
-  frog: { name: 'Strawberry', pal: { b: '#f0545f', d: '#b8323f', l: '#ffb3b8' }, pat: (x, y) => phash(x, y, 11) < .08 ? '#ffe36b' : null },
-  octopus: { name: 'Pearl', pal: { b: '#f4f0ff', d: '#c8bde8', l: '#ffffff' }, pat: (x, y) => phash(x, y, 12) < .07 ? '#ffc6e8' : null },
-  capybara: { name: 'Matcha', pal: { b: '#9cc77a', d: '#6a9a4f', l: '#e3f2c8' }, pat: (x, y) => phash(x, y, 13) < .05 ? '#fff6dd' : null }
+  dragon: { name: 'Crimson', title: 'Crimson Dragon', pal: { b: '#2f3180', d: '#1b1c4a', l: '#a8b0ff', g: '#6a5acd' }, pat: (x, y) => phash(x, y, 1) < .07 ? '#fff6b0' : null },
+  dinosaur: { name: 'Jungle', title: 'Jungle Dinosaur', pal: { b: '#e9e2cf', d: '#b9ab8c', l: '#fffaf0' }, pat: (x, y) => phash(x >> 1, y >> 1, 2) < .12 ? '#cfc3a6' : null },
+  dog: { name: 'Dalmatian', title: 'Dalmatian Dog', pal: { b: '#f7f7f7', d: '#2b2b2b', l: '#ffffff' }, pat: (x, y) => phash(x / 3 | 0, y / 3 | 0, 3) < .2 ? '#2b2b2b' : null },
+  cat: { name: 'Cheshire', title: 'Cheshire Cat', pal: { b: '#fffaf3', d: '#e98a3c', l: '#ffffff' }, pat: (x, y) => { const h = phash(x / 6 | 0, y / 5 | 0, 4); return h < .25 ? '#f0943f' : h < .4 ? '#3a3030' : null; } },
+  turtle: { name: 'Amber Shell', title: 'Amber Shell Turtle', pal: { d: '#d9a520', g: '#ffe17a', b: '#9bd06a', l: '#fff1b8' } },
+  rabbit: { name: 'White Rabbit', title: 'White Rabbit', pal: { b: '#ffd6e6', l: '#fff5f8', d: '#f5a8c4' }, pat: (x, y) => phash(x, y, 5) < .05 ? '#ff7fae' : null },
+  pig: { name: 'Piggy Bank', title: 'Piggy Bank Pig', pal: { b: '#c9906b', l: '#e8c3a5', d: '#8a5a3c' }, pat: (x, y) => phash(x >> 1, y >> 1, 6) < .1 ? '#a8714f' : null },
+  rat: { name: 'Nutcracker', title: 'Nutcracker Hamster', pal: { b: '#3a3647', l: '#6d6880', d: '#24212e', p: '#e5383b' }, pat: (x, y) => (y === 6 || y === 7) ? '#e5383b' : null },
+  monkey: { name: 'Monkey King', title: 'Monkey King', pal: { b: '#f2b632', d: '#c4861a', l: '#fff0c2' }, pat: (x, y) => phash(x, y, 7) < .045 ? '#ffffff' : null },
+  trex: { name: 'Stitched', title: 'Stitched T-Rex', pal: { b: '#4a3b46', d: '#2a2028', l: '#ff8c42' }, pat: (x, y) => phash(x, y, 8) < .07 ? '#ff5d2e' : null },
+  snake: { name: 'Cobra', title: 'Royal Cobra', pal: { b: '#2fbf71', d: '#1b7a48', l: '#b8f5d0' }, pat: (x, y) => ((x + y) % 5 === 0 ? '#ffd23f' : null) },
+  parrot: { name: 'Scarlet', title: 'Scarlet Macaw', pal: { b: '#eef3ff', d: '#9fb0d4', l: '#ffffff' }, pat: (x, y) => phash(x, y, 9) < .06 ? '#9fd8ff' : null },
+  owl: { name: 'Great Horned', title: 'Great Horned Owl', pal: { b: '#3b4a7a', d: '#232c4f', l: '#c9d4ff' }, pat: (x, y) => phash(x, y, 10) < .05 ? '#fff6b0' : null },
+  frog: { name: 'Frog Prince', title: 'Frog Prince', pal: { b: '#f0545f', d: '#b8323f', l: '#ffb3b8' }, pat: (x, y) => phash(x, y, 11) < .08 ? '#ffe36b' : null },
+  octopus: { name: 'Two-Tone', title: 'Two-Tone Octopus', pal: { b: '#f4f0ff', d: '#c8bde8', l: '#ffffff' }, pat: (x, y) => phash(x, y, 12) < .07 ? '#ffc6e8' : null },
+  capybara: { name: 'Tin Man', title: 'Tin Man Capybara', pal: { b: '#9cc77a', d: '#6a9a4f', l: '#e3f2c8' }, pat: (x, y) => phash(x, y, 13) < .05 ? '#fff6dd' : null }
 };
 const HAT_ART = {
   party: () => [pT(10, 5, 16, -8.5, 22, 5, '#4cc9f0', 20, { line: 1, pat: (x, y) => ((x + y + 64) % 5 < 2 ? '#f72585' : null) }), pE(16, -8.5, 2, 2, '#ffcc33', 21, { line: 1 })],

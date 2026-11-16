@@ -489,15 +489,17 @@ function whoClick(e) {
 function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, today()) <= 1 ? S.streak : 0; }
 // Hidden rhythm: 50 English sessions find a mystery egg, 30 more hatch it (one new pet every 80).
 // Chinese: passing stage 3 finds an egg and stage 5 hatches it; stage 8 finds one and stage 10 hatches it (zh.js).
-// Each pet's limited-edition skin unlocks after 30 different days of practice with that pet (English or Chinese).
+// Each pet's legendary skin can be bought ($45) after 30 different days of practice with that pet (English or Chinese).
 // None of these numbers is ever shown to the player.
-const EGG_FIND = 50, EGG_HATCH = 30, EGG_CYCLE = EGG_FIND + EGG_HATCH, LTD_DAYS = 30;
+const EGG_FIND = 50, EGG_HATCH = 30, EGG_CYCLE = EGG_FIND + EGG_HATCH, LTD_DAYS = 30, LTD_PRICE = 45;
+const ltdTitle = kind => LTD[kind].title || LTD[kind].name + ' ' + PETS[kind].name;
+const ltdReady = kind => !!(S.owned['ltdok-' + kind] || S.owned['ltd-' + kind]);
 const eggSessions = () => Math.max(0, S.sessions - (S.eggBase || 0));
 const milestonesReached = () => Math.min(PET_ORDER.length - 1, Math.floor(eggSessions() / EGG_CYCLE));
 function notePetDay(pet) {                               // one practice day with this pet as the partner
   if (!pet) return; const d = S.petDays[pet.kind] || (S.petDays[pet.kind] = { n: 0, last: null }), t = today();
   if (d.last !== t) { d.n++; d.last = t; }
-  if (d.n >= LTD_DAYS && !S.owned['ltd-' + pet.kind]) { S.owned['ltd-' + pet.kind] = 1; LTD_QUEUE.push(pet.kind); }
+  if (d.n >= LTD_DAYS && !ltdReady(pet.kind)) { S.owned['ltdok-' + pet.kind] = 1; LTD_QUEUE.push(pet.kind); }   // 30 days together: the legendary skin can now be bought
 }
 const seenTotal = () => ORDER.filter(id => S.seen[id]).length;
 function currentLevel() {
@@ -630,7 +632,7 @@ function renderHome() {
   const stage = allPets || !found ? 0 : Math.min(2, Math.floor((cyc - EGG_FIND) / 10));
   $('#eggImg').src = allPets ? petURL(S.pets[S.active]) : (URLS['egg' + stage] || (URLS['egg' + stage] = renderEgg(stage).toDataURL()));
   $('#eggImg').className = 'pxi egg ' + (allPets ? 'wob0' : found ? 'wob' + stage : 'eggsoon');
-  $('#eggNote').innerHTML = allPets ? 'You have found every pet! Keep playing with each one to discover their limited-edition looks.'
+  $('#eggNote').innerHTML = allPets ? 'You have found every pet! Practise with each one to unlock their legendary skins.'
     : !found ? (cyc < EGG_FIND / 2 ? 'Your nest is empty for now. Keep practising and a mystery egg may turn up&hellip;' : 'Something is rustling near your nest. An egg must be close!')
     : ['You found a mystery egg! It is resting in your nest. What could be inside?', 'The egg is wiggling&hellip; something is moving in there!', 'Crack! Crack! It looks like it will hatch soon!'][stage];
   renderChallenges();
@@ -1054,13 +1056,13 @@ function finishSession() {
 
 let LTD_QUEUE = [];
 function ltdModal(kind, then) {
-  const pet = S.pets.find(p => p.kind === kind) || { kind };
-  openModal(`<h2 class="mtitle">Limited edition unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} have been practising together so much that a rare look appeared.</p>
+  const pet = S.pets.find(p => p.kind === kind) || { kind }, i = S.pets.indexOf(pet);
+  openModal(`<h2 class="mtitle">Legendary skin unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} have practised together for ${LTD_DAYS} days, so a legendary look appeared. You can buy it in the shop for ${coinAmt(LTD_PRICE)}.</p>
     <div class="ltdshow"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><span class="arrow">\u2192</span><img class="pxi petimg big" src="${petURL(pet, { skin: 'ltd' })}" alt=""></div>
-    <p class="center"><b>${esc(LTD[kind].name)} ${esc(PETS[kind].name)}</b></p>
-    <div class="row"><button class="btn big go" id="ltdWear">Wear it now</button><button class="btn" id="ltdLater">Later</button></div>`, true);
+    <p class="center"><b>${esc(ltdTitle(kind))}</b></p>
+    <div class="row"><button class="btn big go" id="ltdShop">See it in the shop</button><button class="btn" id="ltdLater">Later</button></div>`, true);
   SFX.fanfare();
-  $('#ltdWear').addEventListener('click', () => { if (pet.name) { pet.skin = 'ltd'; save(); } closeModal(true); then && then(); });
+  $('#ltdShop').addEventListener('click', () => { closeModal(true); if (i >= 0) shopPet = i; shopTab = 'skins'; route('shop'); });
   $('#ltdLater').addEventListener('click', () => { closeModal(true); then && then(); });
 }
 // ================= CHALLENGES (words to be added) =================
@@ -1132,7 +1134,7 @@ function renderRoom() {
   if (!pet) { $('#roomPanel').innerHTML = ''; return; }
   if (roomTab === 'outfit' && pet) {
     const skins = Object.keys(SKINS).filter(k => S.owned['skin-' + k]);
-    const ltdChip = S.owned['ltd-' + pet.kind] ? chip(LTD[pet.kind].name + ' (limited)', pet.skin === 'ltd', 'data-set="skin" data-v="ltd"', '<i class="sw ltdsw"></i>') : '';
+    const ltdChip = S.owned['ltd-' + pet.kind] ? chip(LTD[pet.kind].name + ' (legendary)', pet.skin === 'ltd', 'data-set="skin" data-v="ltd"', '<i class="sw ltdsw"></i>') : '';
     const artChips = Object.entries((typeof ART_SKINS !== 'undefined' && ART_SKINS[pet.kind]) || {}).filter(([k]) => S.owned['skin-' + pet.kind + '-' + k]).map(([k, n]) => chip(n, pet.skin === 'a-' + k, `data-set="skin" data-v="a-${k}"`)).join('');
     h += `<h3>Skin</h3><div class="chips">${chip('Normal', !pet.skin, 'data-set="skin" data-v=""')}${ltdChip}${artChips}${skins.map(k => chip(SKINS[k].name, pet.skin === k, `data-set="skin" data-v="${k}"`, `<i class="sw" style="background:${SKINS[k].pal.b}"></i>`)).join('')}</div>`;
     const cosOwn = SHOP.filter(i => i.cat === 'costumes' && S.owned[i.id]);
@@ -1280,6 +1282,10 @@ function boot() {
     const ty = e.target.closest('[data-try]'); if (ty) { const it = SHOP.find(i => i.id === ty.dataset.try); if (!it) return;
       if (S.owned[it.id]) { const wb2 = ty.querySelector('[data-wear]'); if (wb2) wb2.click(); return; }
       TRY = TRY === it.id ? null : it.id; SFX.tap(); renderShop(); const tr = $('.tryroom'); if (tr && TRY) tr.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    const lb = e.target.closest('[data-buyltd]'); if (lb) { const kind = lb.dataset.buyltd, pet = S.pets.find(p => p.kind === kind); if (!pet || S.owned['ltd-' + kind] || !ltdReady(kind)) return;
+      if (S.coins < LTD_PRICE) { toast(`You need $${money(LTD_PRICE - S.coins)} more. Play a session to earn coins!`); return; }
+      if (!armBuy(lb, `Tap again to pay $${LTD_PRICE}`)) return;
+      S.coins -= LTD_PRICE; S.owned['ltd-' + kind] = 1; pet.skin = 'ltd'; save(); renderHud(); SFX.fanfare(); toast(`${pet.name} is now the ${ltdTitle(kind)}! Change skins any time in the room.`); return renderShop(); }
     const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });

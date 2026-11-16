@@ -27,7 +27,7 @@ function testToolClick(e) {
     FURN_LIST.forEach(f => { S.owned['f-' + f[0]] = 1; }); WALLPAPERS.forEach(w => { S.owned['w-' + w.k] = 1; }); FLOORS.forEach(f => { S.owned['fl-' + f.k] = 1; });
     PET_ORDER.forEach(k => { S.owned['ltd-' + k] = 1; }); HOUSE_LIST.forEach(([k]) => { S.owned['h-' + k] = 1; S.owned['hu-' + k] = 1; }); S.pets.forEach(p => { p.house = p.house || p.kind; });
     Object.keys(FOODS).forEach(k => { S.food[k] = (S.food[k] || 0) + 10; });
-    toast('Everything in the shop is unlocked, every house is built, and every limited skin is yours.');
+    toast('Everything in the shop is unlocked, every house is built, and every legendary skin is yours.');
   }
   if (t === 'streak') { S.streak = liveStreak() + 1; S.best = Math.max(S.best || 0, S.streak); S.lastDay = today(); S.days = [...new Set([...S.days, today()])]; toast(`Streak is now ${S.streak} days.`); }
   if (t === 'hungry') { S.pets.forEach(p => { p.full = 35; p.fedDay = today(); }); toast('Every pet is hungry now.'); }

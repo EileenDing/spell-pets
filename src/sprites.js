@@ -219,6 +219,18 @@ function renderPet(pet, o = {}) {
   const G = petGeom(kind);
   const get = k => (o[k] !== undefined ? o[k] : pet[k]);
   const skin = get('skin'), look = get('look'), cos = get('costume') && typeof COSTUMES !== 'undefined' && COSTUMES[get('costume')];
+  const legend = skin === 'ltd' && SPR['pet-' + kind + '-legend'];
+  if (legend) {                                              // a legendary skin is a whole finished look: no clothes on top
+    const x = Math.max(0, Math.min(PET_CW - legend.width, G.ox + Math.round((im0.width - legend.width) / 2))), y = Math.max(0, G.oy + im0.height - legend.height);
+    ctx.drawImage(legend, x, y);
+    ctx.fillStyle = '#fff6b0';
+    for (let k = 0; k < 6; k++) {
+      const sx = x + 12 + hash(k * 31 + kind.length) * (legend.width - 24), sy = y + 12 + hash(k * 17 + 3) * (legend.height - 36);
+      if (ctx.getImageData(Math.round(sx), Math.round(sy), 1, 1).data[3] < 100) continue;
+      ctx.fillRect(sx - 1, sy - 5, 3, 11); ctx.fillRect(sx - 5, sy - 1, 11, 3);
+    }
+    return c;
+  }
   // one thing worn and a drawn picture of it -> use the picture
   const singles = ['hat', 'eyes', 'neck', 'back', 'body'].map(get).filter(Boolean);
   const fitKey = get('costume') && cos ? get('costume') : look ? look : singles.length === 1 ? FIT_KEY[singles[0]] : null;

@@ -516,9 +516,11 @@ function renderShop() {
   } else {
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || S.pets.some(p => p.kind === i.petKind)));
     const ltd = shopTab !== 'skins' ? '' : S.pets.map(p => {
-      const has = S.owned['ltd-' + p.kind];
-      return `<div class="card ltd ${has ? 'owned' : 'locked'}"><span class="ltdtag">Limited</span><div class="prevbox"><img class="pxi prev pet ${has ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
-        <b>${has ? esc(LTD[p.kind].name) + ' ' + esc(PETS[p.kind].name) : '???'}</b><span class="muted small">${has ? 'Unlocked! Wear it in the room.' : 'Not for sale. Keep playing with ' + esc(p.name) + ' to discover it.'}</span></div>`;
+      const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), days = Math.min(LTD_DAYS, (S.petDays[p.kind] || { n: 0 }).n), can = S.coins >= LTD_PRICE;
+      return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
+        <b>${ready ? esc(ltdTitle(p.kind)) : '???'}</b>
+        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `Unlocked by ${LTD_DAYS} days with ${esc(p.name)}.` : `Practise ${LTD_DAYS} days with ${esc(p.name)} as your study buddy to unlock it (${days} of ${LTD_DAYS} days).`}</span>
+        ${has ? `<span class="ownedtag">${icon('check')} Owned</span>` : ready ? `<button class="btn ${can ? 'go' : 'off'}" data-buyltd="${p.kind}" ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${LTD_PRICE}</button>` : `<span class="btn off" aria-disabled="true">Locked</span>`}</div>`;
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);
     if (wears && dp) preloadFits(dp.kind, items.filter(i => i.cat !== 'skins').map(i => i.key));
