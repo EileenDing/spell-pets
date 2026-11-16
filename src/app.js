@@ -259,11 +259,11 @@ function drawScene(c, t, pet) {
   else (SHELTERS_HI[homeOf.shelter] || SHELTERS_HI.box)(c);
   c.drawImage(refine(FRONTROOM, false), 0, 0);
   if (!pet) return;
-  const PH = 60, PW = PH * PET_CW / PET_CH;
+  const PH = 60, pcv = petCanvas(pet, { blink: t % 4200 < 160 }), PW = PH * pcv.width / PET_CH;
   let y = 122 - PH + (reduceMotion ? 0 : Math.floor(t / 520) % 2);
   if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 8);
   c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(104, 120, 12, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  c.imageSmoothingEnabled = true; drawPetSick(c, pet, () => c.drawImage(petCanvas(pet, { blink: t % 4200 < 160 }), 104 - PW / 2, y, PW, PH), 104 + PW * 0.28, y + 4, 16, t); c.imageSmoothingEnabled = false;
+  c.imageSmoothingEnabled = true; drawPetSick(c, pet, () => c.drawImage(pcv, 104 - PW / 2, y, PW, PH), 104 + PH * 0.233, y + 4, 16, t); c.imageSmoothingEnabled = false;
 }
 // a sick pet looks pale and shows the potion it needs, bobbing next to its head
 function drawPetSick(c, pet, draw, px, py, size, t) {

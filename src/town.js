@@ -89,15 +89,15 @@ function drawTown(c, t) {
   if (SPR.town4) c.drawImage(SPR.town4, 0, 0, TOWN_W, TOWN_H);
   for (const k in LOTS) { const sg = signImg(k), L = LOTS[k]; if (!sg) continue; const sc = Math.min(40 / sg.width, 30 / sg.height); c.drawImage(sg, L.sign[0] - sg.width * sc / 2, L.sign[1] - sg.height * sc / 2, sg.width * sc, sg.height * sc); }
   S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
-  const PH = 92, PW = PH * PET_CW / PET_CH;
+  const PH = 92;
   const order = S.pets.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
   order.forEach(({ pet, i, w }) => {
     const moving = w.wp && w.wp.length;
-    const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 });
+    const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 }), PW = PH * img.width / PET_CH;
     const bob = moving ? (Math.floor(t / 140) % 2) * 3 : 0;
     const x = w.x - PW / 2, y = w.y - PH + 6 - bob;
     c.save(); c.globalAlpha = .25; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(w.x, w.y + 4, 18, 5, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    drawPetSick(c, pet, () => { if (w.dir > 0) { c.save(); c.translate(x + PW, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, x, y, PW, PH); }, w.x + PW * 0.38, y + PH * 0.15, PH * 0.32, t);
+    drawPetSick(c, pet, () => { if (w.dir > 0) { c.save(); c.translate(x + PW, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, x, y, PW, PH); }, w.x + PH * 0.32, y + PH * 0.15, PH * 0.32, t);
     if (w.mode === 'visit' && !moving) { c.save(); c.imageSmoothingEnabled = false; drawSpriteScaled(c, ICONS.heart, BASEPAL, w.x - 12, y - 4 - (Math.floor(t / 300) % 2) * 4, 4); c.restore(); }
   });
 }

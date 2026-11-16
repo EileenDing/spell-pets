@@ -321,12 +321,11 @@ function drawRoom(c, t, pet, o = {}) {
   if (pr) rest.push({ pet: true, z: pr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
     if (!e.pet) return drawItem(c, e, o);
-    const PH = 152, PW = PH * PET_CW / PET_CH;
+    const img = petCanvas(pet, { blink: t % 4200 < 160 }), PH = 152, PW = PH * img.width / PET_CH;
     let y = pr.y - PH + 6 - (pr.moving ? (Math.floor(t / 140) % 2) * 3 : (reduceMotion ? 0 : Math.floor(t / 520) % 2));
     if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 14);
     c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 36, 8, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    const img = petCanvas(pet, { blink: t % 4200 < 160 });
-    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PW * 0.36, y + 18, 46, t);
+    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PH * 0.3, y + 18, 46, t);
   });
   if (o.sel != null && list[o.sel]) {
     const r = list[o.sel].r; c.save(); c.strokeStyle = '#ffcc33'; c.lineWidth = 4; c.setLineDash([10, 6]); c.lineDashOffset = -(t / 40) % 16;

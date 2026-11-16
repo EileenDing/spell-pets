@@ -162,7 +162,7 @@ p { margin: 0; }
 @media (max-width: 600px) { .grades { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .gtop b .pxi { width: 12px; }
 .eggrow { display: flex; gap: 18px; align-items: center; }
-.egg { width: 72px; flex: none; }
+.egg { width: 72px; flex: none; } .egg.hatched { width: auto; height: 86px; }
 @media (prefers-reduced-motion: no-preference) {
   .egg.wob1 { animation: wob 2.4s ease-in-out infinite; transform-origin: 50% 90%; }
   .egg.wob2 { animation: wob .9s ease-in-out infinite; transform-origin: 50% 90%; }
@@ -173,11 +173,11 @@ p { margin: 0; }
 .chal > div { display: grid; }
 .chal b { font-size: 20px; }
 .chal.zh { background: #fff1ec; } .chal.en { background: #eef4ff; } .chal.lab { background: #1f2340; color: #e9ecff; border-color: #0d1024; } .chal.lab .muted { color: #9fb0ff; } .chal.lab b { color: #ffd84d; }
-.enhead { display: flex; gap: 14px; align-items: center; } .enhead img { width: 96px; flex: none; } .enhead h2 { margin: 0 0 4px; } .enhead p { margin: 0; }
+.enhead { display: flex; gap: 14px; align-items: center; } .enhead img { height: 115px; width: auto; flex: none; } .enhead h2 { margin: 0 0 4px; } .enhead p { margin: 0; }
 .enparts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 14px 0; }
 .enpart { border: 3px solid var(--ink); background: #eef4ff; padding: 10px 12px; display: grid; gap: 6px; } .enpart b { font-size: 20px; } .enpart p { margin: 0; } .enpart .fixn { color: #a3182c; }
 .enpart .bar { height: 10px; border: 2px solid var(--ink); background: #fff; } .enpart .bar i { display: block; height: 100%; background: #3fbf5f; }
-@media (max-width: 600px) { .enparts { grid-template-columns: 1fr; } .enhead img { width: 64px; } }
+@media (max-width: 600px) { .enparts { grid-template-columns: 1fr; } .enhead img { height: 77px; width: auto; } }
 @media (max-width: 600px) { .chals { grid-template-columns: 1fr; } }
 .card.ltd { position: relative; background: #f6f0ff; }
 .ltdtag { position: absolute; top: 6px; left: 6px; background: #9b5de5; color: #fff; font-size: 12px; font-weight: 700; padding: 1px 6px; letter-spacing: .06em; text-transform: uppercase; z-index: 1; }
@@ -236,7 +236,7 @@ p { margin: 0; }
 .plot.locked { cursor: default; }
 .plot.locked .plotname { background: #ece6dc; } .plot.locked .pxi { width: 12px; }
 .petthumb.mini { padding: 3px 6px; grid-auto-flow: column; align-items: center; gap: 4px; }
-.petthumb.mini img { width: 32px !important; }
+.petthumb.mini img { height: 38px !important; width: auto !important; }
 .shopfor { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-weight: 600; }
 .sw.ltdsw { background: linear-gradient(135deg, #2f3180, #9b5de5 50%, #fff6b0); }
 .grade { border: 3px solid var(--ink); padding: 8px; display: grid; gap: 6px; background: #fff; }
@@ -327,8 +327,8 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .btn.opt.right { --c: #c9f5c4; --cd: #8ad38a; } .btn.opt.wrong { --c: #ffd0d0; --cd: #e79a9a; }
 .btn:disabled { cursor: default; }
 .results .res-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; } .results .res-head > div { flex: 1 1 240px; min-width: 0; }
-.petimg { width: 64px; } .petimg.big { width: 96px; }
-.petpick img { width: 64px !important; } .petthumb img { width: 64px !important; }
+.petimg { height: 77px; width: auto; } .petimg.big { height: 115px; width: auto; }
+.petpick img { height: 77px !important; width: auto !important; } .petthumb img { height: 77px !important; width: auto !important; }
 .earn { font-size: 22px; } .earn .coin { width: 20px; }
 .streakwin { font-family: var(--font-display); font-size: 13px; color: var(--bad-d); display: flex; align-items: center; gap: 8px; } .streakwin .flame { width: 18px; }
 .reslist, .booklist { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
@@ -351,14 +351,14 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .card.owned { background: #eef8ea; }
 .prevbox { height: 104px; width: 100%; display: grid; place-items: center; background: repeating-conic-gradient(#f7ecd6 0 25%, #fff6e3 0 50%) 0 0 / 16px 16px; border: 2px solid #e2d4bb; }
 .prev { max-height: 92px; max-width: 92%; }
-.prev.pet { width: 64px; } .prev.food { width: auto; height: auto; max-width: 84px; max-height: 76px; } .prev.shelter { height: auto; max-height: 100px; }
+.prev.pet { height: 77px; width: auto; } .prev.food { width: auto; height: auto; max-width: 84px; max-height: 76px; } .prev.shelter { height: auto; max-height: 100px; }
 .ownedtag { font-weight: 600; color: var(--go-d); display: inline-flex; align-items: center; gap: 4px; } .ownedtag .pxi { width: 14px; }
 .card .btn.buy { width: 100%; }
 .chip.wallet { font-family: var(--font-body); font-size: 17px; }
 .roomgrid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 16px; align-items: start; }
 .petrow { display: flex; gap: 8px; flex-wrap: wrap; }
 .petthumb, .petpick { font: inherit; background: #fff; border: 3px solid var(--ink); padding: 6px; display: grid; justify-items: center; gap: 2px; cursor: pointer; color: var(--ink); min-width: 0; }
-.petthumb img { width: 40px; } .petthumb span { font-size: 14px; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.petthumb img { height: 48px; width: auto; } .petthumb span { font-size: 14px; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .petthumb.sel, .petpick.sel { background: #fff0c2; box-shadow: inset 0 0 0 3px var(--gold); }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip-opt { font: inherit; font-size: 16px; background: #fff; border: 3px solid var(--ink); padding: 4px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
@@ -419,7 +419,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .zhs { font-family: "WenKai", serif; font-size: 18px; }
 /* sprite art: smooth when scaled down */
 .petimg, .prev.pet, .petpick img, .petthumb img, .prev.food, .prev.shelter, .fd, .egg.hatched { image-rendering: auto; }
-.prev.pet { width: 84px; } .petimg { width: 72px; } .petimg.big { width: 110px; }
+.prev.pet { height: 101px; width: auto; } .petimg { height: 86px; width: auto; } .petimg.big { height: 132px; width: auto; }
 .petpick img { width: 72px !important; }
 .townscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 3px solid var(--ink); }
 .townscroll .townbox { min-width: 680px; }
@@ -427,7 +427,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .shopspot .plotname { background: #fff3c4; }
 .plot[data-house] { align-items: flex-end; } .plot[data-house] .plotname { margin-bottom: -4px; font-size: 13px; }
 .prev.wear { width: 76px; max-height: 70px; object-fit: contain; }
-.prev.pet.onpet { width: 56px; margin-left: -6px; }
+.prev.pet.onpet { height: 67px; width: auto; margin-left: -6px; }
 .prev.wear.cosset { width: 104px; max-height: 84px; }
 .prevbox:has(.wear) { display: flex; align-items: center; justify-content: center; gap: 4px; }
 .swipehint { display: none; }
@@ -457,7 +457,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .whotag { font-size: 12px; font-weight: 700; padding: 0 6px; border: 2px solid currentColor; border-radius: 4px; } .whotag.ok { color: #2a8a43; } .whotag.warn { color: #b25a00; } .whotag.test { color: #6b3fb5; }
 .testtools { border: 3px dashed #6b3fb5; background: #f4eeff; padding: 10px; display: grid; gap: 8px; } .testtools h3 { margin: 0; color: #6b3fb5; } .testtools .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .testtools select { font: inherit; font-size: 15px; padding: 2px 6px; border: 2px solid var(--ink); }
-.whocard .petimg { width: 84px; } .whocard.add { background: #f3fbef; border-style: dashed; }
+.whocard .petimg { height: 101px; width: auto; } .whocard.add { background: #f3fbef; border-style: dashed; }
 .whocard .plus { font-size: 48px; line-height: 84px; height: 84px; } .whoegg { display: block; width: 84px; height: 84px; }
 .nameinput { font: inherit; font-size: 18px; padding: 10px 12px; border: 3px solid var(--ink); min-width: 0; flex: 1; }
 #addRow, .legacy .row { display: flex; gap: 8px; margin: 0 0 12px; } #addRow.hidden { display: none; }
@@ -510,7 +510,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 #tryBuy.armed, #tryBuyC.armed { --c: #ff9f1c; --cd: #c9730a; color: #fff; }
 .tryroom { display: flex; gap: 18px; align-items: center; background: #fff6e3; border: 3px solid var(--ink); border-radius: 12px; padding: 12px 16px; margin: 4px 0 16px; box-shadow: 0 4px 0 rgba(42,29,51,.25); }
 .trystage { flex: none; width: 150px; height: 170px; display: grid; place-items: end center; background: radial-gradient(ellipse at 50% 92%, rgba(42,29,51,.18) 0 28%, transparent 30%), linear-gradient(#e8f4ff, #fff6e3); border-radius: 10px; }
-.trypet { width: 142px; }
+.trypet { height: 170px; width: auto; }
 .tryinfo { display: grid; gap: 6px; } .tryinfo h3 { margin: 0; font-size: 20px; } .tryinfo p { margin: 0; } .tryinfo .row { display: flex; gap: 8px; flex-wrap: wrap; }
 .card.tryable { cursor: pointer; } .card.tryingcard { box-shadow: inset 0 0 0 3px #7a5cff, 0 4px 0 rgba(42,29,51,.25); background: #f5f0ff; }
 .card.nofit { opacity: .55; } .btn.trying { --c: #7a5cff; --cd: #5b3fd6; color: #fff; }
@@ -9066,7 +9066,7 @@ const CAT3_FURN = [["turntable", "Record Player", "cosy", 20, "floor", 58, 560, 
 // Pets, homes, food and clothes are bitmaps (SPR_SRC). Pets render into a fixed 200x240 canvas,
 // standing on the bottom edge, so every view can scale them the same way.
 const SPR = {};
-const PET_CW = 200, PET_CH = 240;
+let PET_CW = 200; const PET_CH = 240, PET_CW0 = 200;   // the dragon gets a wider picture (PET_WIDE) so its wings don't shrink its body
 function loadSprites() {
   return Promise.all(Object.entries(SPR_SRC).map(([k, src]) => new Promise(res => {
     const im = new Image(); im.onload = () => { SPR[k] = im; res(); }; im.onerror = () => res(); im.src = src;
@@ -9275,15 +9275,19 @@ function petImage(kind, skin) {                             // colour skins draw
   const a = skin && skin.startsWith('a-') && SPR['pet-' + kind + '-' + skin.slice(2)];
   return a || SPR['pet-' + kind];
 }
-// every pet is drawn near the hamster's size (snake and long-neck dinosaur keep theirs); feet stay on the same line
-const PET_SCALE = { dragon: 0.93, dog: 0.95, cat: 0.94, turtle: 1.04, rabbit: 0.95, pig: 1.01, monkey: 0.93, trex: 0.94, parrot: 0.99, owl: 0.97, frog: 0.9, octopus: 0.93, capybara: 0.91 };
+// every pet is drawn near the hamster's size (snake and long-neck dinosaur keep theirs); feet stay on the same line.
+// The dragon's wings are extra: its picture is wider, so its body is as big as the others'.
+const PET_SCALE = { dragon: 1.04, dog: 0.95, cat: 0.94, turtle: 1.04, rabbit: 0.95, pig: 1.01, monkey: 0.93, trex: 0.94, parrot: 0.99, owl: 0.97, frog: 0.9, octopus: 0.93, capybara: 0.91 };
+const PET_WIDE = { dragon: 264 };
 function renderPet(pet, o = {}) {
-  const raw = renderPetRaw(pet, o), k = PET_SCALE[pet.kind] || 1;
+  const W = PET_WIDE[pet.kind] || PET_CW0;
+  PET_CW = W; let raw; try { raw = renderPetRaw(pet, o); } finally { PET_CW = PET_CW0; }
+  const k = PET_SCALE[pet.kind] || 1;
   if (k === 1) return raw;
-  const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
+  const c = document.createElement('canvas'); c.width = W; c.height = PET_CH;
   const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
-  const w = PET_CW * k, h = PET_CH * k, by = PET_CH - 2;
-  x.drawImage(raw, (PET_CW - w) / 2, by - (by * k), w, h);
+  const w = W * k, h = PET_CH * k, by = PET_CH - 2;
+  x.drawImage(raw, (W - w) / 2, by - (by * k), w, h);
   return c;
 }
 function renderPetRaw(pet, o = {}) {
@@ -9468,15 +9472,15 @@ function drawTown(c, t) {
   if (SPR.town4) c.drawImage(SPR.town4, 0, 0, TOWN_W, TOWN_H);
   for (const k in LOTS) { const sg = signImg(k), L = LOTS[k]; if (!sg) continue; const sc = Math.min(40 / sg.width, 30 / sg.height); c.drawImage(sg, L.sign[0] - sg.width * sc / 2, L.sign[1] - sg.height * sc / 2, sg.width * sc, sg.height * sc); }
   S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
-  const PH = 92, PW = PH * PET_CW / PET_CH;
+  const PH = 92;
   const order = S.pets.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
   order.forEach(({ pet, i, w }) => {
     const moving = w.wp && w.wp.length;
-    const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 });
+    const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 }), PW = PH * img.width / PET_CH;
     const bob = moving ? (Math.floor(t / 140) % 2) * 3 : 0;
     const x = w.x - PW / 2, y = w.y - PH + 6 - bob;
     c.save(); c.globalAlpha = .25; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(w.x, w.y + 4, 18, 5, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    drawPetSick(c, pet, () => { if (w.dir > 0) { c.save(); c.translate(x + PW, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, x, y, PW, PH); }, w.x + PW * 0.38, y + PH * 0.15, PH * 0.32, t);
+    drawPetSick(c, pet, () => { if (w.dir > 0) { c.save(); c.translate(x + PW, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, x, y, PW, PH); }, w.x + PH * 0.32, y + PH * 0.15, PH * 0.32, t);
     if (w.mode === 'visit' && !moving) { c.save(); c.imageSmoothingEnabled = false; drawSpriteScaled(c, ICONS.heart, BASEPAL, w.x - 12, y - 4 - (Math.floor(t / 300) % 2) * 4, 4); c.restore(); }
   });
 }
@@ -10227,12 +10231,11 @@ function drawRoom(c, t, pet, o = {}) {
   if (pr) rest.push({ pet: true, z: pr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
     if (!e.pet) return drawItem(c, e, o);
-    const PH = 152, PW = PH * PET_CW / PET_CH;
+    const img = petCanvas(pet, { blink: t % 4200 < 160 }), PH = 152, PW = PH * img.width / PET_CH;
     let y = pr.y - PH + 6 - (pr.moving ? (Math.floor(t / 140) % 2) * 3 : (reduceMotion ? 0 : Math.floor(t / 520) % 2));
     if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 14);
     c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 36, 8, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    const img = petCanvas(pet, { blink: t % 4200 < 160 });
-    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PW * 0.36, y + 18, 46, t);
+    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PH * 0.3, y + 18, 46, t);
   });
   if (o.sel != null && list[o.sel]) {
     const r = list[o.sel].r; c.save(); c.strokeStyle = '#ffcc33'; c.lineWidth = 4; c.setLineDash([10, 6]); c.lineDashOffset = -(t / 40) % 16;
@@ -10883,11 +10886,11 @@ function drawScene(c, t, pet) {
   else (SHELTERS_HI[homeOf.shelter] || SHELTERS_HI.box)(c);
   c.drawImage(refine(FRONTROOM, false), 0, 0);
   if (!pet) return;
-  const PH = 60, PW = PH * PET_CW / PET_CH;
+  const PH = 60, pcv = petCanvas(pet, { blink: t % 4200 < 160 }), PW = PH * pcv.width / PET_CH;
   let y = 122 - PH + (reduceMotion ? 0 : Math.floor(t / 520) % 2);
   if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 8);
   c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(104, 120, 12, 3, 0, 0, Math.PI * 2); c.fill(); c.restore();
-  c.imageSmoothingEnabled = true; drawPetSick(c, pet, () => c.drawImage(petCanvas(pet, { blink: t % 4200 < 160 }), 104 - PW / 2, y, PW, PH), 104 + PW * 0.28, y + 4, 16, t); c.imageSmoothingEnabled = false;
+  c.imageSmoothingEnabled = true; drawPetSick(c, pet, () => c.drawImage(pcv, 104 - PW / 2, y, PW, PH), 104 + PH * 0.233, y + 4, 16, t); c.imageSmoothingEnabled = false;
 }
 // a sick pet looks pale and shows the potion it needs, bobbing next to its head
 function drawPetSick(c, pet, draw, px, py, size, t) {

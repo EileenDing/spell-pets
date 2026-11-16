@@ -2,7 +2,7 @@
 // Pets, homes, food and clothes are bitmaps (SPR_SRC). Pets render into a fixed 200x240 canvas,
 // standing on the bottom edge, so every view can scale them the same way.
 const SPR = {};
-const PET_CW = 200, PET_CH = 240;
+let PET_CW = 200; const PET_CH = 240, PET_CW0 = 200;   // the dragon gets a wider picture (PET_WIDE) so its wings don't shrink its body
 function loadSprites() {
   return Promise.all(Object.entries(SPR_SRC).map(([k, src]) => new Promise(res => {
     const im = new Image(); im.onload = () => { SPR[k] = im; res(); }; im.onerror = () => res(); im.src = src;
@@ -211,15 +211,19 @@ function petImage(kind, skin) {                             // colour skins draw
   const a = skin && skin.startsWith('a-') && SPR['pet-' + kind + '-' + skin.slice(2)];
   return a || SPR['pet-' + kind];
 }
-// every pet is drawn near the hamster's size (snake and long-neck dinosaur keep theirs); feet stay on the same line
-const PET_SCALE = { dragon: 0.93, dog: 0.95, cat: 0.94, turtle: 1.04, rabbit: 0.95, pig: 1.01, monkey: 0.93, trex: 0.94, parrot: 0.99, owl: 0.97, frog: 0.9, octopus: 0.93, capybara: 0.91 };
+// every pet is drawn near the hamster's size (snake and long-neck dinosaur keep theirs); feet stay on the same line.
+// The dragon's wings are extra: its picture is wider, so its body is as big as the others'.
+const PET_SCALE = { dragon: 1.04, dog: 0.95, cat: 0.94, turtle: 1.04, rabbit: 0.95, pig: 1.01, monkey: 0.93, trex: 0.94, parrot: 0.99, owl: 0.97, frog: 0.9, octopus: 0.93, capybara: 0.91 };
+const PET_WIDE = { dragon: 264 };
 function renderPet(pet, o = {}) {
-  const raw = renderPetRaw(pet, o), k = PET_SCALE[pet.kind] || 1;
+  const W = PET_WIDE[pet.kind] || PET_CW0;
+  PET_CW = W; let raw; try { raw = renderPetRaw(pet, o); } finally { PET_CW = PET_CW0; }
+  const k = PET_SCALE[pet.kind] || 1;
   if (k === 1) return raw;
-  const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
+  const c = document.createElement('canvas'); c.width = W; c.height = PET_CH;
   const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
-  const w = PET_CW * k, h = PET_CH * k, by = PET_CH - 2;
-  x.drawImage(raw, (PET_CW - w) / 2, by - (by * k), w, h);
+  const w = W * k, h = PET_CH * k, by = PET_CH - 2;
+  x.drawImage(raw, (W - w) / 2, by - (by * k), w, h);
   return c;
 }
 function renderPetRaw(pet, o = {}) {
