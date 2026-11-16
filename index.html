@@ -9275,7 +9275,18 @@ function petImage(kind, skin) {                             // colour skins draw
   const a = skin && skin.startsWith('a-') && SPR['pet-' + kind + '-' + skin.slice(2)];
   return a || SPR['pet-' + kind];
 }
+// every pet is drawn near the hamster's size (snake and long-neck dinosaur keep theirs); feet stay on the same line
+const PET_SCALE = { dragon: 0.93, dog: 0.95, cat: 0.94, turtle: 1.04, rabbit: 0.95, pig: 1.01, monkey: 0.93, trex: 0.94, parrot: 0.99, owl: 0.97, frog: 0.9, octopus: 0.93, capybara: 0.91 };
 function renderPet(pet, o = {}) {
+  const raw = renderPetRaw(pet, o), k = PET_SCALE[pet.kind] || 1;
+  if (k === 1) return raw;
+  const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  const w = PET_CW * k, h = PET_CH * k, by = PET_CH - 2;
+  x.drawImage(raw, (PET_CW - w) / 2, by - (by * k), w, h);
+  return c;
+}
+function renderPetRaw(pet, o = {}) {
   const kind = pet.kind, im0 = SPR['pet-' + kind];
   const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
   const ctx = c.getContext('2d', { willReadFrequently: true });
@@ -10409,7 +10420,8 @@ function renderShop() {
       return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('setprev-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${S.owned['set-' + st.k] ? 'Yours' : st.pieces + ' pieces + wallpaper + floor'}</span>
         ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
-    const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || S.pets.some(p => p.kind === i.petKind)));
+    const forKind = (S.pets[shopPet] || me || {}).kind;
+    const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || (shopTab === 'skins' ? i.petKind === forKind : S.pets.some(p => p.kind === i.petKind))));   // a pet's own skins show only under that pet
     const ltd = shopTab !== 'skins' ? '' : [S.pets[shopPet] || me].filter(Boolean).map(p => {   // only the legendary skin of the pet you're shopping for
       const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), days = Math.min(LTD_DAYS, (S.petDays[p.kind] || { n: 0 }).n), can = S.coins >= LTD_PRICE;
       return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>

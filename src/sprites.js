@@ -211,7 +211,18 @@ function petImage(kind, skin) {                             // colour skins draw
   const a = skin && skin.startsWith('a-') && SPR['pet-' + kind + '-' + skin.slice(2)];
   return a || SPR['pet-' + kind];
 }
+// every pet is drawn near the hamster's size (snake and long-neck dinosaur keep theirs); feet stay on the same line
+const PET_SCALE = { dragon: 0.93, dog: 0.95, cat: 0.94, turtle: 1.04, rabbit: 0.95, pig: 1.01, monkey: 0.93, trex: 0.94, parrot: 0.99, owl: 0.97, frog: 0.9, octopus: 0.93, capybara: 0.91 };
 function renderPet(pet, o = {}) {
+  const raw = renderPetRaw(pet, o), k = PET_SCALE[pet.kind] || 1;
+  if (k === 1) return raw;
+  const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  const w = PET_CW * k, h = PET_CH * k, by = PET_CH - 2;
+  x.drawImage(raw, (PET_CW - w) / 2, by - (by * k), w, h);
+  return c;
+}
+function renderPetRaw(pet, o = {}) {
   const kind = pet.kind, im0 = SPR['pet-' + kind];
   const c = document.createElement('canvas'); c.width = PET_CW; c.height = PET_CH;
   const ctx = c.getContext('2d', { willReadFrequently: true });

@@ -514,7 +514,8 @@ function renderShop() {
       return `<div class="card set"><div class="prevbox tall"><img class="prev theme" src="${imgSrc('setprev-' + st.k)}" alt=""></div><b>${st.name}</b><span class="muted small">${S.owned['set-' + st.k] ? 'Yours' : st.pieces + ' pieces + wallpaper + floor'}</span>
         ${tp ? `<button class="btn buy ${S.coins >= p ? 'go' : 'off'}" data-buy="s:${st.k}">${p ? `${icon('coin', 'coin')} $${p}` : 'Use this look'}</button>` : ''}</div>`; }).join('')}</div>`;
   } else {
-    const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || S.pets.some(p => p.kind === i.petKind)));
+    const forKind = (S.pets[shopPet] || me || {}).kind;
+    const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || (shopTab === 'skins' ? i.petKind === forKind : S.pets.some(p => p.kind === i.petKind))));   // a pet's own skins show only under that pet
     const ltd = shopTab !== 'skins' ? '' : [S.pets[shopPet] || me].filter(Boolean).map(p => {   // only the legendary skin of the pet you're shopping for
       const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), days = Math.min(LTD_DAYS, (S.petDays[p.kind] || { n: 0 }).n), can = S.coins >= LTD_PRICE;
       return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
