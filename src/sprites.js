@@ -234,7 +234,7 @@ function renderPetRaw(pet, o = {}) {
   const G = petGeom(kind);
   const get = k => (o[k] !== undefined ? o[k] : pet[k]);
   const skin = get('skin'), look = get('look'), cos = get('costume') && typeof COSTUMES !== 'undefined' && COSTUMES[get('costume')];
-  const legend = skin === 'ltd' && SPR['pet-' + kind + '-legend'];
+  const legend = legendSprite(kind, skin);
   if (legend) {                                              // a legendary skin is a whole finished look: no clothes on top
     const x = Math.max(0, Math.min(PET_CW - legend.width, G.ox + Math.round((im0.width - legend.width) / 2))), y = Math.max(0, G.oy + im0.height - legend.height);
     ctx.drawImage(legend, x, y);

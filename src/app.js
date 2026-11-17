@@ -294,7 +294,12 @@ function migrate(o) {
   if (f.petMode !== 'eggs') { f.rewards = []; f.petMode = 'eggs'; f.eggBase = f.sessions || 0; }
   f.partner = f.partner || {};
   f.zh = f.zh || { done: {}, mistakes: {}, rewarded: [] };
-  f.petDays = f.petDays || {}; f.bond = f.bond || {};
+  f.petDays = f.petDays || {}; f.bond = f.bond || {}; f.lg = f.lg || {};
+  if (!f.lg4) {                                              // Nov 17, 2026: one legendary skin became 4 choices; an old one is the first choice
+    Object.keys(f.owned || {}).forEach(id => { const m = /^ltd-(.+)$/.exec(id); if (m) f.lg[m[1]] = [1]; });
+    (f.pets || []).forEach(p => { if (p.skin === 'ltd') p.skin = 'lg:' + p.kind + (p.kind === 'turtle' ? '-1a' : '-1'); });
+    f.lg4 = 1;
+  }
   if (f.eggV2 && !f.egg60 && f.petMode === 'eggs') {      // eggs every 60 sessions instead of 80: keep the pets found and the egg's progress (scaled)
     const es = Math.max(0, (f.sessions || 0) - (f.eggBase || 0)), got = Math.floor(es / 80), inCyc = Math.min(59, Math.round((es % 80) * 60 / 80));
     f.eggBase = (f.sessions || 0) - (got * 60 + inCyc); f.egg60 = 1;
@@ -529,17 +534,24 @@ function streakLine(res) {
 // None of these numbers is ever shown to the player.
 // English eggs (Nov 2026): an egg turns up after 35 sessions, wiggles 15 sessions later, cracks 5 later and hatches 5 after that (60 in all)
 const EGG_FIND = 35, EGG_WIGGLE = 50, EGG_CRACK = 55, EGG_CYCLE = 60, EGG_HATCH = EGG_CYCLE - EGG_FIND, LTD_DAYS = 30, LTD_PRICE = 45;
-// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 300 its legendary skin can be bought (players only see a %)
-const BOND_GOAL = 300;
-const bondPct = kind => Math.floor(bondOf(kind) / BOND_GOAL * 100);
-const bondOf = kind => Math.min(BOND_GOAL, (S.bond && S.bond[kind]) || 0);
+// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy. The first fill takes 300; then one of the
+// pet's 4 legendary looks can be bought. Buying one sets the bar back to 25%, and 280 more fill it again for the next choice.
+// Players only ever see a %.
+const BOND_GOAL = 300, BOND_AGAIN = 280, BOND_AGAIN_FROM = 25;
+const lgOwn = kind => (S.lg && S.lg[kind]) || [];                       // legendary looks bought for this pet: [1, 3, ...]
+const bondGoal = kind => lgOwn(kind).length ? BOND_AGAIN : BOND_GOAL;
+const bondOf = kind => Math.min(bondGoal(kind), (S.bond && S.bond[kind]) || 0);
+const bondAllOwned = kind => lgOwn(kind).length >= 4;
+const ltdReady = kind => !bondAllOwned(kind) && bondOf(kind) >= bondGoal(kind);    // bond full: one legendary look can be chosen
+const bondPct = kind => bondAllOwned(kind) ? 100 : lgOwn(kind).length ? Math.floor(BOND_AGAIN_FROM + (100 - BOND_AGAIN_FROM) * bondOf(kind) / BOND_AGAIN) : Math.floor(bondOf(kind) / BOND_GOAL * 100);
 function addBond(pet, n) {
   if (!pet || !n) return; S.bond = S.bond || {}; const k = pet.kind;
-  S.bond[k] = (S.bond[k] || 0) + n;
-  if (S.bond[k] >= BOND_GOAL && !ltdReady(k)) { S.owned['ltdok-' + k] = 1; LTD_QUEUE.push(k); }
+  if (bondAllOwned(k)) return;
+  const was = ltdReady(k); S.bond[k] = Math.min(bondGoal(k), (S.bond[k] || 0) + n);
+  if (!was && ltdReady(k)) LTD_QUEUE.push(k);
 }
-const ltdTitle = kind => LTD[kind].title || LTD[kind].name + ' ' + PETS[kind].name;
-const ltdReady = kind => !!(S.owned['ltdok-' + kind] || S.owned['ltd-' + kind]);
+const legendName = (kind, n, bro) => n === 1 && kind === 'turtle' && bro ? 'Ninja Brothers: ' + (NINJA_BROS.find(b => b[0] === bro) || NINJA_BROS[0])[1] : LEGENDS[kind][n - 1];
+const ltdTitle = kind => LEGENDS[kind][0];
 const eggSessions = () => Math.max(0, S.sessions - (S.eggBase || 0));
 const milestonesReached = () => Math.min(PET_ORDER.length - 1, Math.floor(eggSessions() / EGG_CYCLE));
 function notePetDay(pet) {                               // one practice day with this pet as the partner
@@ -1107,11 +1119,11 @@ function finishSession() {
 
 let LTD_QUEUE = [];
 function ltdModal(kind, then) {
-  const pet = S.pets.find(p => p.kind === kind) || { kind }, i = S.pets.indexOf(pet);
-  openModal(`<h2 class="mtitle">Legendary skin unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} got so many words right together that your bond is full. You are best friends now, and a legendary look appeared. You can buy it in the shop for ${coinAmt(LTD_PRICE)}.</p>
-    <div class="ltdshow"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><span class="arrow">\u2192</span><img class="pxi petimg big" src="${petURL(pet, { skin: 'ltd' })}" alt=""></div>
-    <p class="center"><b>${esc(ltdTitle(kind))}</b></p>
-    <div class="row"><button class="btn big go" id="ltdShop">See it in the shop</button><button class="btn" id="ltdLater">Later</button></div>`, true);
+  const pet = S.pets.find(p => p.kind === kind) || { kind }, i = S.pets.indexOf(pet), own = lgOwn(kind);
+  const opts = [1, 2, 3, 4].filter(n => !own.includes(n));
+  openModal(`<h2 class="mtitle">Your bond is full!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} got so many words right together that something magical happened: you can choose ${own.length ? 'another' : 'one'} legendary look in the shop.</p>
+    <div class="lgpick">${opts.map(n => `<figure><img class="pxi petimg" src="${petURL(pet, { skin: 'lg:' + kind + '-' + (kind === 'turtle' && n === 1 ? '1a' : n) })}" alt=""><figcaption>${esc(LEGENDS[kind][n - 1])}</figcaption></figure>`).join('')}</div>
+    <div class="row"><button class="btn big go" id="ltdShop">Choose in the shop</button><button class="btn" id="ltdLater">Later</button></div>`, true);
   SFX.fanfare();
   $('#ltdShop').addEventListener('click', () => { closeModal(true); if (i >= 0) shopPet = i; shopTab = 'skins'; route('shop'); });
   $('#ltdLater').addEventListener('click', () => { closeModal(true); then && then(); });
@@ -1179,18 +1191,22 @@ function renderRoom() {
   $('#roomTabs').innerHTML = [['outfit', 'Outfit'], ['food', 'Feed'], ['home', 'Home']].map(([k, n]) => `<button class="tab ${k === roomTab ? 'sel' : ''}" data-t="${k}" aria-pressed="${k === roomTab}">${n}</button>`).join('');
   const full = petFull(pet);
   $('#roomFull').style.width = full + '%'; $('#roomFull').className = full < SICK_BELOW ? 'sick' : full < 40 ? 'low' : ''; $('#roomFullNum').innerHTML = full + '%' + (isSick(pet) ? ' <b class="sicktag">Sick</b>' : '');
-  const bd = bondOf(pet.kind), bdone = ltdReady(pet.kind);
-  $('#roomBond').style.width = (bdone ? 100 : bd / BOND_GOAL * 100) + '%';
-  $('#roomBondNum').innerHTML = bdone ? '<b class="bondtag">Best friends!</b>' : `${bondPct(pet.kind)}%`;
-  $('#roomBondHint').innerHTML = bdone ? `\u2728 Something magical happened! Look for ${esc(pet.name)}'s legendary look in the shop.` : `\u2728 If your bond with ${esc(pet.name)} reaches 100%, something magical will happen&hellip;`;
-  $('#roomBondWrap').title = bdone ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. When the bar is full, ${pet.name}'s legendary skin appears in the shop.`;
+  const bfull = ltdReady(pet.kind), ball = bondAllOwned(pet.kind), bown = lgOwn(pet.kind).length;
+  $('#roomBond').style.width = bondPct(pet.kind) + '%';
+  $('#roomBondNum').innerHTML = ball ? '<b class="bondtag">Best friends!</b>' : `${bondPct(pet.kind)}%`;
+  $('#roomBondHint').innerHTML = ball ? `\u2728 You and ${esc(pet.name)} have found every legendary look!`
+    : bfull ? `\u2728 Something magical happened! Choose a legendary look for ${esc(pet.name)} in the shop.`
+    : bown ? `\u2728 Keep your bond with ${esc(pet.name)} growing: at 100% something magical will happen again&hellip;`
+    : `\u2728 If your bond with ${esc(pet.name)} reaches 100%, something magical will happen&hellip;`;
+  $('#roomBondWrap').title = bfull ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. When the bar is full, ${pet.name}'s legendary skin appears in the shop.`;
   $('#roomName').textContent = pet ? `${pet.name} the ${PETS[pet.kind].name}` : '';
   let h = '';
   const emptyShop = what => `<p class="muted">No ${what} yet. <button class="linkbtn" data-go="shop">Visit the shop</button></p>`;
   if (!pet) { $('#roomPanel').innerHTML = ''; return; }
   if (roomTab === 'outfit' && pet) {
     const skins = Object.keys(SKINS).filter(k => S.owned['skin-' + k]);
-    const ltdChip = S.owned['ltd-' + pet.kind] ? chip(LTD[pet.kind].name + ' (legendary)', pet.skin === 'ltd', 'data-set="skin" data-v="ltd"', '<i class="sw ltdsw"></i>') : '';
+    const ltdChip = lgOwn(pet.kind).slice().sort().flatMap(n => pet.kind === 'turtle' && n === 1 ? NINJA_BROS.map(([b, nm]) => ['turtle-1' + b, nm]) : [[pet.kind + '-' + n, LEGENDS[pet.kind][n - 1]]])
+      .map(([id, nm]) => chip(nm, pet.skin === 'lg:' + id, `data-set="skin" data-v="lg:${id}"`, '<i class="sw ltdsw"></i>')).join('');
     const artChips = Object.entries((typeof ART_SKINS !== 'undefined' && ART_SKINS[pet.kind]) || {}).filter(([k]) => S.owned['skin-' + pet.kind + '-' + k]).map(([k, n]) => chip(n, pet.skin === 'a-' + k, `data-set="skin" data-v="a-${k}"`)).join('');
     h += `<h3>Skin</h3><div class="chips">${chip('Normal', !pet.skin, 'data-set="skin" data-v=""')}${ltdChip}${artChips}${skins.map(k => chip(SKINS[k].name, pet.skin === k, `data-set="skin" data-v="${k}"`, `<i class="sw" style="background:${SKINS[k].pal.b}"></i>`)).join('')}</div>`;
     const cosOwn = SHOP.filter(i => i.cat === 'costumes' && S.owned[i.id]);
@@ -1338,10 +1354,13 @@ function boot() {
     const ty = e.target.closest('[data-try]'); if (ty) { const it = SHOP.find(i => i.id === ty.dataset.try); if (!it) return;
       if (S.owned[it.id]) { const wb2 = ty.querySelector('[data-wear]'); if (wb2) wb2.click(); return; }
       TRY = TRY === it.id ? null : it.id; SFX.tap(); renderShop(); const tr = $('.tryroom'); if (tr && TRY) tr.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
-    const lb = e.target.closest('[data-buyltd]'); if (lb) { const kind = lb.dataset.buyltd, pet = S.pets.find(p => p.kind === kind); if (!pet || S.owned['ltd-' + kind] || !ltdReady(kind)) return;
-      if (S.coins < LTD_PRICE) { toast(`You need $${money(LTD_PRICE - S.coins)} more. Play a session to earn coins!`); return; }
-      if (!armBuy(lb, `Tap again to pay $${LTD_PRICE}`)) return;
-      S.coins -= LTD_PRICE; S.owned['ltd-' + kind] = 1; pet.skin = 'ltd'; save(); renderHud(); SFX.fanfare(); toast(`${pet.name} is now the ${ltdTitle(kind)}! Change skins any time in the room.`); return renderShop(); }
+    const lb = e.target.closest('[data-buylg]'); if (lb) { const [kind, ns] = lb.dataset.buylg.split(':'), n = +ns, pet = S.pets.find(p => p.kind === kind); if (!pet || lgOwn(kind).includes(n) || !ltdReady(kind)) return;
+      const price = LEGEND_PRICE(kind, n);
+      if (S.coins < price) { toast(`You need $${money(price - S.coins)} more. Play a session to earn coins!`); return; }
+      if (!armBuy(lb, `Tap again to pay $${price}`)) return;
+      S.coins -= price; S.lg = S.lg || {}; S.lg[kind] = [...lgOwn(kind), n]; S.bond[kind] = 0;     // the bond starts again from 25%
+      pet.skin = 'lg:' + kind + '-' + (kind === 'turtle' && n === 1 ? '1a' : n); save(); renderHud(); SFX.fanfare();
+      toast(`${pet.name} is now the ${LEGENDS[kind][n - 1]}!${kind === 'turtle' && n === 1 ? ' Switch between the four brothers in the room.' : ' Change skins any time in the room.'}`); return renderShop(); }
     const b = e.target.closest('.buy'); if (!b) return; if (b.dataset.buy) shopBuy(b.dataset.buy); else buy(b.dataset.id); });
   $('#scr-room').addEventListener('click', roomClick);
   $('#bookBody').addEventListener('click', e => { const b = e.target.closest('[data-say]'); if (b) say(b.dataset.say); });

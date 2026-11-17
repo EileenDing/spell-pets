@@ -311,3 +311,33 @@ function renderEgg(stage) {
   const cracks = stage >= 1 ? [{ x: 7, y: 12, rows: stage >= 2 ? ['x.....x...', '.x...x.x..', '..x.x...x.', '...x.....x'] : ['x...x', '.x.x.', '..x..'], pal: { x: '#6b4a32' } }] : [];
   return renderArt(24, 30, prims, cracks, k => k);
 }
+
+// ---- legendary skins: 4 finished looks per pet (pictures lg-<kind>-<n> in sprdata13.js). The turtle's first one is the
+// four ninja brothers (lg-turtle-1a..1d): bought once, then the player can switch between the brothers any time.
+const LEGENDS = {
+  dragon: ['Frost Wave Dragon', 'Night Star Dragon', 'Feather Cloud Dragon', 'Thunder Dragon'],
+  dinosaur: ['Explorer Dino', 'Crystal Dino', 'Starry Scarf Dino', 'Pirate Dino'],
+  dog: ['Dalmatian', 'Ghost Pup', 'Snow Scout Husky', 'Shaggy Picnic Pup'],
+  cat: ['Pharaoh Cat', 'Masked Hero Cat', 'Musketeer Cat', 'Courier Cat'],
+  turtle: ['Ninja Brothers (4 in 1)', 'Samurai Turtle', 'Spiral Shell Turtle', 'Starry Shell Turtle'],
+  rabbit: ['White Rabbit', 'Moon Rabbit', 'Police Bunny', 'Storybook Bunny'],
+  pig: ['Rake Monk Pig', 'Builder Pig', 'Jester Pig', 'Hot Spring Pig'],
+  rat: ['Nutcracker Hamster', 'Desert Explorer Hamster', 'Pumpkin Coach Hamster', 'Knight Hamster'],
+  monkey: ['Monkey King', 'Shadow Warrior Monkey', 'Pirate Monkey', 'Origami Monkey'],
+  trex: ['Ice Crystal T-Rex', 'Golden Gear T-Rex', 'Cyber T-Rex', 'Lava T-Rex'],
+  snake: ['Royal Cobra', 'White Silk Snake', 'Swashbuckler Snake', 'Wave Dragon Snake'],
+  parrot: ['Phoenix', 'Pirate Parrot', 'Star Captain Parrot', 'Mail Pilot Parrot'],
+  owl: ['Spartan Owl', 'Shadow Knight Owl', 'Snowy Post Owl', 'Aviator Owl'],
+  capybara: ['Tin Man Capybara', 'Hot Spring Capybara', 'Forest Spirit Capybara', 'Rainy Day Capybara'],
+  frog: ['Pilot Frog', 'Ninja Frog', 'Cozy Toad', 'Bubble Frog'],
+  octopus: ['Two-Tone Octopus', 'Moon Jelly Octopus', 'Deep Sea Kraken', 'Paint Splat Octopus']
+};
+const NINJA_BROS = [['a', 'Blue Blades'], ['b', 'Purple Staff'], ['c', 'Orange Chains'], ['d', 'Red Sai']];
+const LEGEND_PRICE = (kind, n) => kind === 'turtle' && n === 1 ? 88 : 45;
+// the picture for a skin value: 'lg:dragon-2', 'lg:turtle-1c', or the old 'ltd' (= that pet's first legendary look)
+function legendSprite(kind, skin) {
+  if (skin === 'ltd') skin = 'lg:' + kind + (kind === 'turtle' ? '-1a' : '-1');
+  if (!skin || !skin.startsWith('lg:')) return null;
+  let id = skin.slice(3); if (id === 'turtle-1') id = 'turtle-1a';
+  return SPR['lg-' + id] || null;
+}
