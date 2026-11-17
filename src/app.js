@@ -529,8 +529,8 @@ function streakLine(res) {
 // None of these numbers is ever shown to the player.
 // English eggs (Nov 2026): an egg turns up after 35 sessions, wiggles 15 sessions later, cracks 5 later and hatches 5 after that (60 in all)
 const EGG_FIND = 35, EGG_WIGGLE = 50, EGG_CRACK = 55, EGG_CYCLE = 60, EGG_HATCH = EGG_CYCLE - EGG_FIND, LTD_DAYS = 30, LTD_PRICE = 45;
-// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 350 its legendary skin can be bought (players only see a %)
-const BOND_GOAL = 350;
+// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 300 its legendary skin can be bought (players only see a %)
+const BOND_GOAL = 300;
 const bondPct = kind => Math.floor(bondOf(kind) / BOND_GOAL * 100);
 const bondOf = kind => Math.min(BOND_GOAL, (S.bond && S.bond[kind]) || 0);
 function addBond(pet, n) {
@@ -1182,6 +1182,7 @@ function renderRoom() {
   const bd = bondOf(pet.kind), bdone = ltdReady(pet.kind);
   $('#roomBond').style.width = (bdone ? 100 : bd / BOND_GOAL * 100) + '%';
   $('#roomBondNum').innerHTML = bdone ? '<b class="bondtag">Best friends!</b>' : `${bondPct(pet.kind)}%`;
+  $('#roomBondHint').innerHTML = bdone ? `\u2728 Something magical happened! Look for ${esc(pet.name)}'s legendary look in the shop.` : `\u2728 If your bond with ${esc(pet.name)} reaches 100%, something magical will happen&hellip;`;
   $('#roomBondWrap').title = bdone ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. When the bar is full, ${pet.name}'s legendary skin appears in the shop.`;
   $('#roomName').textContent = pet ? `${pet.name} the ${PETS[pet.kind].name}` : '';
   let h = '';
