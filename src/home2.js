@@ -519,7 +519,7 @@ function renderShop() {
       const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), bd = bondOf(p.kind), can = S.coins >= LTD_PRICE;
       return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
         <b>${ready ? esc(ltdTitle(p.kind)) : '???'}</b>
-        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `You and ${esc(p.name)} are best friends!` : `Get ${BOND_GOAL} words right in all 3 rounds with ${esc(p.name)} as your study buddy to unlock it (bond ${bd} of ${BOND_GOAL}).`}</span>
+        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `You and ${esc(p.name)} are best friends!` : `Get words right in all 3 rounds with ${esc(p.name)} as your study buddy to fill your Bond bar and unlock it (Bond ${bondPct(p.kind)}%).`}</span>
         ${has ? `<span class="ownedtag">${icon('check')} Owned</span>` : ready ? `<button class="btn ${can ? 'go' : 'off'}" data-buyltd="${p.kind}" ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${LTD_PRICE}</button>` : `<span class="btn off" aria-disabled="true">Locked</span>`}</div>`;
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);

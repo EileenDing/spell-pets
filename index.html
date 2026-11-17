@@ -597,7 +597,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
       <div class="panel">
         <div class="setrow"><label for="rate">Voice speed</label><select id="rate"><option value="0.7">Slow</option><option value="0.85">Normal</option><option value="1">Fast</option></select></div>
         <div class="setrow"><input type="checkbox" id="sound"><label for="sound">Sound effects</label></div>
-        <p class="small muted">3,238 words. The Daily Quest has the 2,058 core words in five levels, easy to hard: Level 1 (grades 1–2), Level 2 (grades 3–4), Level 3 (grade 5), Level 4 (grades 5–6) and Level 5 (grades 6–8). Core words are the whole grade 1–5 base list plus the more common grade 5–8 words. The other 1,180 harder words are in the English Challenge, in four stages from easier to hardest, to play whenever a child wants. Grade 1–5 words come from the Basic Spelling Vocabulary List (Graham, Harris &amp; Loynachan, 1993) plus extra grade 4 and 5 words. The grade 5–6 words were gathered from HMH Journeys, McGraw-Hill Reading Wonders, the UK National Curriculum Years 5–6 list, the Scripps school spelling bee lists, K5 Learning and Vocabulary.com, keeping only common words. The 705 grade 6–8 words follow the Ontario Language curriculum (2023), which has no set word list but asks students to spell words with prefixes, suffixes and Greek and Latin roots and to use subject vocabulary; they come from Ontario grade 6–8 science, history, geography, math, language, arts and health topics, placed by how common and how long each word is. Inside each level, words go from easy and common to harder and rarer. A 21-word level test (spelling and sentence questions) decides where to start. Every session is 10 words: mistake words from earlier days come first, then new words in order. If every word a child learns for the first time in a day is right in all 3 rounds, they get a $2 perfect-day bonus the next time they play. Pets lose 20% health a day; food adds health (water $1 gives 8%, the biggest meals $5 give 45%). Under 30% a pet is sick: it can eat nothing and only potions can be bought until it gets the right potion (green for 20–30%, blue for 10–20%, purple under 10%), which cures it and adds 10%, 20% or 30%. A mystery egg turns up after 35 English sessions, wiggles 15 sessions later, cracks 5 later and hatches after 60 sessions in all, and each pet has a legendary skin: when 200 words or Chinese characters have been right in all 3 rounds with that pet as study buddy (its Bond bar in the room), it can be bought in the shop for $45. A word pays $1 only when it is right in all three rounds; missed words come back from the next day on, worth $2. Playing one session a day keeps the streak. Progress saves automatically on this device and to the family account.</p>
+        <p class="small muted">3,238 words. The Daily Quest has the 2,058 core words in five levels, easy to hard: Level 1 (grades 1–2), Level 2 (grades 3–4), Level 3 (grade 5), Level 4 (grades 5–6) and Level 5 (grades 6–8). Core words are the whole grade 1–5 base list plus the more common grade 5–8 words. The other 1,180 harder words are in the English Challenge, in four stages from easier to hardest, to play whenever a child wants. Grade 1–5 words come from the Basic Spelling Vocabulary List (Graham, Harris &amp; Loynachan, 1993) plus extra grade 4 and 5 words. The grade 5–6 words were gathered from HMH Journeys, McGraw-Hill Reading Wonders, the UK National Curriculum Years 5–6 list, the Scripps school spelling bee lists, K5 Learning and Vocabulary.com, keeping only common words. The 705 grade 6–8 words follow the Ontario Language curriculum (2023), which has no set word list but asks students to spell words with prefixes, suffixes and Greek and Latin roots and to use subject vocabulary; they come from Ontario grade 6–8 science, history, geography, math, language, arts and health topics, placed by how common and how long each word is. Inside each level, words go from easy and common to harder and rarer. A 21-word level test (spelling and sentence questions) decides where to start. Every session is 10 words: mistake words from earlier days come first, then new words in order. If every word a child learns for the first time in a day is right in all 3 rounds, they get a $2 perfect-day bonus the next time they play. Pets lose 20% health a day; food adds health (water $1 gives 8%, the biggest meals $5 give 45%). Under 30% a pet is sick: it can eat nothing and only potions can be bought until it gets the right potion (green for 20–30%, blue for 10–20%, purple under 10%), which cures it and adds 10%, 20% or 30%. A mystery egg turns up after 35 English sessions, wiggles 15 sessions later, cracks 5 later and hatches after 60 sessions in all, and each pet has a legendary skin: when 350 words or Chinese characters have been right in all 3 rounds with that pet as study buddy (its Bond bar in the room shows a %), it can be bought in the shop for $45. A word pays $1 only when it is right in all three rounds; missed words come back from the next day on, worth $2. Playing one session a day keeps the streak. Progress saves automatically on this device and to the family account.</p>
         <div class="setrow"><button class="btn small" id="renamePlayer">Rename this player</button> <button class="btn small" id="removePlayer">Remove this player</button></div>
         <p class="muted small" id="cloudNote"></p>
         <div class="setrow"><button class="btn small" id="exportAll">Download a backup of all players</button></div>
@@ -10431,7 +10431,7 @@ function renderShop() {
       const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), bd = bondOf(p.kind), can = S.coins >= LTD_PRICE;
       return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
         <b>${ready ? esc(ltdTitle(p.kind)) : '???'}</b>
-        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `You and ${esc(p.name)} are best friends!` : `Get ${BOND_GOAL} words right in all 3 rounds with ${esc(p.name)} as your study buddy to unlock it (bond ${bd} of ${BOND_GOAL}).`}</span>
+        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `You and ${esc(p.name)} are best friends!` : `Get words right in all 3 rounds with ${esc(p.name)} as your study buddy to fill your Bond bar and unlock it (Bond ${bondPct(p.kind)}%).`}</span>
         ${has ? `<span class="ownedtag">${icon('check')} Owned</span>` : ready ? `<button class="btn ${can ? 'go' : 'off'}" data-buyltd="${p.kind}" ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${LTD_PRICE}</button>` : `<span class="btn off" aria-disabled="true">Locked</span>`}</div>`;
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);
@@ -11071,6 +11071,9 @@ function testGrant() {
     if (!S.pday || S.pday.d <= '2026-11-14') S.pday = { d: '2026-11-14', n: Math.max(1, (S.pday && S.pday.d === '2026-11-14' && S.pday.n) || 0), miss: 0, paid: 1 };
     save(); renderHud(); setTimeout(() => toast(`Perfect day bonus for November 14: every new word right! +$${PERFECT_BONUS}`), 600);
   }
+  // one-time (Nov 16, 2026): Bond for the words and characters already right before Bond existed (one pet each, so all of it is that pet's)
+  const BOND_START = { eddie: ['dragon', 104, 6], jasper: ['dog', 108, 0] }[(PROFILE.name || '').trim().toLowerCase()];
+  if (BOND_START && !S.bond1116) { const [k, n, had] = BOND_START; S.bond = S.bond || {}; S.bond[k] = n + Math.max(0, (S.bond[k] || 0) - had); S.bond1116 = 1; save(); }
   settlePerfectDay();
 }
 // ---- perfect-day bonus: if every word you learn for the first time in a day is right in all 3 rounds, you get $2 (paid the next time you play) ----
@@ -11126,8 +11129,9 @@ function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, 
 // None of these numbers is ever shown to the player.
 // English eggs (Nov 2026): an egg turns up after 35 sessions, wiggles 15 sessions later, cracks 5 later and hatches 5 after that (60 in all)
 const EGG_FIND = 35, EGG_WIGGLE = 50, EGG_CRACK = 55, EGG_CYCLE = 60, EGG_HATCH = EGG_CYCLE - EGG_FIND, LTD_DAYS = 30, LTD_PRICE = 45;
-// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 200 its legendary skin can be bought
-const BOND_GOAL = 200;
+// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 350 its legendary skin can be bought (players only see a %)
+const BOND_GOAL = 350;
+const bondPct = kind => Math.floor(bondOf(kind) / BOND_GOAL * 100);
 const bondOf = kind => Math.min(BOND_GOAL, (S.bond && S.bond[kind]) || 0);
 function addBond(pet, n) {
   if (!pet || !n) return; S.bond = S.bond || {}; const k = pet.kind;
@@ -11702,7 +11706,7 @@ function finishSession() {
 let LTD_QUEUE = [];
 function ltdModal(kind, then) {
   const pet = S.pets.find(p => p.kind === kind) || { kind }, i = S.pets.indexOf(pet);
-  openModal(`<h2 class="mtitle">Legendary skin unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} got ${BOND_GOAL} words right together, so you are best friends now and a legendary look appeared. You can buy it in the shop for ${coinAmt(LTD_PRICE)}.</p>
+  openModal(`<h2 class="mtitle">Legendary skin unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} got so many words right together that your bond is full. You are best friends now, and a legendary look appeared. You can buy it in the shop for ${coinAmt(LTD_PRICE)}.</p>
     <div class="ltdshow"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><span class="arrow">\u2192</span><img class="pxi petimg big" src="${petURL(pet, { skin: 'ltd' })}" alt=""></div>
     <p class="center"><b>${esc(ltdTitle(kind))}</b></p>
     <div class="row"><button class="btn big go" id="ltdShop">See it in the shop</button><button class="btn" id="ltdLater">Later</button></div>`, true);
@@ -11775,8 +11779,8 @@ function renderRoom() {
   $('#roomFull').style.width = full + '%'; $('#roomFull').className = full < SICK_BELOW ? 'sick' : full < 40 ? 'low' : ''; $('#roomFullNum').innerHTML = full + '%' + (isSick(pet) ? ' <b class="sicktag">Sick</b>' : '');
   const bd = bondOf(pet.kind), bdone = ltdReady(pet.kind);
   $('#roomBond').style.width = (bdone ? 100 : bd / BOND_GOAL * 100) + '%';
-  $('#roomBondNum').innerHTML = bdone ? '<b class="bondtag">Best friends!</b>' : `${bd}/${BOND_GOAL}`;
-  $('#roomBondWrap').title = bdone ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. At ${BOND_GOAL}, ${pet.name}'s legendary skin appears in the shop.`;
+  $('#roomBondNum').innerHTML = bdone ? '<b class="bondtag">Best friends!</b>' : `${bondPct(pet.kind)}%`;
+  $('#roomBondWrap').title = bdone ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. When the bar is full, ${pet.name}'s legendary skin appears in the shop.`;
   $('#roomName').textContent = pet ? `${pet.name} the ${PETS[pet.kind].name}` : '';
   let h = '';
   const emptyShop = what => `<p class="muted">No ${what} yet. <button class="linkbtn" data-go="shop">Visit the shop</button></p>`;

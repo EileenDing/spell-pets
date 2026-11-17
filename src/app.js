@@ -442,6 +442,9 @@ function testGrant() {
     if (!S.pday || S.pday.d <= '2026-11-14') S.pday = { d: '2026-11-14', n: Math.max(1, (S.pday && S.pday.d === '2026-11-14' && S.pday.n) || 0), miss: 0, paid: 1 };
     save(); renderHud(); setTimeout(() => toast(`Perfect day bonus for November 14: every new word right! +$${PERFECT_BONUS}`), 600);
   }
+  // one-time (Nov 16, 2026): Bond for the words and characters already right before Bond existed (one pet each, so all of it is that pet's)
+  const BOND_START = { eddie: ['dragon', 104, 6], jasper: ['dog', 108, 0] }[(PROFILE.name || '').trim().toLowerCase()];
+  if (BOND_START && !S.bond1116) { const [k, n, had] = BOND_START; S.bond = S.bond || {}; S.bond[k] = n + Math.max(0, (S.bond[k] || 0) - had); S.bond1116 = 1; save(); }
   settlePerfectDay();
 }
 // ---- perfect-day bonus: if every word you learn for the first time in a day is right in all 3 rounds, you get $2 (paid the next time you play) ----
@@ -497,8 +500,9 @@ function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, 
 // None of these numbers is ever shown to the player.
 // English eggs (Nov 2026): an egg turns up after 35 sessions, wiggles 15 sessions later, cracks 5 later and hatches 5 after that (60 in all)
 const EGG_FIND = 35, EGG_WIGGLE = 50, EGG_CRACK = 55, EGG_CYCLE = 60, EGG_HATCH = EGG_CYCLE - EGG_FIND, LTD_DAYS = 30, LTD_PRICE = 45;
-// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 200 its legendary skin can be bought
-const BOND_GOAL = 200;
+// bond (亲密度): words or characters right in all 3 rounds with this pet as study buddy; at 350 its legendary skin can be bought (players only see a %)
+const BOND_GOAL = 350;
+const bondPct = kind => Math.floor(bondOf(kind) / BOND_GOAL * 100);
 const bondOf = kind => Math.min(BOND_GOAL, (S.bond && S.bond[kind]) || 0);
 function addBond(pet, n) {
   if (!pet || !n) return; S.bond = S.bond || {}; const k = pet.kind;
@@ -1073,7 +1077,7 @@ function finishSession() {
 let LTD_QUEUE = [];
 function ltdModal(kind, then) {
   const pet = S.pets.find(p => p.kind === kind) || { kind }, i = S.pets.indexOf(pet);
-  openModal(`<h2 class="mtitle">Legendary skin unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} got ${BOND_GOAL} words right together, so you are best friends now and a legendary look appeared. You can buy it in the shop for ${coinAmt(LTD_PRICE)}.</p>
+  openModal(`<h2 class="mtitle">Legendary skin unlocked!</h2><p class="msub">You and ${esc(pet.name || PETS[kind].name)} got so many words right together that your bond is full. You are best friends now, and a legendary look appeared. You can buy it in the shop for ${coinAmt(LTD_PRICE)}.</p>
     <div class="ltdshow"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><span class="arrow">\u2192</span><img class="pxi petimg big" src="${petURL(pet, { skin: 'ltd' })}" alt=""></div>
     <p class="center"><b>${esc(ltdTitle(kind))}</b></p>
     <div class="row"><button class="btn big go" id="ltdShop">See it in the shop</button><button class="btn" id="ltdLater">Later</button></div>`, true);
@@ -1146,8 +1150,8 @@ function renderRoom() {
   $('#roomFull').style.width = full + '%'; $('#roomFull').className = full < SICK_BELOW ? 'sick' : full < 40 ? 'low' : ''; $('#roomFullNum').innerHTML = full + '%' + (isSick(pet) ? ' <b class="sicktag">Sick</b>' : '');
   const bd = bondOf(pet.kind), bdone = ltdReady(pet.kind);
   $('#roomBond').style.width = (bdone ? 100 : bd / BOND_GOAL * 100) + '%';
-  $('#roomBondNum').innerHTML = bdone ? '<b class="bondtag">Best friends!</b>' : `${bd}/${BOND_GOAL}`;
-  $('#roomBondWrap').title = bdone ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. At ${BOND_GOAL}, ${pet.name}'s legendary skin appears in the shop.`;
+  $('#roomBondNum').innerHTML = bdone ? '<b class="bondtag">Best friends!</b>' : `${bondPct(pet.kind)}%`;
+  $('#roomBondWrap').title = bdone ? 'Legendary skin unlocked' : `Get words or characters right in all 3 rounds with ${pet.name} as your study buddy. When the bar is full, ${pet.name}'s legendary skin appears in the shop.`;
   $('#roomName').textContent = pet ? `${pet.name} the ${PETS[pet.kind].name}` : '';
   let h = '';
   const emptyShop = what => `<p class="muted">No ${what} yet. <button class="linkbtn" data-go="shop">Visit the shop</button></p>`;
