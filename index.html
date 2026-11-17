@@ -10082,7 +10082,9 @@ function clampItem(it) {
 }
 // ---- stacking: small things can sit on tables, beds, shelves and window sills ----
 const STACKABLE_EXTRA = ['tinychest', 'rollbasket', 'bowls', 'gearstand'];
-const isStackable = k => { const F = FURN[k]; return !!F && F.place === 'floor' && (STACKABLE_EXTRA.includes(k) || (F.size <= 90 && F.group !== 'beds' && F.group !== 'tables')); };
+// anything a room set puts on top of another piece (the armillary sphere, the banker's lamp, the tea tray...) can always go back up there
+const SET_RIDERS = new Set(SET_ROOMS.flatMap(s => s.items.filter(i => i.on).map(i => i.k)));
+const isStackable = k => { const F = FURN[k]; return !!F && F.place === 'floor' && (STACKABLE_EXTRA.includes(k) || SET_RIDERS.has(k) || (F.size <= 90 && F.group !== 'beds' && F.group !== 'tables')); };
 const SURF_CACHE = {};
 // where things can sit on a piece, as a fraction of its height from the top (null = not a surface)
 function surfaceFrac(k) {
@@ -10103,11 +10105,12 @@ function surfaceY(it) { const f = surfaceFrac(it.k); if (f == null) return null;
 function snapStack(room, it) {
   useRoom(room);
   if (!isStackable(it.k)) { delete it.on; return; }
-  let best = null, bd = 46;
+  let best = null, bd = 60;
   room.items.forEach(h => {
     if (h === it || h.on) return; const s = surfaceY(h); if (s == null) return;
     const r = itemRect(h), m = r.w * 0.08; if (it.x < r.x0 + m || it.x > r.x1 - m) return;
-    const dd = Math.abs(it.y - s); if (dd < bd) { bd = dd; best = { h, s }; }
+    // dropped anywhere over the top part of the piece (not just exactly on its top edge) counts as putting it up there
+    const dd = it.y < s ? s - it.y : it.y <= r.y1 - r.h * 0.3 ? (it.y - s) * 0.25 : 1e9; if (dd < bd) { bd = dd; best = { h, s }; }
   });
   if (best) { it.on = best.h.k; it.y = Math.round(best.s); } else { delete it.on; clampItem(it); }
 }
@@ -10580,7 +10583,7 @@ function decoClick(e) {
   const tk = b.dataset.f ? ['f', b.dataset.f, ownsF(b.dataset.f)] : b.dataset.w ? ['w', b.dataset.w, ownsW(b.dataset.w)] : b.dataset.fl ? ['fl', b.dataset.fl, ownsFl(b.dataset.fl)] : b.dataset.set ? ['s', b.dataset.set, !!S.owned['set-' + b.dataset.set]] : null;
   if (tk && !tk[2]) { if (trying(tk[0], tk[1])) endTrial(false); else startTrial(pet, tk[0], tk[1]); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
   if (DECO.trial && (tk || ['decoAway', 'decoSetOff'].includes(b.id) || b.dataset.sell)) endTrial(false);
-  if (b.id === 'decoFlip') { const it = pet.room.items[DECO.sel]; if (it) { it.f = it.f ? 0 : 1; save(); SFX.tap(); } return; }
+  if (b.id === 'decoFlip') { const it = pet.room.items[DECO.sel]; if (it) { it.f = it.f ? 0 : 1; useRoom(pet.room); ridersOf(pet.room, it.k).forEach(r => { r.x = 2 * it.x - r.x; clampItem(r); }); save(); SFX.tap(); } return; }   // things on top flip with it
   if (b.id === 'decoAway') { const it = pet.room.items[DECO.sel]; if (it) dropRiders(pet.room, it.k); pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
   if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell); DECO.sel = -1; return renderDeco(); }
   if (b.id === 'decoDone') { DECO.sel = -1; return renderDecoTools(); }
