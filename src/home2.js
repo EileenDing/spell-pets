@@ -516,10 +516,10 @@ function renderShop() {
     const forKind = (S.pets[shopPet] || me || {}).kind;
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || (shopTab === 'skins' ? i.petKind === forKind : S.pets.some(p => p.kind === i.petKind))));   // a pet's own skins show only under that pet
     const ltd = shopTab !== 'skins' ? '' : [S.pets[shopPet] || me].filter(Boolean).map(p => {   // only the legendary skin of the pet you're shopping for
-      const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), days = Math.min(LTD_DAYS, (S.petDays[p.kind] || { n: 0 }).n), can = S.coins >= LTD_PRICE;
+      const has = S.owned['ltd-' + p.kind], ready = ltdReady(p.kind), bd = bondOf(p.kind), can = S.coins >= LTD_PRICE;
       return `<div class="card ltd ${has ? 'owned' : ready ? '' : 'locked'}"><span class="ltdtag">Legendary</span><div class="prevbox"><img class="pxi prev pet ${ready ? '' : 'shadow'}" src="${petURL(p, { skin: 'ltd' })}" alt=""></div>
         <b>${ready ? esc(ltdTitle(p.kind)) : '???'}</b>
-        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `Unlocked by ${LTD_DAYS} days with ${esc(p.name)}.` : `Practise ${LTD_DAYS} days with ${esc(p.name)} as your study buddy to unlock it (${days} of ${LTD_DAYS} days).`}</span>
+        <span class="muted small">${has ? `Yours! ${p.skin === 'ltd' ? esc(p.name) + ' is wearing it.' : 'Wear it in the room.'}` : ready ? `You and ${esc(p.name)} are best friends!` : `Get ${BOND_GOAL} words right in all 3 rounds with ${esc(p.name)} as your study buddy to unlock it (bond ${bd} of ${BOND_GOAL}).`}</span>
         ${has ? `<span class="ownedtag">${icon('check')} Owned</span>` : ready ? `<button class="btn ${can ? 'go' : 'off'}" data-buyltd="${p.kind}" ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${LTD_PRICE}</button>` : `<span class="btn off" aria-disabled="true">Locked</span>`}</div>`;
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);

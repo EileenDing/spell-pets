@@ -310,7 +310,7 @@ function finishZh() {
   if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
   S.best = Math.max(S.best || 0, S.streak);
   S.coins = Math.round((S.coins + earned) * 10) / 10; S.earned = Math.round((S.earned + earned) * 10) / 10;
-  notePetDay(pet0);
+  notePetDay(pet0); addBond(pet0, right);
   save(); renderHud(); SFX.coin(); if (firstToday) setTimeout(SFX.fanfare, 250);
   $('#roundLabel').textContent = '成绩'; $('#pips').innerHTML = ''; $('#quitBar').hidden = true;
   const partNow = zhPartDone(p);
