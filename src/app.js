@@ -493,7 +493,36 @@ function whoClick(e) {
 }
 
 // ================= progress rules =================
-function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, today()) <= 1 ? S.streak : 0; }
+function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, today()) <= 1 || freezeState() ? S.streak : 0; }
+// ---- streak freeze: once a week, one missed day doesn't break the streak. The day after, 2 different kinds of session
+// (Daily Quest, English Challenge, Chinese, Brainpower Lab) unfreeze it; otherwise the streak ends.
+const weekOf = d => shiftDay(d, -((new Date(d + 'T12:00:00').getDay() + 6) % 7));     // the Monday of that week
+const SESSION_KIND = { en: 'Daily Quest', chal: 'English Challenge', zh: 'Chinese', lab: 'Brainpower Lab' };
+function freezeState() {                                   // today's unfreeze, or null when no freeze applies
+  const t = today(); if (!S.lastDay || daysBetween(S.lastDay, t) !== 2) return null;
+  if (S.freeze && S.freeze.d === t) return S.freeze;
+  if (S.freezeWeek === weekOf(shiftDay(t, -1))) return null;   // this week's freeze is already used
+  return { d: t, kinds: [], fresh: true };
+}
+const freezeLeft = () => S.freezeWeek !== weekOf(today());
+function noteStreak(kind) {                                // after each session: 'new' | 'frozen' | 'thawed' | ''
+  const t = today(); if (S.lastDay === t) return '';
+  const fz = freezeState();
+  const count = () => { S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); S.best = Math.max(S.best || 0, S.streak); };
+  if (fz) {
+    if (fz.fresh) { S.freeze = { d: t, kinds: [] }; S.freezeWeek = weekOf(shiftDay(t, -1)); }
+    if (!S.freeze.kinds.includes(kind)) S.freeze.kinds.push(kind);
+    if (S.freeze.kinds.length < 2) return 'frozen';
+    S.frozenDays = [...(S.frozenDays || []), shiftDay(t, -1)].slice(-12); S.freeze = null; S.streak += 1; count(); return 'thawed';
+  }
+  S.streak = S.lastDay && daysBetween(S.lastDay, t) === 1 ? S.streak + 1 : 1; count(); return 'new';
+}
+function streakLine(res) {
+  const f = S.freeze;
+  return res === 'new' ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>`
+    : res === 'thawed' ? `<p class="streakwin">\u2744\ufe0f Streak unfrozen! ${icon('flame', 'flame')} ${S.streak}-day streak!</p>`
+    : res === 'frozen' ? `<p class="streakwin frozen">\u2744\ufe0f Your streak is still frozen. Play one more <b>different</b> kind of session today (not ${f && f.kinds.map(k => SESSION_KIND[k]).join(' or ')}) to unfreeze it!</p>` : '';
+}
 // Hidden rhythm: 50 English sessions find a mystery egg, 30 more hatch it (one new pet every 80).
 // Chinese: passing stage 3 finds an egg and stage 5 hatches it; stage 8 finds one and stage 10 hatches it (zh.js).
 // Each pet's legendary skin can be bought ($45) after 30 different days of practice with that pet (English or Chinese).
@@ -592,7 +621,7 @@ function route(name) {
 function renderHud() {
   const st = liveStreak();
   $('#chipStreak').innerHTML = `${icon(st ? 'flame' : 'flameOff', 'flame')}<span>${st}</span><small>day${st === 1 ? '' : 's'}</small>`;
-  $('#chipStreak').title = S.lastDay === today() ? 'You played today!' : 'Play one session today to keep your streak';
+  $('#chipStreak').title = S.lastDay === today() ? 'You played today!' : freezeState() ? 'Streak frozen: play 2 different kinds of sessions today to unfreeze it' : 'Play one session today to keep your streak';
   $('#chipStreak').classList.toggle('lit', S.lastDay === today());
   $('#chipCoins').innerHTML = `${icon('coin', 'coin')}<span>$${money(S.coins)}</span>`;
   $('#chipWho').textContent = PROFILE ? PROFILE.name : 'Players'; $('#chipWho').hidden = currentScreen === 'who' && !PROFILE;
@@ -635,11 +664,16 @@ function renderHome() {
   let wk = '';
   for (let i = 6; i >= 0; i--) {
     const d = shiftDay(t, -i); const on = set.has(d); const dow = names[new Date(d + 'T12:00:00').getDay()];
-    wk += `<div class="day ${on ? 'on' : ''} ${i === 0 ? 'today' : ''}"><span>${i === 0 ? 'Today' : dow}</span>${icon(on ? 'flame' : 'flameOff', 'flame')}</div>`;
+    const frz = !on && (S.frozenDays || []).includes(d);
+    wk += `<div class="day ${on ? 'on' : ''} ${frz ? 'frz' : ''} ${i === 0 ? 'today' : ''}"><span>${i === 0 ? 'Today' : dow}</span>${frz ? '<b class="snow">\u2744\ufe0f</b>' : icon(on ? 'flame' : 'flameOff', 'flame')}</div>`;
   }
   $('#week').innerHTML = wk;
   const st = liveStreak();
-  $('#streakNote').innerHTML = S.lastDay === today() ? `Streak safe for today. Best ever: <b>${Math.max(S.best, st)}</b> days.` : st > 0 ? `Play one session today to make it <b>${st + 1}</b> days!` : `Play one session a day to build a streak.`;
+  const fz = freezeState(), fzDone = fz && !fz.fresh ? fz.kinds.length : 0;
+  $('#streakNote').innerHTML = (S.lastDay === today() ? `Streak safe for today. Best ever: <b>${Math.max(S.best, st)}</b> days.`
+    : fz ? `\u2744\ufe0f You missed yesterday, but your weekly freeze is holding your <b>${st}-day</b> streak. Play <b>2 different kinds</b> of sessions today (like the Daily Quest and Chinese) to unfreeze it! <b>${fzDone} of 2</b> done${fzDone ? ` (${fz.kinds.map(k => SESSION_KIND[k]).join(', ')})` : ''}.`
+    : st > 0 ? `Play one session today to make it <b>${st + 1}</b> days!` : `Play one session a day to build a streak.`)
+    + (fz ? '' : ` <span class="muted small">${freezeLeft() ? '\u2744\ufe0f 1 streak freeze left this week.' : '\u2744\ufe0f This week\u2019s streak freeze is used.'}</span>`);
 
   // mystery egg: what happens next and how soon, so there is always something to look forward to
   const allPets = S.pets.length >= PET_ORDER.length;
@@ -648,12 +682,11 @@ function renderHome() {
   const stage = allPets || !found ? 0 : cyc >= EGG_CRACK ? 2 : cyc >= EGG_WIGGLE ? 1 : 0;
   $('#eggImg').src = allPets ? petURL(S.pets[S.active]) : (URLS['egg' + stage] || (URLS['egg' + stage] = renderEgg(stage).toDataURL()));
   $('#eggImg').className = 'pxi egg ' + (allPets ? 'wob0' : found ? 'wob' + stage : 'eggsoon');
-  const n = x => `<b>${x}</b> more session${x === 1 ? '' : 's'}`;
   $('#eggNote').innerHTML = allPets ? 'You have found every pet! Practise with each one to unlock their legendary skins.'
-    : !found ? (EGG_FIND - cyc > 10 ? `Your nest is empty for now&hellip; keep practising! A mystery egg will turn up in ${n(EGG_FIND - cyc)}.` : `Something is rustling near your nest! A mystery egg will turn up in just ${n(EGG_FIND - cyc)}.`)
-    : stage === 0 ? `You found a mystery egg! What could be inside? In ${n(EGG_WIGGLE - cyc)} it will start to wiggle.`
-    : stage === 1 ? `The egg is wiggling&hellip; something is moving in there! In ${n(EGG_CRACK - cyc)} you'll hear it crack.`
-    : `Crack! Crack! A tiny beak&hellip; or a paw? Just ${n(EGG_CYCLE - cyc)} until your new friend hatches!`;
+    : !found ? (EGG_FIND - cyc > 10 ? 'Your nest is empty for now&hellip; keep practising and a mystery egg may turn up!' : 'Something is rustling near your nest! An egg must be very close&hellip;')
+    : stage === 0 ? 'You found a mystery egg! What could be inside? Keep practising and see what happens&hellip;'
+    : stage === 1 ? 'The egg is wiggling&hellip; something is moving in there! Keep going!'
+    : 'Crack! Crack! A tiny beak&hellip; or a paw? Your new friend is almost here!';
   renderChallenges();
   $('#bookCount').textContent = Object.keys(S.mistakes).length || '';
   $('#rate').value = String(S.rate); $('#sound').checked = !!S.sound;
@@ -1049,9 +1082,7 @@ function finishSession() {
   const pdayNote = !freshRows.length || S.pday.paid ? '' : !S.pday.miss
     ? `<p class="pday">${icon('star', 'pstar')} Perfect day so far: all ${S.pday.n} new word${S.pday.n === 1 ? '' : 's'} right! Keep it up for a ${coinAmt(PERFECT_BONUS)} bonus next time.</p>`
     : wasPerfect ? `<p class="pday miss">A new word was missed, so there is no perfect-day bonus today. Try again tomorrow!</p>` : '';
-  const prevDay = S.lastDay, firstToday = prevDay !== t;
-  if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
-  S.best = Math.max(S.best || 0, S.streak);
+  const sres = noteStreak(P.mode === 'lab' ? 'lab' : P.mode === 'chal' ? 'chal' : 'en'), firstToday = sres === 'new' || sres === 'thawed';
   S.coins += earned; S.earned += earned; S.sessions++;
   notePetDay(pet0); addBond(pet0, P.items.filter(it => P.res[it.id].every(v => v === true)).length);
   { const cy = eggSessions() % EGG_CYCLE, msg = { [EGG_FIND]: 'You found a mystery egg! Look in your nest on the home screen.', [EGG_WIGGLE]: 'Your mystery egg started to wiggle!', [EGG_CRACK]: 'Crack! Your egg is cracking. It will hatch very soon!' }[cy];
@@ -1063,7 +1094,7 @@ function finishSession() {
     <div class="res-head"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><div>
       <p class="eyebrow">${LB ? `Brainpower Lab \u00b7 Unit ${labU}` : CHP >= 0 ? `English Challenge \u00b7 ${CH_PARTS[CHP].name}` : 'Session done'}</p><h2 class="rt">${right} of ${P.items.length} words mastered</h2>
       <p class="earn">You earned ${coinAmt(earned)}</p>
-      ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}${pdayNote}</div></div>
+      ${streakLine(sres)}${pdayNote}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw">${esc(x.w.w)}${x.review ? '<em>review</em>' : ''}</span><span class="marks">${x.r.map((v, i) => `<span title="Round ${i + 1}">${icon(v ? 'check' : 'cross')}</span>`).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + x.pay : '$0'}</span></li>`).join('')}</ul>
     ${rows.some(x => !x.pay) ? `<p class="muted">${LB ? 'Missed words come back first next time you play this unit, worth $2 each.' : CHP >= 0 ? 'Missed words come back in this stage from tomorrow, worth $2 each.' : 'Missed words go into your Mistake Notebook and come back tomorrow, worth $2 each.'}</p>` : ''}
     <div class="row"><button class="btn go big" id="again">${LB ? 'Play again' : 'Play 10 more'}</button><button class="btn" id="toHome">${LB ? 'Back to the Lab' : CHP >= 0 ? 'Back to the Challenge' : 'Home'}</button></div></div>`;

@@ -147,6 +147,7 @@ p { margin: 0; }
 .meter { display: flex; align-items: center; gap: 8px; font-size: 15px; } .meter > span:first-child { min-width: 52px; }
 .bar { flex: 1; height: 14px; background: #e9dfcc; border: 3px solid var(--ink); position: relative; }
 .bar i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(90deg, var(--go) 0 6px, #5fd67a 6px 8px); }
+.streakwin.frozen { color: #2a6fb0; } .day.frz { background: #e3f1ff; } .day .snow { font-size: 18px; line-height: 1; }
 .bondm { margin-top: 6px; } .bondm .bar i { background: repeating-linear-gradient(90deg, #e85a9a 0 6px, #ff8fc0 6px 8px); } .bondtag { color: #c2306e; }
 .bar i.low { background: repeating-linear-gradient(90deg, var(--bad) 0 6px, #ff6b6e 6px 8px); }
 .bar.small { height: 12px; flex: none; }
@@ -597,7 +598,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
       <div class="panel">
         <div class="setrow"><label for="rate">Voice speed</label><select id="rate"><option value="0.7">Slow</option><option value="0.85">Normal</option><option value="1">Fast</option></select></div>
         <div class="setrow"><input type="checkbox" id="sound"><label for="sound">Sound effects</label></div>
-        <p class="small muted">3,238 words. The Daily Quest has the 2,058 core words in five levels, easy to hard: Level 1 (grades 1–2), Level 2 (grades 3–4), Level 3 (grade 5), Level 4 (grades 5–6) and Level 5 (grades 6–8). Core words are the whole grade 1–5 base list plus the more common grade 5–8 words. The other 1,180 harder words are in the English Challenge, in four stages from easier to hardest, to play whenever a child wants. Grade 1–5 words come from the Basic Spelling Vocabulary List (Graham, Harris &amp; Loynachan, 1993) plus extra grade 4 and 5 words. The grade 5–6 words were gathered from HMH Journeys, McGraw-Hill Reading Wonders, the UK National Curriculum Years 5–6 list, the Scripps school spelling bee lists, K5 Learning and Vocabulary.com, keeping only common words. The 705 grade 6–8 words follow the Ontario Language curriculum (2023), which has no set word list but asks students to spell words with prefixes, suffixes and Greek and Latin roots and to use subject vocabulary; they come from Ontario grade 6–8 science, history, geography, math, language, arts and health topics, placed by how common and how long each word is. Inside each level, words go from easy and common to harder and rarer. A 21-word level test (spelling and sentence questions) decides where to start. Every session is 10 words: mistake words from earlier days come first, then new words in order. If every word a child learns for the first time in a day is right in all 3 rounds, they get a $2 perfect-day bonus the next time they play. Pets lose 20% health a day; food adds health (water $1 gives 8%, the biggest meals $5 give 45%). Under 30% a pet is sick: it can eat nothing and only potions can be bought until it gets the right potion (green for 20–30%, blue for 10–20%, purple under 10%), which cures it and adds 10%, 20% or 30%. A mystery egg turns up after 35 English sessions, wiggles 15 sessions later, cracks 5 later and hatches after 60 sessions in all, and each pet has a legendary skin: when 350 words or Chinese characters have been right in all 3 rounds with that pet as study buddy (its Bond bar in the room shows a %), it can be bought in the shop for $45. A word pays $1 only when it is right in all three rounds; missed words come back from the next day on, worth $2. Playing one session a day keeps the streak. Progress saves automatically on this device and to the family account.</p>
+        <p class="small muted">3,238 words. The Daily Quest has the 2,058 core words in five levels, easy to hard: Level 1 (grades 1–2), Level 2 (grades 3–4), Level 3 (grade 5), Level 4 (grades 5–6) and Level 5 (grades 6–8). Core words are the whole grade 1–5 base list plus the more common grade 5–8 words. The other 1,180 harder words are in the English Challenge, in four stages from easier to hardest, to play whenever a child wants. Grade 1–5 words come from the Basic Spelling Vocabulary List (Graham, Harris &amp; Loynachan, 1993) plus extra grade 4 and 5 words. The grade 5–6 words were gathered from HMH Journeys, McGraw-Hill Reading Wonders, the UK National Curriculum Years 5–6 list, the Scripps school spelling bee lists, K5 Learning and Vocabulary.com, keeping only common words. The 705 grade 6–8 words follow the Ontario Language curriculum (2023), which has no set word list but asks students to spell words with prefixes, suffixes and Greek and Latin roots and to use subject vocabulary; they come from Ontario grade 6–8 science, history, geography, math, language, arts and health topics, placed by how common and how long each word is. Inside each level, words go from easy and common to harder and rarer. A 21-word level test (spelling and sentence questions) decides where to start. Every session is 10 words: mistake words from earlier days come first, then new words in order. If every word a child learns for the first time in a day is right in all 3 rounds, they get a $2 perfect-day bonus the next time they play. Everyone gets one streak freeze a week: if a day is missed, the streak waits, and the next day 2 different kinds of session (Daily Quest, English Challenge, Chinese, Brainpower Lab) unfreeze it. Pets lose 20% health a day; food adds health (water $1 gives 8%, the biggest meals $5 give 45%). Under 30% a pet is sick: it can eat nothing and only potions can be bought until it gets the right potion (green for 20–30%, blue for 10–20%, purple under 10%), which cures it and adds 10%, 20% or 30%. A mystery egg turns up after 35 English sessions, wiggles 15 sessions later, cracks 5 later and hatches after 60 sessions in all (children only see hints, not the numbers), and each pet has a legendary skin: when 350 words or Chinese characters have been right in all 3 rounds with that pet as study buddy (its Bond bar in the room shows a %), it can be bought in the shop for $45. A word pays $1 only when it is right in all three rounds; missed words come back from the next day on, worth $2. Playing one session a day keeps the streak. Progress saves automatically on this device and to the family account.</p>
         <div class="setrow"><button class="btn small" id="renamePlayer">Rename this player</button> <button class="btn small" id="removePlayer">Remove this player</button></div>
         <p class="muted small" id="cloudNote"></p>
         <div class="setrow"><button class="btn small" id="exportAll">Download a backup of all players</button></div>
@@ -9797,9 +9798,7 @@ function finishZh() {
     return { w, r, pay, review: it.review };
   });
   const p = ZH_PARTS[P.zhPart]; z.done[p.id + '-' + P.zhIdx] = 1;
-  const prevDay = S.lastDay, firstToday = prevDay !== t;
-  if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
-  S.best = Math.max(S.best || 0, S.streak);
+  const sres = noteStreak('zh'), firstToday = sres === 'new' || sres === 'thawed';
   S.coins = Math.round((S.coins + earned) * 10) / 10; S.earned = Math.round((S.earned + earned) * 10) / 10;
   notePetDay(pet0); addBond(pet0, right);
   save(); renderHud(); SFX.coin(); if (firstToday) setTimeout(SFX.fanfare, 250);
@@ -9809,7 +9808,7 @@ function finishZh() {
     <div class="res-head"><img class="pxi petimg big" src="${petURL(pet0)}" alt=""><div>
       <p class="eyebrow">${p.title} · 第 ${P.zhIdx + 1} 课完成</p><h2 class="rt zh">学会了 ${right} / ${P.items.length} 个字</h2>
       <p class="earn">${coinAmt(earned)}</p>
-      ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}
+      ${streakLine(sres)}
       ${partNow ? `<p class="good">${p.title}通关啦！${p.egg ? `你得到了一个神秘蛋！再通过${ZH_PARTS[p.k + 2].title}，它就会孵出来。` : ''}</p>` : ''}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw"><span class="zhc">${esc(x.w.id)}</span> <small class="pysmall">${esc(x.w.py)}</small> <small class="muted">${esc(x.w.words[0])}</small>${x.review ? '<em>复习</em>' : ''}</span><span class="marks">${x.r.map(v => icon(v ? 'check' : 'cross')).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + money(x.pay) : '$0'}</span></li>`).join('')}</ul>
     ${rows.some(x => !x.r.every(v => v === true)) ? `<p class="muted">没有三轮全对的字会记下来，明天再练，复习时三轮全对得 $2。</p>` : ''}
@@ -11122,7 +11121,36 @@ function whoClick(e) {
 }
 
 // ================= progress rules =================
-function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, today()) <= 1 ? S.streak : 0; }
+function liveStreak() { if (!S.lastDay) return 0; return daysBetween(S.lastDay, today()) <= 1 || freezeState() ? S.streak : 0; }
+// ---- streak freeze: once a week, one missed day doesn't break the streak. The day after, 2 different kinds of session
+// (Daily Quest, English Challenge, Chinese, Brainpower Lab) unfreeze it; otherwise the streak ends.
+const weekOf = d => shiftDay(d, -((new Date(d + 'T12:00:00').getDay() + 6) % 7));     // the Monday of that week
+const SESSION_KIND = { en: 'Daily Quest', chal: 'English Challenge', zh: 'Chinese', lab: 'Brainpower Lab' };
+function freezeState() {                                   // today's unfreeze, or null when no freeze applies
+  const t = today(); if (!S.lastDay || daysBetween(S.lastDay, t) !== 2) return null;
+  if (S.freeze && S.freeze.d === t) return S.freeze;
+  if (S.freezeWeek === weekOf(shiftDay(t, -1))) return null;   // this week's freeze is already used
+  return { d: t, kinds: [], fresh: true };
+}
+const freezeLeft = () => S.freezeWeek !== weekOf(today());
+function noteStreak(kind) {                                // after each session: 'new' | 'frozen' | 'thawed' | ''
+  const t = today(); if (S.lastDay === t) return '';
+  const fz = freezeState();
+  const count = () => { S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); S.best = Math.max(S.best || 0, S.streak); };
+  if (fz) {
+    if (fz.fresh) { S.freeze = { d: t, kinds: [] }; S.freezeWeek = weekOf(shiftDay(t, -1)); }
+    if (!S.freeze.kinds.includes(kind)) S.freeze.kinds.push(kind);
+    if (S.freeze.kinds.length < 2) return 'frozen';
+    S.frozenDays = [...(S.frozenDays || []), shiftDay(t, -1)].slice(-12); S.freeze = null; S.streak += 1; count(); return 'thawed';
+  }
+  S.streak = S.lastDay && daysBetween(S.lastDay, t) === 1 ? S.streak + 1 : 1; count(); return 'new';
+}
+function streakLine(res) {
+  const f = S.freeze;
+  return res === 'new' ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>`
+    : res === 'thawed' ? `<p class="streakwin">\u2744\ufe0f Streak unfrozen! ${icon('flame', 'flame')} ${S.streak}-day streak!</p>`
+    : res === 'frozen' ? `<p class="streakwin frozen">\u2744\ufe0f Your streak is still frozen. Play one more <b>different</b> kind of session today (not ${f && f.kinds.map(k => SESSION_KIND[k]).join(' or ')}) to unfreeze it!</p>` : '';
+}
 // Hidden rhythm: 50 English sessions find a mystery egg, 30 more hatch it (one new pet every 80).
 // Chinese: passing stage 3 finds an egg and stage 5 hatches it; stage 8 finds one and stage 10 hatches it (zh.js).
 // Each pet's legendary skin can be bought ($45) after 30 different days of practice with that pet (English or Chinese).
@@ -11221,7 +11249,7 @@ function route(name) {
 function renderHud() {
   const st = liveStreak();
   $('#chipStreak').innerHTML = `${icon(st ? 'flame' : 'flameOff', 'flame')}<span>${st}</span><small>day${st === 1 ? '' : 's'}</small>`;
-  $('#chipStreak').title = S.lastDay === today() ? 'You played today!' : 'Play one session today to keep your streak';
+  $('#chipStreak').title = S.lastDay === today() ? 'You played today!' : freezeState() ? 'Streak frozen: play 2 different kinds of sessions today to unfreeze it' : 'Play one session today to keep your streak';
   $('#chipStreak').classList.toggle('lit', S.lastDay === today());
   $('#chipCoins').innerHTML = `${icon('coin', 'coin')}<span>$${money(S.coins)}</span>`;
   $('#chipWho').textContent = PROFILE ? PROFILE.name : 'Players'; $('#chipWho').hidden = currentScreen === 'who' && !PROFILE;
@@ -11264,11 +11292,16 @@ function renderHome() {
   let wk = '';
   for (let i = 6; i >= 0; i--) {
     const d = shiftDay(t, -i); const on = set.has(d); const dow = names[new Date(d + 'T12:00:00').getDay()];
-    wk += `<div class="day ${on ? 'on' : ''} ${i === 0 ? 'today' : ''}"><span>${i === 0 ? 'Today' : dow}</span>${icon(on ? 'flame' : 'flameOff', 'flame')}</div>`;
+    const frz = !on && (S.frozenDays || []).includes(d);
+    wk += `<div class="day ${on ? 'on' : ''} ${frz ? 'frz' : ''} ${i === 0 ? 'today' : ''}"><span>${i === 0 ? 'Today' : dow}</span>${frz ? '<b class="snow">\u2744\ufe0f</b>' : icon(on ? 'flame' : 'flameOff', 'flame')}</div>`;
   }
   $('#week').innerHTML = wk;
   const st = liveStreak();
-  $('#streakNote').innerHTML = S.lastDay === today() ? `Streak safe for today. Best ever: <b>${Math.max(S.best, st)}</b> days.` : st > 0 ? `Play one session today to make it <b>${st + 1}</b> days!` : `Play one session a day to build a streak.`;
+  const fz = freezeState(), fzDone = fz && !fz.fresh ? fz.kinds.length : 0;
+  $('#streakNote').innerHTML = (S.lastDay === today() ? `Streak safe for today. Best ever: <b>${Math.max(S.best, st)}</b> days.`
+    : fz ? `\u2744\ufe0f You missed yesterday, but your weekly freeze is holding your <b>${st}-day</b> streak. Play <b>2 different kinds</b> of sessions today (like the Daily Quest and Chinese) to unfreeze it! <b>${fzDone} of 2</b> done${fzDone ? ` (${fz.kinds.map(k => SESSION_KIND[k]).join(', ')})` : ''}.`
+    : st > 0 ? `Play one session today to make it <b>${st + 1}</b> days!` : `Play one session a day to build a streak.`)
+    + (fz ? '' : ` <span class="muted small">${freezeLeft() ? '\u2744\ufe0f 1 streak freeze left this week.' : '\u2744\ufe0f This week\u2019s streak freeze is used.'}</span>`);
 
   // mystery egg: what happens next and how soon, so there is always something to look forward to
   const allPets = S.pets.length >= PET_ORDER.length;
@@ -11277,12 +11310,11 @@ function renderHome() {
   const stage = allPets || !found ? 0 : cyc >= EGG_CRACK ? 2 : cyc >= EGG_WIGGLE ? 1 : 0;
   $('#eggImg').src = allPets ? petURL(S.pets[S.active]) : (URLS['egg' + stage] || (URLS['egg' + stage] = renderEgg(stage).toDataURL()));
   $('#eggImg').className = 'pxi egg ' + (allPets ? 'wob0' : found ? 'wob' + stage : 'eggsoon');
-  const n = x => `<b>${x}</b> more session${x === 1 ? '' : 's'}`;
   $('#eggNote').innerHTML = allPets ? 'You have found every pet! Practise with each one to unlock their legendary skins.'
-    : !found ? (EGG_FIND - cyc > 10 ? `Your nest is empty for now&hellip; keep practising! A mystery egg will turn up in ${n(EGG_FIND - cyc)}.` : `Something is rustling near your nest! A mystery egg will turn up in just ${n(EGG_FIND - cyc)}.`)
-    : stage === 0 ? `You found a mystery egg! What could be inside? In ${n(EGG_WIGGLE - cyc)} it will start to wiggle.`
-    : stage === 1 ? `The egg is wiggling&hellip; something is moving in there! In ${n(EGG_CRACK - cyc)} you'll hear it crack.`
-    : `Crack! Crack! A tiny beak&hellip; or a paw? Just ${n(EGG_CYCLE - cyc)} until your new friend hatches!`;
+    : !found ? (EGG_FIND - cyc > 10 ? 'Your nest is empty for now&hellip; keep practising and a mystery egg may turn up!' : 'Something is rustling near your nest! An egg must be very close&hellip;')
+    : stage === 0 ? 'You found a mystery egg! What could be inside? Keep practising and see what happens&hellip;'
+    : stage === 1 ? 'The egg is wiggling&hellip; something is moving in there! Keep going!'
+    : 'Crack! Crack! A tiny beak&hellip; or a paw? Your new friend is almost here!';
   renderChallenges();
   $('#bookCount').textContent = Object.keys(S.mistakes).length || '';
   $('#rate').value = String(S.rate); $('#sound').checked = !!S.sound;
@@ -11678,9 +11710,7 @@ function finishSession() {
   const pdayNote = !freshRows.length || S.pday.paid ? '' : !S.pday.miss
     ? `<p class="pday">${icon('star', 'pstar')} Perfect day so far: all ${S.pday.n} new word${S.pday.n === 1 ? '' : 's'} right! Keep it up for a ${coinAmt(PERFECT_BONUS)} bonus next time.</p>`
     : wasPerfect ? `<p class="pday miss">A new word was missed, so there is no perfect-day bonus today. Try again tomorrow!</p>` : '';
-  const prevDay = S.lastDay, firstToday = prevDay !== t;
-  if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
-  S.best = Math.max(S.best || 0, S.streak);
+  const sres = noteStreak(P.mode === 'lab' ? 'lab' : P.mode === 'chal' ? 'chal' : 'en'), firstToday = sres === 'new' || sres === 'thawed';
   S.coins += earned; S.earned += earned; S.sessions++;
   notePetDay(pet0); addBond(pet0, P.items.filter(it => P.res[it.id].every(v => v === true)).length);
   { const cy = eggSessions() % EGG_CYCLE, msg = { [EGG_FIND]: 'You found a mystery egg! Look in your nest on the home screen.', [EGG_WIGGLE]: 'Your mystery egg started to wiggle!', [EGG_CRACK]: 'Crack! Your egg is cracking. It will hatch very soon!' }[cy];
@@ -11692,7 +11722,7 @@ function finishSession() {
     <div class="res-head"><img class="pxi petimg big" src="${petURL(pet)}" alt=""><div>
       <p class="eyebrow">${LB ? `Brainpower Lab \u00b7 Unit ${labU}` : CHP >= 0 ? `English Challenge \u00b7 ${CH_PARTS[CHP].name}` : 'Session done'}</p><h2 class="rt">${right} of ${P.items.length} words mastered</h2>
       <p class="earn">You earned ${coinAmt(earned)}</p>
-      ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}${pdayNote}</div></div>
+      ${streakLine(sres)}${pdayNote}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw">${esc(x.w.w)}${x.review ? '<em>review</em>' : ''}</span><span class="marks">${x.r.map((v, i) => `<span title="Round ${i + 1}">${icon(v ? 'check' : 'cross')}</span>`).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + x.pay : '$0'}</span></li>`).join('')}</ul>
     ${rows.some(x => !x.pay) ? `<p class="muted">${LB ? 'Missed words come back first next time you play this unit, worth $2 each.' : CHP >= 0 ? 'Missed words come back in this stage from tomorrow, worth $2 each.' : 'Missed words go into your Mistake Notebook and come back tomorrow, worth $2 each.'}</p>` : ''}
     <div class="row"><button class="btn go big" id="again">${LB ? 'Play again' : 'Play 10 more'}</button><button class="btn" id="toHome">${LB ? 'Back to the Lab' : CHP >= 0 ? 'Back to the Challenge' : 'Home'}</button></div></div>`;

@@ -306,9 +306,7 @@ function finishZh() {
     return { w, r, pay, review: it.review };
   });
   const p = ZH_PARTS[P.zhPart]; z.done[p.id + '-' + P.zhIdx] = 1;
-  const prevDay = S.lastDay, firstToday = prevDay !== t;
-  if (firstToday) { S.streak = prevDay && daysBetween(prevDay, t) === 1 ? S.streak + 1 : 1; S.lastDay = t; S.days = [...S.days.filter(d => d !== t), t].slice(-60); }
-  S.best = Math.max(S.best || 0, S.streak);
+  const sres = noteStreak('zh'), firstToday = sres === 'new' || sres === 'thawed';
   S.coins = Math.round((S.coins + earned) * 10) / 10; S.earned = Math.round((S.earned + earned) * 10) / 10;
   notePetDay(pet0); addBond(pet0, right);
   save(); renderHud(); SFX.coin(); if (firstToday) setTimeout(SFX.fanfare, 250);
@@ -318,7 +316,7 @@ function finishZh() {
     <div class="res-head"><img class="pxi petimg big" src="${petURL(pet0)}" alt=""><div>
       <p class="eyebrow">${p.title} · 第 ${P.zhIdx + 1} 课完成</p><h2 class="rt zh">学会了 ${right} / ${P.items.length} 个字</h2>
       <p class="earn">${coinAmt(earned)}</p>
-      ${firstToday ? `<p class="streakwin">${icon('flame', 'flame')} ${S.streak}-day streak!</p>` : ''}
+      ${streakLine(sres)}
       ${partNow ? `<p class="good">${p.title}通关啦！${p.egg ? `你得到了一个神秘蛋！再通过${ZH_PARTS[p.k + 2].title}，它就会孵出来。` : ''}</p>` : ''}</div></div>
     <ul class="reslist">${rows.map(x => `<li><span class="rw"><span class="zhc">${esc(x.w.id)}</span> <small class="pysmall">${esc(x.w.py)}</small> <small class="muted">${esc(x.w.words[0])}</small>${x.review ? '<em>复习</em>' : ''}</span><span class="marks">${x.r.map(v => icon(v ? 'check' : 'cross')).join('')}</span><span class="pay ${x.pay ? '' : 'zero'}">${x.pay ? '+$' + money(x.pay) : '$0'}</span></li>`).join('')}</ul>
     ${rows.some(x => !x.r.every(v => v === true)) ? `<p class="muted">没有三轮全对的字会记下来，明天再练，复习时三轮全对得 $2。</p>` : ''}
