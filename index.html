@@ -9947,7 +9947,15 @@ function zhPlaceFinish(k, lv) {
 // Each pet has a room (wallpaper, floor, furniture it can drag around) and, in Pet Town, a house.
 const ROOM_W = 768, ROOM_H = 512, WALL_Y = 300;
 // set rooms have taller walls (room.wy); CUR_WY is the wall line of the room being worked on
-let CUR_WY = WALL_Y; const useRoom = r => (CUR_WY = (r && r.wy) || WALL_Y);
+let CUR_WY = WALL_Y; const useRoom = r => { if (r && r.items) roomIds(r); return (CUR_WY = (r && r.wy) || WALL_Y); };
+// every piece in a room has its own number (u), so two of the same piece can each have things sitting on them;
+// it.on is the number of the piece it sits on (older saves used the piece's name: the first one with that name)
+function roomIds(room) {
+  let next = room.items.reduce((m, i) => Math.max(m, i.u || 0), 0);
+  room.items.forEach(i => { if (!i.u) i.u = ++next; });
+  room.items.forEach(i => { if (typeof i.on === 'string') { const h = room.items.find(x => x.k === i.on && x !== i); if (h) i.on = h.u; else delete i.on; } });
+}
+const hostOf = (room, it) => it.on ? room.items.find(x => x.u === it.on) : null;
 // key, name, group, price, place, size, default x, default y
 // place: wall = hangs on the wall, floor = stands on the floor, rug = flat on the floor, ceil = hangs from the ceiling
 // size = height in the room (rugs: width). x/y = centre-bottom (rugs: centre).
@@ -10011,6 +10019,16 @@ const FURN_LIST = [
 const FURN_PRICE_UP = 1.05;                     // all furniture 5% dearer than the listed price
 const WF_PRICE_UP = 1.08 * 1.10;                // wallpapers and floors: +8%, then another +10% (Nov 2026)
 FURN_LIST.forEach(f => { if (f[3]) f[3] = Math.round(f[3] * FURN_PRICE_UP); });
+// room-set pieces can be bought one by one too (Nov 2026), priced like ordinary furniture of the same kind and size, plus 10%
+(() => {
+  const fit = {};
+  FURN_LIST.forEach(f => { if (!f[8] && f[3]) (fit[f[2]] = fit[f[2]] || []).push([f[5], f[3]]); });
+  Object.keys(fit).forEach(g => { const a = fit[g], n = a.length, ms = a.reduce((s, x) => s + x[0], 0) / n, mp = a.reduce((s, x) => s + x[1], 0) / n;
+    const sl = a.reduce((s, x) => s + (x[0] - ms) * (x[1] - mp), 0) / (a.reduce((s, x) => s + (x[0] - ms) ** 2, 0) || 1);
+    fit[g] = { ms, mp, sl, lo: Math.min(...a.map(x => x[1])), hi: Math.max(...a.map(x => x[1])) }; });
+  FURN_LIST.forEach(f => { if (!f[8] || f[3]) return; const q = fit[f[2]]; if (!q) return;
+    f[3] = Math.round(Math.max(q.lo, Math.min(q.hi, q.mp + q.sl * (f[5] - q.ms))) * 1.1); });
+})();
 const FURN = {}; FURN_LIST.forEach(([k, name, group, price, place, size, x, y, set]) => { FURN[k] = { k, name, group, price, place, size, x, y, set }; });
 const FURN_GROUPS = [['beds', 'Beds & seats'], ['tables', 'Tables & storage'], ['lights', 'Lights & walls'], ['rugs', 'Rugs & windows'], ['plants', 'Plants & play'], ['cosy', 'Cosy details']];
 const WALLPAPERS = [['leafy', 'Leafy Cream', 0], ['cream', 'Cream', 12], ['sagestripe', 'Sage Stripe', 15], ['tinyblooms', 'Tiny Blooms', 15], ['forestleaves', 'Forest Leaves', 15], ['bluegingham', 'Blue Gingham', 15],
@@ -10055,7 +10073,11 @@ SHOP.forEach(i => { if (i.cat === 'shelter' || i.cat === 'decor') i.legacy = 1; 
 const RETIRED = [];   // Party Hat and Wizard Hat are back (Nov 2026): every pet has a drawn picture wearing them
 SHOP.forEach(i => { if (RETIRED.includes(i.id)) i.legacy = 1; });
 
-const ownsF = k => { const F = FURN[k]; return F.set ? F.set.some(s => !!S.owned['set-' + s]) : (!F.price || !!S.owned['f-' + k]); };   // set pieces come with their set
+// how many of a piece a room may have: the ones bought (any number) plus one that comes with an owned set; free starter pieces: one
+const boughtF = k => { const v = S.owned['f-' + k]; return v ? (v === true ? 1 : +v) : 0; };
+const copiesF = k => { const F = FURN[k]; if (!F) return 0; return boughtF(k) + (F.set && F.set.some(s => !!S.owned['set-' + s]) ? 1 : 0) + (!F.price && !F.set ? 1 : 0); };
+const ownsF = k => copiesF(k) > 0;
+const placedF = (room, k) => room.items.filter(i => i.k === k).length;
 const ownsW = k => { const w = WALLPAPERS.find(x => x.k === k); return !!w && (!w.price || !!S.owned['w-' + k]); };
 const ownsFl = k => { const f = FLOORS.find(x => x.k === k); return !!f && (!f.price || !!S.owned['fl-' + k]); };
 function defaultRoom() { return { wall: 'leafy', floor: 'honeyoak', items: [{ k: 'plainwin', x: 300, y: 244 }, { k: 'boxbed', x: 150, y: 456 }, { k: 'waterbowl', x: 92, y: 494 }, { k: 'bone', x: 272, y: 482 }] }; }
@@ -10077,6 +10099,10 @@ function migrateRoom(p, f) {
       p.room.items = setItems(st).concat(p.room.items.filter(i => !FURN[i.k].set && FURN[i.k].place !== 'wall' && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k)));
       p.room.sp = 2; p.room.lv = 1; p.room.wy = st.wy || 380; useRoom(p.room); p.room.items.forEach(i => { if (!FURN[i.k].set) clampItem(i); }); useRoom(null);
     }
+  }
+  if (p.room && !p.room.s1) {                                // Nov 2026: pieces that came with a set are marked, so bought copies of set pieces stay when the set comes off
+    const st0 = p.room.scene && SET_ROOMS.find(s => s.k === p.room.scene);
+    p.room.items.forEach(i => { if (FURN[i.k] && FURN[i.k].set && (!st0 || st0.items.some(x => x.k === i.k))) i.s = 1; }); p.room.s1 = 1;
   }
   if (p.room && !p.room.fit1) {                               // Nov 2026: rugs flatter and nothing past the room's edges
     useRoom(p.room); p.room.items.forEach(i => { if (FURN[i.k] && !i.on) clampItem(i); }); useRoom(null); p.room.fit1 = 1;
@@ -10146,27 +10172,28 @@ function snapStack(room, it) {
     // dropped anywhere over the top part of the piece (not just exactly on its top edge) counts as putting it up there
     const dd = it.y < s ? s - it.y : it.y <= r.y1 - r.h * 0.3 ? (it.y - s) * 0.25 : 1e9; if (dd < bd) { bd = dd; best = { h, s }; }
   });
-  if (best) { it.on = best.h.k; it.y = Math.round(best.s); } else { delete it.on; clampItem(it); }
+  if (best) { it.on = best.h.u; it.y = Math.round(best.s); } else { delete it.on; clampItem(it); }
 }
-const ridersOf = (room, k) => room.items.filter(i => i.on === k);
-function dropRiders(room, k) { useRoom(room); ridersOf(room, k).forEach(r => { delete r.on; clampItem(r); }); }
+const ridersOf = (room, host) => (roomIds(room), room.items.filter(i => i.on && i.on === host.u));
+function dropRiders(room, host) { useRoom(room); ridersOf(room, host).forEach(r => { delete r.on; clampItem(r); }); }
 function itemZ(room, it, r) { if (FURN[it.k].place === 'ceil') return WALL_Y;   // hanging lamps in front of things on the wall
-  const h = it.on && room.items.find(x => x.k === it.on); return h ? itemRect(h).y1 + 0.5 : (r || itemRect(it)).y1; }
+  const h = hostOf(room, it); return h ? itemRect(h).y1 + 0.5 : (r || itemRect(it)).y1; }
 
 // only one bed and one rug at a time: a new one takes the old one's place (box -> basket -> bed)
 const BED_KEYS = ['boxbed', 'basket', 'cushion', 'beanbag', 'hammock', 'bed'];
 const swapGroup = k => BED_KEYS.includes(k) ? BED_KEYS : FURN[k].place === 'rug' ? FURN_LIST.filter(f => f[4] === 'rug').map(f => f[0]) : null;
-function placeItem(room, k) {
-  useRoom(room); const F = FURN[k]; if (room.items.some(i => i.k === k)) return room.items.findIndex(i => i.k === k);
+function placeItem(room, k, more = false) {
+  useRoom(room); const F = FURN[k]; if (!more && room.items.some(i => i.k === k)) return room.items.findIndex(i => i.k === k);
   const grp = swapGroup(k), old = grp && room.items.find(i => grp.includes(i.k) && i.k !== k);
-  if (old) { room.items = room.items.filter(i => i !== old); const it = { k, x: old.x, y: F.place === 'rug' ? old.y : F.y, f: old.f }; clampItem(it); room.items.push(it); return room.items.length - 1; }
+  if (old) { dropRiders(room, old); room.items = room.items.filter(i => i !== old); const it = { k, x: old.x, y: F.place === 'rug' ? old.y : F.y, f: old.f }; clampItem(it); room.items.push(it); roomIds(room); return room.items.length - 1; }
   const { w } = itemSize(k), same = room.items.filter(i => FURN[i.k].place === F.place);
-  let best = F.x;
-  for (const dx of [0, 90, -90, 180, -180, 270, -270, 360]) {
+  let best = F.x, bestCost = 1e9;                           // the free spot nearest the usual place, or else the least crowded one
+  for (const dx of [0, 90, -90, 180, -180, 270, -270, 360, -360, 450, -450, 540, -540]) {
     const x = F.x + dx; if (x < w / 2 - 20 || x > ROOM_W - w / 2 + 20) continue;
-    if (!same.some(i => Math.abs(i.x - x) < (itemSize(i.k).w + w) * 0.4 && Math.abs(i.y - F.y) < 90)) { best = x; break; }
+    const cost = same.reduce((s, i) => s + Math.max(0, (itemSize(i.k).w + w) * 0.4 - Math.abs(i.x - x)) * (Math.abs(i.y - F.y) < 90 ? 1 : 0) * (i.k === k ? 3 : 1), 0) + Math.abs(dx) * 0.01;
+    if (cost < bestCost) { bestCost = cost; best = x; }
   }
-  const it = { k, x: best, y: F.y }; clampItem(it); room.items.push(it); if (isStackable(k) && F.set) { it.y = F.y; snapStack(room, it); } return room.items.length - 1;
+  const it = { k, x: best, y: F.y }; clampItem(it); room.items.push(it); roomIds(room); if (isStackable(k) && F.set) { it.y = F.y; snapStack(room, it); } return room.items.length - 1;
 }
 
 // ---- drawing ----
@@ -10317,11 +10344,16 @@ function armSell(b) {                                       // first tap asks, s
   setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.innerHTML = t; b.classList.remove('armed'); } }, 3000);
   return false;
 }
-function sellThing(code) {
+function sellThing(code, sellItem) {
   const i = code.indexOf(':'), kind = code.slice(0, i), k = code.slice(i + 1); let name = '', price = 0;
-  if (kind === 'f') {
-    if (!FURN[k] || !ownsF(k) || !FURN[k].price) return; name = FURN[k].name; price = FURN[k].price;
-    delete S.owned['f-' + k]; S.pets.forEach(p => { if (!p.room) return; dropRiders(p.room, k); p.room.items = p.room.items.filter(x => x.k !== k); });
+  if (kind === 'f') {                                       // sells one bought copy; every room keeps at most as many as are left
+    if (!FURN[k] || !boughtF(k) || !FURN[k].price) return; name = FURN[k].name; price = FURN[k].price;
+    const left = boughtF(k) - 1; if (left > 0) S.owned['f-' + k] = left; else delete S.owned['f-' + k];
+    S.pets.forEach(p => { if (!p.room) return; useRoom(p.room); const max = copiesF(k);
+      let mine = p.room.items.filter(x => x.k === k && !x.s), extra = placedF(p.room, k) - max;
+      const sel = sellItem && p.room.items.includes(sellItem) ? [sellItem] : [];
+      for (const it of [...sel, ...mine.reverse()]) { if (extra <= 0) break; if (!p.room.items.includes(it) || it.s) continue; dropRiders(p.room, it); p.room.items = p.room.items.filter(x => x !== it); extra--; }
+    });
   } else if (kind === 'w' || kind === 'fl') {
     const list = kind === 'w' ? WALLPAPERS : FLOORS, x = list.find(y => y.k === k); if (!x || !x.price || !S.owned[kind + '-' + k]) return;
     name = x.name; price = x.price; delete S.owned[kind + '-' + k];
@@ -10341,10 +10373,10 @@ function buyThing(kind, k, pet) {
   const item = kind === 'f' ? FURN[k] : kind === 'w' ? WALLPAPERS.find(x => x.k === k) : FLOORS.find(x => x.k === k);
   if (!item) return false;
   if (S.coins < item.price) { toast(`You need $${money(item.price - S.coins)} more. Play a session to earn coins!`); return false; }
-  S.coins -= item.price; S.owned[kind + '-' + k] = 1;
+  S.coins -= item.price; S.owned[kind + '-' + k] = kind === 'f' ? boughtF(k) + 1 : 1;
   if (pet) {
     pet.room = pet.room || defaultRoom();
-    if (kind === 'f') placeItem(pet.room, k); else if (kind === 'w') pet.room.wall = k; else pet.room.floor = k;
+    if (kind === 'f') placeItem(pet.room, k, true); else if (kind === 'w') pet.room.wall = k; else pet.room.floor = k;
   }
   save(); SFX.coin(); renderHud();
   toast(pet ? `Bought ${item.name}! It's in ${pet.name}'s home now.` : `Bought ${item.name}!`);
@@ -10356,16 +10388,16 @@ function setFullPrice(set) {
   return Math.round((set.price - wf) * FURN_PRICE_UP + wf * WF_PRICE_UP);
 }
 function setPrice(set) { return S.owned['set-' + set.k] ? 0 : setFullPrice(set); }
-const setItems = set => set.items.map(i => ({ ...i }));
-function fixRiders(room) { useRoom(room); room.items.forEach(i => { if (i.on && !room.items.some(h => h.k === i.on)) { delete i.on; clampItem(i); } }); }
+const setItems = set => set.items.map(i => ({ ...i, s: 1 }));   // s: came with the set (not bought on its own)
+function fixRiders(room) { useRoom(room); room.items.forEach(i => { if (i.on && !hostOf(room, i)) { delete i.on; clampItem(i); } }); }
 function applySet(set, pet, own = true) {
   if (own) S.owned['set-' + set.k] = 1;
-  const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !FURN[i.k].set && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
-  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, lv: 1, wy: set.wy || 380, items: setItems(set).concat(keep) };
+  const keep = (pet.room && pet.room.items || []).filter(i => !i.lock && FURN[i.k] && !i.s && FURN[i.k].place !== 'rug' && !BED_KEYS.includes(i.k) && FURN[i.k].place !== 'wall' && FURN[i.k].size <= 90);
+  pet.room = { wall: set.wall, floor: set.floor, scene: set.k, sp: 2, lv: 1, wy: set.wy || 380, items: setItems(set).concat(keep.map(i => { const c = { ...i }; delete c.u; delete c.on; return c; })) };
   fixRiders(pet.room); pet.room.items.forEach(i => { if (!i.on) clampItem(i); }); useRoom(null);
 }
 const roomSet = room => room && (room.scene || room.set) ? ROOM_SETS.find(s => s.k === (room.scene || room.set)) : null;
-function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; delete room.wy; useRoom(room); room.items = room.items.filter(i => !i.lock && !FURN[i.k].set); room.items = room.items.concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); fixRiders(room); }
+function takeSetOff(room) { const r = defaultRoom(); room.wall = r.wall; room.floor = r.floor; delete room.scene; delete room.set; delete room.wy; useRoom(room); room.items = room.items.filter(i => !i.lock && !i.s); room.items = room.items.concat(r.items.filter(d => !room.items.some(i => i.k === d.k))); fixRiders(room); }
 
 // ================= SHOP =================
 let shopTab = 'homes', shopPet = 0, shopHouseKind = null;
@@ -10552,7 +10584,7 @@ function endTrial(keep) { const t = DECO.trial; if (!t) return; const pet = S.pe
 function startTrial(pet, kind, k) {
   endTrial(false);
   const backup = JSON.parse(JSON.stringify(pet.room)); let name, price;
-  if (kind === 'f') { name = FURN[k].name; price = FURN[k].price; DECO.sel = placeItem(pet.room, k); }
+  if (kind === 'f') { name = FURN[k].name; price = FURN[k].price; DECO.sel = placeItem(pet.room, k, true); }
   else if (kind === 's') { const st = ROOM_SETS.find(x => x.k === k); name = st.name; price = setPrice(st); applySet(st, pet, false); DECO.sel = -1; }
   else {
     const x = (kind === 'w' ? WALLPAPERS : FLOORS).find(v => v.k === k); name = x.name + (kind === 'w' ? ' wallpaper' : ' floor'); price = x.price;
@@ -10564,7 +10596,7 @@ function startTrial(pet, kind, k) {
 function buyTrial() {
   const t = DECO.trial; if (!t) return;
   if (S.coins < t.price) { toast(`You need $${money(t.price - S.coins)} more. Play a session to earn coins!`); return; }
-  S.coins -= t.price; S.owned[(t.kind === 's' ? 'set' : t.kind) + '-' + t.k] = 1; DECO.trial = null;
+  S.coins -= t.price; S.owned[(t.kind === 's' ? 'set' : t.kind) + '-' + t.k] = t.kind === 'f' ? boughtF(t.k) + 1 : 1; DECO.trial = null;
   save(); renderHud(); SFX.fanfare(); toast(`Bought ${t.name}! It's in ${S.pets[t.pet].name}'s room now.`);
 }
 function armBuy(b, label) {                                     // first tap asks, second tap pays
@@ -10596,10 +10628,11 @@ function renderDeco() {
       const tr = trying(kind, x.k);
       return `<button class="decocard ${on && !tr ? 'on' : ''} ${tr ? 'trying' : ''} ${own ? '' : 'locked'}" data-${kind}="${x.k}"><span class="swatch" style="background-image:url(${imgSrc((kind === 'w' ? 'wall-' : 'floor-') + x.k)})"></span><b>${esc(x.name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${tr ? 'Trying on' : on ? 'Using' : own ? 'Use' : 'Try · $' + x.price}</em></button>`; }).join('');
   } else {
-    h = FURN_LIST.filter(f => f[2] === DECO.tab && (!f[8] || ownsF(f[0]))).map(([k, name, , price]) => { const own = ownsF(k), on = room.items.some(i => i.k === k), can = S.coins >= price;
-      const swap = !on && swapGroup(k) && room.items.some(i => swapGroup(k).includes(i.k));
-      const tr = trying('f', k);
-      return `<button class="decocard ${on && !tr ? 'on' : ''} ${tr ? 'trying' : ''} ${own ? '' : 'locked'}" data-f="${k}"><img src="${imgSrc('it-' + k)}" alt=""><b>${esc(name)}</b><em class="${own ? '' : can ? 'buyable' : 'pricey'}">${tr ? 'Trying on' : on ? 'In the room' : own ? (swap ? 'Swap in' : 'Put in') : 'Try · $' + price}</em></button>`; }).join('');
+    h = FURN_LIST.filter(f => f[2] === DECO.tab && (f[3] > 0 || ownsF(f[0]))).map(([k, name, , price]) => {
+      const have = copiesF(k), placed = placedF(room, k), free = placed < have, can = S.coins >= price, tr = trying('f', k);
+      const swap = !placed && swapGroup(k) && room.items.some(i => swapGroup(k).includes(i.k));
+      const label = tr ? 'Trying on' : free ? (swap ? 'Swap in' : placed ? `Put in another (${placed}/${have})` : 'Put in') : price ? (placed ? `In the room \u00b7 another $${price}` : 'Try \u00b7 $' + price) : 'In the room';
+      return `<button class="decocard ${placed && !tr ? 'on' : ''} ${tr ? 'trying' : ''} ${have ? '' : 'locked'}" data-f="${k}"><img src="${imgSrc('it-' + k)}" alt=""><b>${esc(name)}</b><em class="${free || !price ? '' : can ? 'buyable' : 'pricey'}">${label}</em></button>`; }).join('');
   }
   $('#decoGrid').innerHTML = h;
 }
@@ -10612,7 +10645,7 @@ function renderDecoTools() {
     return;
   }
   if (!it && st) { $('#decoTools').innerHTML = `<span class="muted">This room is the <b>${esc(st.name)}</b>. Drag any piece to move it, or tap it to flip or put it away. Put-away pieces wait in the tabs below.</span><button class="btn small" id="decoSetOff">Take the set off</button>`; return; }
-  $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small" id="decoAway">Put away</button>${FURN[it.k].price ? `<button class="btn small bad" data-sell="f:${it.k}">Sell $${sellPrice(FURN[it.k].price)}</button>` : ''}<button class="btn small go" id="decoDone">Done</button>`
+  $('#decoTools').innerHTML = it ? `<b>${esc(FURN[it.k].name)}</b><button class="btn small" id="decoFlip">Flip</button><button class="btn small" id="decoAway">Put away</button>${FURN[it.k].price && !it.s && boughtF(it.k) ? `<button class="btn small bad" data-sell="f:${it.k}">Sell $${sellPrice(FURN[it.k].price)}</button>` : ''}<button class="btn small go" id="decoDone">Done</button>`
     : `<span class="muted">Tap anything below with a price to try it in the room first; nothing is bought until you tap Buy and confirm. Drag things to move them; tap one to flip, put away or sell it.</span>`;
 }
 function decoClick(e) {
@@ -10624,12 +10657,12 @@ function decoClick(e) {
     if (!armBuy(b, `Tap again to pay $${t.price}`)) return; buyTrial(); return renderDeco(); }
   if (b.dataset.t) { DECO.tab = b.dataset.t; return renderDeco(); }
   // trying something on: an unbought thing goes in for a look (tapping the same card again takes it off)
-  const tk = b.dataset.f ? ['f', b.dataset.f, ownsF(b.dataset.f)] : b.dataset.w ? ['w', b.dataset.w, ownsW(b.dataset.w)] : b.dataset.fl ? ['fl', b.dataset.fl, ownsFl(b.dataset.fl)] : b.dataset.set ? ['s', b.dataset.set, !!S.owned['set-' + b.dataset.set]] : null;
+  const tk = b.dataset.f ? ['f', b.dataset.f, placedF(pet.room, b.dataset.f) < copiesF(b.dataset.f) || !FURN[b.dataset.f].price] : b.dataset.w ? ['w', b.dataset.w, ownsW(b.dataset.w)] : b.dataset.fl ? ['fl', b.dataset.fl, ownsFl(b.dataset.fl)] : b.dataset.set ? ['s', b.dataset.set, !!S.owned['set-' + b.dataset.set]] : null;
   if (tk && !tk[2]) { if (trying(tk[0], tk[1])) endTrial(false); else startTrial(pet, tk[0], tk[1]); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
   if (DECO.trial && (tk || ['decoAway', 'decoSetOff'].includes(b.id) || b.dataset.sell)) endTrial(false);
-  if (b.id === 'decoFlip') { const it = pet.room.items[DECO.sel]; if (it) { it.f = it.f ? 0 : 1; useRoom(pet.room); ridersOf(pet.room, it.k).forEach(r => { r.x = 2 * it.x - r.x; clampItem(r); }); save(); SFX.tap(); } return; }   // things on top flip with it
-  if (b.id === 'decoAway') { const it = pet.room.items[DECO.sel]; if (it) dropRiders(pet.room, it.k); pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
-  if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell); DECO.sel = -1; return renderDeco(); }
+  if (b.id === 'decoFlip') { const it = pet.room.items[DECO.sel]; if (it) { it.f = it.f ? 0 : 1; useRoom(pet.room); ridersOf(pet.room, it).forEach(r => { r.x = 2 * it.x - r.x; clampItem(r); }); save(); SFX.tap(); } return; }   // things on top flip with it
+  if (b.id === 'decoAway') { const it = pet.room.items[DECO.sel]; if (it) dropRiders(pet.room, it); pet.room.items.splice(DECO.sel, 1); DECO.sel = -1; save(); SFX.tap(); return renderDeco(); }
+  if (b.dataset.sell) { if (!armSell(b)) return; sellThing(b.dataset.sell, pet.room.items[DECO.sel]); DECO.sel = -1; return renderDeco(); }
   if (b.id === 'decoDone') { DECO.sel = -1; return renderDecoTools(); }
   if (b.id === 'decoSetOff') { takeSetOff(pet.room); DECO.sel = -1; save(); SFX.tap(); toast('The set is off. Your room is back to the starter look; buy the set again any time for free.'); return renderDeco(); }
   if (b.dataset.set) {
@@ -10638,12 +10671,12 @@ function decoClick(e) {
     S.coins -= p; applySet(st, pet); DECO.sel = -1; save(); renderHud(); p ? SFX.fanfare() : SFX.tap(); toast(`${pet.name}'s room is now the ${st.name}!`); return renderDeco();
   }
   const k = b.dataset.f, w = b.dataset.w, fl = b.dataset.fl;
-  if (k) {
-    const idx = pet.room.items.findIndex(i => i.k === k);
-    if (idx >= 0) { DECO.sel = idx; renderDecoTools(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
-    if (!ownsF(k) && !buyThing('f', k, null)) return;
-    DECO.sel = placeItem(pet.room, k); save(); SFX.tap(); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return;
+  if (k) {                                                  // a copy you own that isn't in this room yet goes in (an extra one is tried on first, above)
+    if (placedF(pet.room, k) < copiesF(k)) { DECO.sel = placeItem(pet.room, k, true); save(); SFX.tap(); renderDeco(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); return; }
+    const idx = pet.room.items.findIndex(i => i.k === k); if (idx >= 0) { DECO.sel = idx; renderDecoTools(); $('#sceneDeco').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+    return;
   }
+
   if ((w || fl) && pet.room.scene) {                      // a set's background covers walls and floor: a new wallpaper or floor replaces it, the furniture stays
     const own = w ? ownsW(w) : ownsFl(fl), price = (w ? WALLPAPERS.find(x => x.k === w) : FLOORS.find(x => x.k === fl)).price;
     if (!own && S.coins < price) { toast(`You need $${money(price - S.coins)} more. Play a session to earn coins!`); return; }
@@ -10665,7 +10698,7 @@ function wireDeco() {
     const ox = it.x, oy = it.y; delete it.on;
     useRoom(pet.room); it.x = p.x + d.dx; it.y = p.y + d.dy; clampItem(it);
     if (isStackable(it.k)) { it.y = p.y + d.dy; snapStack(pet.room, it); }
-    else ridersOf(pet.room, it.k).forEach(r => { r.x += it.x - ox; const s = surfaceY(it); if (s != null) r.y = Math.round(s); });
+    else ridersOf(pet.room, it).forEach(r => { r.x += it.x - ox; const s = surfaceY(it); if (s != null) r.y = Math.round(s); });
     d.moved = true;
   });
   const end = () => { if (DECO.drag) { if (DECO.drag.moved) save(); DECO.drag = null; } };
