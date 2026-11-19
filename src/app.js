@@ -157,6 +157,13 @@ function drawPet(c, pet, x, y, o = {}) {
   if (eyes) drawGlasses(c, eyes, x, oy, a);
   if (hat) { const h = HATS[hat]; drawSprite(c, h.rows, BASEPAL, x + a.hx - 4, oy + a.hy - (h.rows.length - 1)); }
 }
+// a solid dark shape of the pet's ordinary look, baked into the picture (a long press can't show anything behind it)
+function silhouetteURL(kind) {
+  const key = 'sil-' + kind; if (URLS[key]) return URLS[key];
+  const src = petCanvas({ kind }, {}), c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+  const x = c.getContext('2d'); x.drawImage(src, 0, 0); x.globalCompositeOperation = 'source-in'; x.fillStyle = '#3b3550'; x.fillRect(0, 0, c.width, c.height);
+  return URLS[key] = c.toDataURL();
+}
 function petURL(pet, o = {}) {
   const key = 'p-' + JSON.stringify([pet.kind, pet.skin, pet.hat, pet.eyes, pet.neck, pet.back, pet.body, pet.costume, pet.look, o]);
   if (URLS[key]) return URLS[key];

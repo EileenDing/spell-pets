@@ -518,18 +518,22 @@ function renderShop() {
   } else {
     const forKind = (S.pets[shopPet] || me || {}).kind;
     const items = SHOP.filter(i => i.cat === shopTab && !i.legacy && (!i.petKind || (shopTab === 'skins' ? i.petKind === forKind : S.pets.some(p => p.kind === i.petKind))));   // a pet's own skins show only under that pet
-    // the 4 legendary looks of the pet you're shopping for: shadows until the bond is full, then one can be bought
+    // legendary looks of the pet you're shopping for: the ones bought, then either the choices (bond full) or one mystery card
     const ltd = shopTab !== 'skins' ? '' : [S.pets[shopPet] || me].filter(Boolean).map(p => {
       const own = lgOwn(p.kind), ready = ltdReady(p.kind), all = bondAllOwned(p.kind);
-      const head = `<div class="lghead"><span class="ltdtag">Legendary</span> <b>${esc(p.name)}'s legendary looks</b> <span class="muted small">${all ? 'You have all four!' : ready ? 'Your bond is full: choose one!' : `Bond ${bondPct(p.kind)}%. When it reaches 100%, you can choose one of these.`}</span></div>`;
-      return head + [1, 2, 3, 4].map(n => {
-        const has = own.includes(n), show = has || ready, price = LEGEND_PRICE(p.kind, n), can = S.coins >= price, ninja = p.kind === 'turtle' && n === 1;
+      const head = `<div class="lghead"><span class="ltdtag">Legendary</span> <b>${esc(p.name)}'s legendary looks</b> <span class="muted small">${all ? 'You found them all!' : ready ? 'Your bond is full: choose one!' : `Bond ${bondPct(p.kind)}%. When it reaches 100%, something magical will happen&hellip;`}</span></div>`;
+      const card = n => {
+        const has = own.includes(n), price = LEGEND_PRICE(p.kind, n), can = S.coins >= price, ninja = p.kind === 'turtle' && n === 1;
         const wearing = has && (p.skin || '').startsWith('lg:' + p.kind + '-' + n);
-        return `<div class="card ltd ${has ? 'owned' : show ? '' : 'locked'}"><div class="prevbox"><img class="pxi prev pet ${show ? '' : 'shadow'}" src="${petURL(p, { skin: 'lg:' + p.kind + '-' + (ninja ? '1a' : n) })}" alt=""></div>
-          <b>${show ? esc(LEGENDS[p.kind][n - 1]) : '???'}</b>
-          <span class="muted small">${has ? (wearing ? esc(p.name) + ' is wearing it.' : 'Yours! Wear it in the room.') : ninja && show ? 'All four brothers: switch between them any time.' : show ? 'Legendary look' : 'A secret legendary look'}</span>
-          ${has ? `<span class="ownedtag">${icon('check')} Owned</span>` : ready ? `<button class="btn ${can ? 'go' : 'off'}" data-buylg="${p.kind}:${n}" ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${price}</button>` : `<span class="btn off" aria-disabled="true">Locked</span>`}</div>`;
-      }).join('');
+        return `<div class="card ltd ${has ? 'owned' : ''}"><div class="prevbox"><img class="pxi prev pet" src="${petURL(p, { skin: 'lg:' + p.kind + '-' + (ninja ? '1a' : n) })}" alt=""></div>
+          <b>${esc(LEGENDS[p.kind][n - 1])}</b>
+          <span class="muted small">${has ? (wearing ? esc(p.name) + ' is wearing it.' : 'Yours! Wear it in the room.') : ninja ? 'All four brothers: switch between them any time.' : 'Legendary look'}</span>
+          ${has ? `<span class="ownedtag">${icon('check')} Owned</span>` : `<button class="btn ${can ? 'go' : 'off'}" data-buylg="${p.kind}:${n}" ${can ? '' : 'aria-disabled="true"'}>${icon('coin', 'coin')} $${price}</button>`}</div>`;
+      };
+      const mystery = `<div class="card ltd locked"><div class="prevbox mystery"><img class="pxi prev pet" src="${silhouetteURL(p.kind)}" alt="" draggable="false"><span class="qmark">?</span></div>
+        <b>???</b><span class="muted small">Fill your Bond bar with ${esc(p.name)} to find out&hellip;</span><span class="btn off" aria-disabled="true">Locked</span></div>`;
+      const left = [1, 2, 3, 4].filter(n => !own.includes(n));
+      return head + own.map(card).join('') + (all ? '' : ready ? left.map(card).join('') : mystery);
     }).join('');
     const dp = S.pets[shopPet] || me, wears = WEARS.includes(shopTab);
     if (wears && dp) preloadFits(dp.kind, items.filter(i => i.cat !== 'skins').map(i => i.key));

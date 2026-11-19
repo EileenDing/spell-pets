@@ -78,6 +78,8 @@ p { margin: 0; }
 .bar { flex: 1; height: 14px; background: #e9dfcc; border: 3px solid var(--ink); position: relative; }
 .bar i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(90deg, var(--go) 0 6px, #5fd67a 6px 8px); }
 .streakwin.frozen { color: #2a6fb0; } .day.frz { background: #e3f1ff; } .day .snow { font-size: 18px; line-height: 1; }
+.prevbox.mystery { position: relative; } .prevbox.mystery .qmark { position: absolute; inset: 0; display: grid; place-items: center; font: 700 44px var(--font-display); color: #ffd84d; text-shadow: 3px 3px 0 var(--ink); pointer-events: none; }
+.prevbox.mystery img { -webkit-touch-callout: none; user-select: none; pointer-events: none; }
 .lghead { grid-column: 1 / -1; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; } .lgpick { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin: 10px 0; } .lgpick figure { margin: 0; text-align: center; } .lgpick figcaption { font-size: 12px; } @media (max-width: 600px) { .lgpick { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .bondm { margin-top: 6px; } .bondhint { margin: 2px 0 0 60px; font-size: 13px; color: #b0306e; } .bondm .bar i { background: repeating-linear-gradient(90deg, #e85a9a 0 6px, #ff8fc0 6px 8px); } .bondtag { color: #c2306e; }
 .bar i.low { background: repeating-linear-gradient(90deg, var(--bad) 0 6px, #ff6b6e 6px 8px); }
