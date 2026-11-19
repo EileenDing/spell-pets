@@ -457,6 +457,15 @@ function testGrant() {
   // one-time (Nov 16, 2026): Bond for the words and characters already right before Bond existed (one pet each, so all of it is that pet's)
   const BOND_START = { eddie: ['dragon', 104, 6], jasper: ['dog', 108, 0] }[(PROFILE.name || '').trim().toLowerCase()];
   if (BOND_START && !S.bond1116) { const [k, n, had] = BOND_START; S.bond = S.bond || {}; S.bond[k] = n + Math.max(0, (S.bond[k] || 0) - had); S.bond1116 = 1; save(); }
+  // one-time (Nov 19, 2026): the frog/octopus/capybara picture skins are gone (clothes didn't fit them); anyone who bought one gets the $40 back
+  if (!S.artSkin1119) {
+    let back = 0;
+    Object.entries(ART_SKINS).forEach(([kind, o]) => Object.keys(o).forEach(k => { if (S.owned['skin-' + kind + '-' + k]) { delete S.owned['skin-' + kind + '-' + k]; back += 40; } }));
+    S.pets.forEach(p => { if (p.skin && p.skin.startsWith('a-')) p.skin = null; });
+    S.artSkin1119 = 1;
+    if (back) { S.coins += back; setTimeout(() => toast(`The frog, octopus and capybara skins have left the shop. You got your $${back} back!`), 900); }
+    save(); renderHud();
+  }
   settlePerfectDay();
 }
 // ---- perfect-day bonus: if every word you learn for the first time in a day is right in all 3 rounds, you get $2 (paid the next time you play) ----

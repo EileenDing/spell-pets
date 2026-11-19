@@ -2395,7 +2395,7 @@ const FOODS = {
 
 const SHOP = [
  ...Object.entries(SKINS).map(([k,v])=>({id:'skin-'+k, cat:'skins', key:k, name:v.name+' skin', price:30})),
- ...Object.entries(ART_SKINS).flatMap(([kind,o])=>Object.entries(o).map(([k,n])=>({id:'skin-'+kind+'-'+k, cat:'skins', key:'a-'+k, petKind:kind, name:n+' '+PETS[kind].name, price:40}))),
+ ...Object.entries(ART_SKINS).flatMap(([kind,o])=>Object.entries(o).map(([k,n])=>({id:'skin-'+kind+'-'+k, cat:'skins', key:'a-'+k, petKind:kind, name:n+' '+PETS[kind].name, price:40, legacy:1}))),   // no longer sold (Nov 19, 2026): clothes didn't fit them well; owners were refunded
  {id:'hat-strawhat', cat:'clothes', slot:'hat', key:'strawhat', name:'Straw Hat', price:12},
  {id:'hat-cap', cat:'clothes', slot:'hat', key:'cap', name:'Paw Cap', price:12},
  {id:'hat-party', cat:'clothes', slot:'hat', key:'party', name:'Party Hat', price:10},
