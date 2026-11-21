@@ -34,7 +34,7 @@ const FURN_LIST = [
   ['cubby', 'Cubby Shelf', 'tables', 25, 'floor', 102, 655, 338],
   ['mushlamp', 'Mushroom Lamp', 'lights', 12, 'floor', 74, 530, 352],
   ['floorlamp', 'Floor Lamp', 'lights', 18, 'floor', 170, 700, 352],
-  ['starlight', 'Star Light', 'lights', 12, 'wall', 60, 500, 150],
+  ['starlight', 'Star Light', 'lights', 12, 'floor', 60, 470, 352],   // a lamp on a little stand: goes on the floor or up on a shelf or table (it used to hang on the wall)
   ['lantern', 'Hanging Lantern', 'lights', 12, 'ceil', 104, 470, 0],
   ['clock', 'Wall Clock', 'lights', 12, 'wall', 74, 500, 186],
   ['pawframe', 'Paw Picture', 'lights', 10, 'wall', 76, 92, 205],
@@ -161,6 +161,9 @@ function migrateRoom(p, f) {
   }
   if (p.room && !p.room.fit1) {                               // Nov 2026: rugs flatter and nothing past the room's edges
     useRoom(p.room); p.room.items.forEach(i => { if (FURN[i.k] && !i.on) clampItem(i); }); useRoom(null); p.room.fit1 = 1;
+  }
+  if (p.room && !p.room.star1) {                              // Nov 20, 2026: the Star Light stands on things now, so one left on the wall comes down to the floor
+    useRoom(p.room); p.room.items.forEach(i => { if (i.k === 'starlight' && !i.on) clampItem(i); }); useRoom(null); p.room.star1 = 1;
   }
   if (p.room) return;
   p.room = defaultRoom();

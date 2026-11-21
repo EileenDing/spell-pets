@@ -454,6 +454,13 @@ function testGrant() {
     if (!S.pday || S.pday.d <= '2026-11-14') S.pday = { d: '2026-11-14', n: Math.max(1, (S.pday && S.pday.d === '2026-11-14' && S.pday.n) || 0), miss: 0, paid: 1 };
     save(); renderHud(); setTimeout(() => toast(`Perfect day bonus for November 14: every new word right! +$${PERFECT_BONUS}`), 600);
   }
+  // one-time (Nov 20, 2026): Jasper sold his Star Light only because it wouldn't go on the bookshelf (a bug): give it back and take back what the sale paid
+  if ((PROFILE.name || '').trim().toLowerCase() === 'jasper' && !S.undoStar1120) {
+    S.undoStar1120 = 1;
+    if (!boughtF('starlight')) { const back = Math.min(S.coins, sellPrice(FURN.starlight.price)); S.owned['f-starlight'] = 1; S.coins -= back;
+      setTimeout(() => toast('Your Star Light is back! It can sit on the bookshelf now: find it under Lights in Decorate.'), 1200); }
+    save(); renderHud();
+  }
   // one-time (Nov 16, 2026): Bond for the words and characters already right before Bond existed (one pet each, so all of it is that pet's)
   const BOND_START = { eddie: ['dragon', 104, 6], jasper: ['dog', 108, 0] }[(PROFILE.name || '').trim().toLowerCase()];
   if (BOND_START && !S.bond1116) { const [k, n, had] = BOND_START; S.bond = S.bond || {}; S.bond[k] = n + Math.max(0, (S.bond[k] || 0) - had); S.bond1116 = 1; save(); }
