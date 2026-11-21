@@ -648,9 +648,9 @@ function route(name) {
   if (name === 'who') $('#whoBack').hidden = !PROFILE;
   if (name !== 'deco' && DECO.trial) endTrial(false);        // leaving the room shop takes off anything only tried on
   if (name !== 'shop') TRY = null;
-  ['who', 'home', 'play', 'shop', 'room', 'book', 'town', 'chal', 'deco'].forEach(n => { $('#scr-' + n).hidden = n !== name; });
+  ['who', 'home', 'play', 'shop', 'room', 'book', 'town', 'chal', 'deco', 'friends', 'visit'].forEach(n => { $('#scr-' + n).hidden = n !== name; });
   renderHud();
-  if (name === 'who') renderWho(); else if (name === 'home') renderHome(); else if (name === 'shop') renderShop(); else if (name === 'room') renderRoom(); else if (name === 'book') renderBook(); else if (name === 'town') renderTown(); else if (name === 'chal') renderChal(); else if (name === 'deco') renderDeco();
+  if (name === 'who') renderWho(); else if (name === 'home') renderHome(); else if (name === 'shop') renderShop(); else if (name === 'room') renderRoom(); else if (name === 'book') renderBook(); else if (name === 'town') renderTown(); else if (name === 'chal') renderChal(); else if (name === 'deco') renderDeco(); else if (name === 'friends') renderFriends(); else if (name === 'visit') renderVisit();
   window.scrollTo(0, 0);
 }
 function renderHud() {
@@ -669,7 +669,9 @@ function openModal(html, locked) { modalLocked = !!locked; $('#modalBody').inner
 function closeModal(force) { if (modalLocked && !force) return; $('#modal').hidden = true; $('#modalBody').innerHTML = ''; modalLocked = false; }
 
 // ================= HOME =================
+let toldVisit = 0;
 function renderHome() {
+  if (typeof refreshFriendsBadge === 'function') { refreshFriendsBadge(); const nv = newVisitors(); if (nv.length && toldVisit !== nv[0].at) { toldVisit = nv[0].at; setTimeout(() => toast(`${nv[0].who}'s ${nv[0].pet} came to visit ${nv[0].host}! See who in Friends.`), 700); } }
   const pet = S.pets[S.active];
   $('#homePetName').textContent = pet ? pet.name : 'No pet yet';
   $('#homePetKind').textContent = pet ? PETS[pet.kind].name : '';

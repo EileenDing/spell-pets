@@ -481,9 +481,17 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .questbtn img { width: 52px; } .questbtn b { display: block; font-size: 20px; text-shadow: 2px 2px 0 #3e6b22; line-height: 1.1; } .questbtn small { display: block; font-size: 14px; color: #f2ffe4; text-shadow: 1px 1px 0 #3e6b22; }
 .questbtn:hover { filter: brightness(1.06); } .questbtn:active { transform: translateY(2px); }
 .questbtn:focus-visible, .hf-nav button:focus-visible, .hf-plaque:focus-visible, .decocard:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
-.hf-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.hf-nav button { background: var(--cream); border: 3px solid #6b3f1f; border-radius: 10px; box-shadow: inset 0 -4px 0 #ead2a6; color: #4d2c14; font: inherit; font-weight: 700; font-size: 19px; padding: 6px 6px; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; min-width: 0; }
-.hf-nav button img { height: 40px; width: auto; } .hf-nav button:hover { background: #fffaf0; } .hf-nav button:active { transform: translateY(2px); box-shadow: inset 0 -1px 0 #ead2a6; }
+.hf-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 900px) { .hf-nav { gap: 5px; } .hf-nav button { flex-direction: column; gap: 2px; font-size: 15px; padding: 4px 2px; } .hf-nav button img { height: 30px; } }
+.hf-nav button.dot { position: relative; } .hf-nav button.dot::after { content: ''; position: absolute; top: -6px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #ff5d73; border: 2px solid #fff; }
+.frow { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 2px dashed #e6d3b0; } .frow:last-child { border-bottom: 0; }
+.fcard { border: 3px solid var(--ink); background: #fff; padding: 10px 12px; margin: 8px 0; } .fhead { display: flex; justify-content: space-between; align-items: center; font-size: 20px; }
+.fpets { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.fpet { font: inherit; display: grid; justify-items: center; gap: 2px; padding: 6px 10px; border: 3px solid var(--ink); background: #fff7d6; color: var(--ink); cursor: pointer; box-shadow: 0 3px 0 var(--ink); }
+.fpet img { height: 84px; width: auto; } .fpet small { color: #1d7a3a; font-weight: 700; } .fpet:hover { background: #ffefb0; }
+.vline { font-size: 19px; text-align: center; margin: 4px 0 10px; }
+.hf-nav button { background: var(--cream); border: 3px solid #6b3f1f; border-radius: 10px; box-shadow: inset 0 -4px 0 #ead2a6; color: #4d2c14; font: inherit; font-weight: 700; font-size: 17px; padding: 6px 4px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; min-width: 0; }
+.hf-nav button img { height: 34px; width: auto; } .hf-nav button:hover { background: #fffaf0; } .hf-nav button:active { transform: translateY(2px); box-shadow: inset 0 -1px 0 #ead2a6; }
 .petstrip .petline { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center; justify-content: space-between; } .petstrip .meter { flex: 1; min-width: 200px; max-width: 360px; }
 .homeframe.slim { padding: 6px; } .scene.deco { cursor: grab; touch-action: none; }
 .decotools { background: var(--cream); border: 3px solid #6b3f1f; border-radius: 10px; padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 48px; color: #4d2c14; }
@@ -585,6 +593,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
         <button id="goShop"><img data-spr="ui-shop" alt=""><span>Shop</span></button>
         <button id="goDeco"><img data-spr="ui-deco" alt=""><span>Decorate</span></button>
         <button id="goPets"><img data-spr="it-pawrug" alt=""><span>Pets</span></button>
+        <button id="goFriends"><span>Friends</span></button>
       </nav>
     </div>
     <div class="panel petstrip">
@@ -652,6 +661,17 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
     <div class="screenhead"><button class="btn small" data-back>Back</button><h1>Pet Town</h1><span></span></div>
     <div class="panel townpanel"><div class="townscroll"><div class="townbox"><canvas id="townMap" class="townmap" width="1536" height="1204" aria-label="Map of Pet Town"></canvas><div id="townPlots"></div></div></div>
       <p class="muted" id="townNote"></p></div>
+  </section>
+
+  <section id="scr-friends" class="wrap" hidden>
+    <div class="screenhead"><button class="btn small" data-back>Back</button><h1>Friends</h1><span></span></div>
+    <div id="friendsBody" class="wrap"></div>
+  </section>
+
+  <section id="scr-visit" class="wrap" hidden>
+    <div class="screenhead"><button class="btn small" id="visitBack">Go home</button><h1 id="visitTitle">Visiting</h1><span></span></div>
+    <div class="homeframe slim"><div class="scenebox"><canvas id="sceneVisit" class="scene room" width="1536" height="1024" aria-label="Your pet visiting a friend's pet"></canvas></div></div>
+    <div class="panel" id="visitPanel"></div>
   </section>
 
   <section id="scr-chal" class="wrap" hidden>
@@ -10310,20 +10330,28 @@ function drawRoom(c, t, pet, o = {}) {
   });
   const list = room.items.map((it, i) => ({ it, i, r: itemRect(it) }));
   list.filter(e => FURN[e.it.k].place === 'rug').forEach(e => drawItem(c, e, o));
-  const pr = pet ? roam(id, dt, o.still, room.wy || (sceneSet ? sceneSet.floorY : 420)) : null;
+  const floorY = room.wy || (sceneSet ? sceneSet.floorY : 420);
+  const pr = pet ? roam(id, dt, o.still, floorY) : null, gr = o.guest ? roam(id + '-g', dt, o.still, floorY) : null;   // a friend's pet on a visit walks about too
   const rest = list.filter(e => FURN[e.it.k].place !== 'rug').map(e => ({ ...e, z: itemZ(room, e.it, e.r) }));
-  if (pr) rest.push({ pet: true, z: pr.y });
+  if (pr) rest.push({ pet, pr, hop: o.hostHop != null ? o.hostHop : hopUntil, z: pr.y });
+  if (gr) rest.push({ pet: o.guest, pr: gr, hop: o.guestHop || 0, z: gr.y });
   rest.sort((a, b) => a.z - b.z).forEach(e => {
     if (!e.pet) return drawItem(c, e, o);
-    const img = petCanvas(pet, { blink: t % 4200 < 160 }), PH = 152, PW = PH * img.width / PET_CH;
-    let y = pr.y - PH + 6 - (pr.moving ? (Math.floor(t / 140) % 2) * 3 : (reduceMotion ? 0 : Math.floor(t / 520) % 2));
-    if (t < hopUntil) y -= Math.round(Math.abs(Math.sin((hopUntil - t) / 110)) * 14);
-    c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 36, 8, 0, 0, Math.PI * 2); c.fill(); c.restore();
-    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PH * 0.3, y + 18, 46, t);
+    drawRoamer(c, t, e.pet, e.pr, e.hop);
   });
+  if (o.hearts && typeof drawHearts === 'function') drawHearts(c, t, o.hearts, [pr, gr].filter(Boolean).map(r => ({ x: r.x, y: r.y - 100 })));
   if (o.sel != null && list[o.sel]) {
     const r = list[o.sel].r; c.save(); c.strokeStyle = '#ffcc33'; c.lineWidth = 4; c.setLineDash([10, 6]); c.lineDashOffset = -(t / 40) % 16;
     c.strokeRect(r.x0 - 6, r.y0 - 6, r.w + 12, r.h + 12); c.restore();
+  }
+}
+function drawRoamer(c, t, pet, pr, hop) {
+  {
+    const img = petCanvas(pet, { blink: t % 4200 < 160 }), PH = 152, PW = PH * img.width / PET_CH;
+    let y = pr.y - PH + 6 - (pr.moving ? (Math.floor(t / 140) % 2) * 3 : (reduceMotion ? 0 : Math.floor(t / 520) % 2));
+    if (t < hop) y -= Math.round(Math.abs(Math.sin((hop - t) / 110)) * 14);
+    c.save(); c.globalAlpha = 0.22; c.fillStyle = '#2a1d33'; c.beginPath(); c.ellipse(pr.x, pr.y + 2, 36, 8, 0, 0, Math.PI * 2); c.fill(); c.restore();
+    drawPetSick(c, pet, () => { if (pr.dir > 0) { c.save(); c.translate(pr.x + PW / 2, y); c.scale(-1, 1); c.drawImage(img, 0, 0, PW, PH); c.restore(); } else c.drawImage(img, pr.x - PW / 2, y, PW, PH); }, pr.x + (pr.dir > 0 ? -1 : 1) * PH * 0.3, y + 18, 46, t);
   }
 }
 function drawItem(c, e, o) {
@@ -11375,9 +11403,9 @@ function route(name) {
   if (name === 'who') $('#whoBack').hidden = !PROFILE;
   if (name !== 'deco' && DECO.trial) endTrial(false);        // leaving the room shop takes off anything only tried on
   if (name !== 'shop') TRY = null;
-  ['who', 'home', 'play', 'shop', 'room', 'book', 'town', 'chal', 'deco'].forEach(n => { $('#scr-' + n).hidden = n !== name; });
+  ['who', 'home', 'play', 'shop', 'room', 'book', 'town', 'chal', 'deco', 'friends', 'visit'].forEach(n => { $('#scr-' + n).hidden = n !== name; });
   renderHud();
-  if (name === 'who') renderWho(); else if (name === 'home') renderHome(); else if (name === 'shop') renderShop(); else if (name === 'room') renderRoom(); else if (name === 'book') renderBook(); else if (name === 'town') renderTown(); else if (name === 'chal') renderChal(); else if (name === 'deco') renderDeco();
+  if (name === 'who') renderWho(); else if (name === 'home') renderHome(); else if (name === 'shop') renderShop(); else if (name === 'room') renderRoom(); else if (name === 'book') renderBook(); else if (name === 'town') renderTown(); else if (name === 'chal') renderChal(); else if (name === 'deco') renderDeco(); else if (name === 'friends') renderFriends(); else if (name === 'visit') renderVisit();
   window.scrollTo(0, 0);
 }
 function renderHud() {
@@ -11396,7 +11424,9 @@ function openModal(html, locked) { modalLocked = !!locked; $('#modalBody').inner
 function closeModal(force) { if (modalLocked && !force) return; $('#modal').hidden = true; $('#modalBody').innerHTML = ''; modalLocked = false; }
 
 // ================= HOME =================
+let toldVisit = 0;
 function renderHome() {
+  if (typeof refreshFriendsBadge === 'function') { refreshFriendsBadge(); const nv = newVisitors(); if (nv.length && toldVisit !== nv[0].at) { toldVisit = nv[0].at; setTimeout(() => toast(`${nv[0].who}'s ${nv[0].pet} came to visit ${nv[0].host}! See who in Friends.`), 700); } }
   const pet = S.pets[S.active];
   $('#homePetName').textContent = pet ? pet.name : 'No pet yet';
   $('#homePetKind').textContent = pet ? PETS[pet.kind].name : '';
@@ -12346,4 +12376,130 @@ function renderAccount() {
   line.hidden = btn.hidden = !acc;
   if (acc) line.textContent = `Signed in as ${acc.name || acc.email}${acc.email && acc.name ? ' (' + acc.email + ')' : ''}.`;
 }
+// ================= FRIENDS: players in the family befriend each other, and their pets visit each other's homes (Nov 2026) =================
+// Nobody ever writes into someone else's save. Each player keeps, in their own save:
+//   S.friends   ids of the players they asked (or said yes) to be friends with
+//   S.friendNo  ids whose request they turned down (hidden until that player asks again after being removed)
+//   S.visits    their pets' visits to friends' homes: { to, host, pet, kind, at }
+// Two players who list each other are friends; one listing the other is a request waiting for a yes.
+// Every player's save is already copied to each device (live), so the friend's side is read from there.
+let VISIT = null;                                           // { fid, host (their pet index), guest (my pet index), hearts, hop }
+const FCACHE = {};
+function friendSave(id) {                                   // another player's save, as it is on this device right now
+  const prof = PROFILES.find(p => p.id === id); if (!prof) return null;
+  const c = FCACHE[id]; if (c && c.at === prof.savedAt) return c.st;
+  const st = localSave(id); FCACHE[id] = { at: prof.savedAt, st }; return st;
+}
+const myFriendList = () => (S.friends = S.friends || []);
+const friendPeople = () => PROFILES.filter(p => p.id !== PROFILE.id && !p.test);   // the Test profile never shows up for the kids
+const theyWant = id => { const st = friendSave(id); return !!(st && (st.friends || []).includes(PROFILE.id)); };
+const isFriend = id => isTester() || (myFriendList().includes(id) && theyWant(id));   // the grown-ups' Test profile can visit anyone
+const friendRequests = () => friendPeople().filter(p => theyWant(p.id) && !myFriendList().includes(p.id) && !(S.friendNo || []).includes(p.id));
+function newVisitors() {                                    // friends' pets that came by since this player last looked
+  const seen = S.visitSeen || 0, out = [];
+  friendPeople().forEach(p => { if (!isFriend(p.id)) return; const st = friendSave(p.id); (st && st.visits || []).forEach(v => { if (v.to === PROFILE.id && v.at > seen) out.push({ ...v, who: p.name }); }); });
+  return out.sort((a, b) => b.at - a.at);
+}
+function recentVisitors() {
+  const since = Date.now() - 14 * 864e5, out = [];
+  friendPeople().forEach(p => { const st = friendSave(p.id); (st && st.visits || []).forEach(v => { if (v.to === PROFILE.id && v.at > since) out.push({ ...v, who: p.name }); }); });
+  return out.sort((a, b) => b.at - a.at).slice(0, 10);
+}
+const friendsBadge = () => !!PROFILE && (friendRequests().length > 0 || newVisitors().length > 0);
+function refreshFriendsBadge() { const b = $('#goFriends'); if (b) b.classList.toggle('dot', friendsBadge()); }
+const visitDay = at => new Date(at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+const petLabel = (pet) => `${esc(pet.name)} the ${PETS[pet.kind] ? PETS[pet.kind].name : 'Pet'}`;
+
+function renderFriends() {
+  const fl = myFriendList(), people = friendPeople(), reqs = friendRequests();
+  const mutual = people.filter(p => isFriend(p.id)), waiting = people.filter(p => fl.includes(p.id) && !theyWant(p.id) && !isTester());
+  const others = people.filter(p => !fl.includes(p.id) && !reqs.includes(p) && !isTester());
+  let h = '';
+  if (reqs.length) h += `<div class="panel"><h2>Friend requests</h2>${reqs.map(p => `<div class="frow"><span><b>${esc(p.name)}</b> wants to be friends!</span>
+      <span><button class="btn small go" data-fyes="${esc(p.id)}">Yes!</button> <button class="btn small" data-fno="${esc(p.id)}">No thanks</button></span></div>`).join('')}</div>`;
+  h += `<div class="panel"><h2>My friends</h2>`;
+  if (!mutual.length) h += `<p class="muted">No friends yet. Ask someone below! When they say yes, your pets can visit each other's homes.</p>`;
+  mutual.forEach(p => {
+    const st = friendSave(p.id), pets = (st && st.pets) || [];
+    h += `<div class="fcard"><div class="fhead"><b>${esc(p.name)}</b>${isTester() ? '' : `<button class="linkbtn small" data-funf="${esc(p.id)}">Remove friend</button>`}</div>
+      ${!st ? `<p class="muted small">${esc(p.name)}'s pets aren't on this device yet. Try again in a moment.</p>`
+        : !pets.length ? `<p class="muted small">${esc(p.name)} doesn't have a pet yet.</p>`
+        : `<div class="fpets">${pets.map((pet, i) => `<button class="fpet" data-fvisit="${esc(p.id)}" data-fpi="${i}"><img class="pxi" src="${petURL(pet)}" alt=""><span>${esc(pet.name)}</span><small>Visit</small></button>`).join('')}</div>`}</div>`;
+  });
+  if (waiting.length) h += waiting.map(p => `<div class="frow muted"><span>Waiting for <b>${esc(p.name)}</b> to say yes&hellip;</span><button class="linkbtn small" data-fcancel="${esc(p.id)}">Cancel</button></div>`).join('');
+  h += `</div>`;
+  if (others.length) h += `<div class="panel"><h2>Add a friend</h2>${others.map(p => `<div class="frow"><span><b>${esc(p.name)}</b></span><button class="btn small" data-fadd="${esc(p.id)}">Ask to be friends</button></div>`).join('')}
+      <p class="muted small">They'll see your request next time they play.</p></div>`;
+  else if (!people.length) h += `<div class="panel"><p class="muted">Friends are other players in your family. Add another player to make a friend.</p></div>`;
+  const vis = recentVisitors();
+  if (vis.length) h += `<div class="panel"><h2>Visitors</h2>${vis.map(v => `<div class="frow"><span><b>${esc(v.who)}</b>'s ${esc(v.pet)} came to visit ${esc(v.host)}</span><small class="muted">${visitDay(v.at)}</small></div>`).join('')}</div>`;
+  $('#friendsBody').innerHTML = h;
+  S.visitSeen = Date.now(); save(); refreshFriendsBadge();
+}
+function friendsClick(e) {
+  const b = e.target.closest('button'); if (!b) return; const d = b.dataset, fl = myFriendList();
+  if (d.fadd) { if (!fl.includes(d.fadd)) fl.push(d.fadd); S.friendNo = (S.friendNo || []).filter(x => x !== d.fadd); save(); SFX.good(); toast(`Friend request sent!`); return renderFriends(); }
+  if (d.fyes) { if (!fl.includes(d.fyes)) fl.push(d.fyes); save(); SFX.coin(); toast(`You and ${(PROFILES.find(p => p.id === d.fyes) || {}).name} are friends now!`); return renderFriends(); }
+  if (d.fno) { S.friendNo = [...new Set([...(S.friendNo || []), d.fno])]; save(); SFX.tap(); return renderFriends(); }
+  if (d.fcancel || d.funf) { const id = d.fcancel || d.funf; S.friends = fl.filter(x => x !== id); if (d.funf) S.friendNo = [...new Set([...(S.friendNo || []), id])]; save(); SFX.tap(); return renderFriends(); }
+  if (d.fvisit) return openVisit(d.fvisit, +d.fpi);
+}
+
+// ---- a visit: my pet goes to a friend's pet's home ----
+function openVisit(fid, hostIdx, guestIdx) {
+  const st = friendSave(fid); if (!st || !st.pets[hostIdx] || !S.pets.length) return;
+  VISIT = { fid, host: hostIdx, guest: guestIdx != null ? guestIdx : S.active, hearts: 0, hop: 0 };
+  ROAM['visit'] = { x: 330, y: 470, tx: 330, ty: 470, dir: 1, wait: 2.5 }; ROAM['visit-g'] = { x: 600, y: 480, tx: 600, ty: 480, dir: -1, wait: 3 };
+  noteVisit(); route('visit');
+  setTimeout(() => waveHello(true), 500);
+}
+function noteVisit() {                                       // kept in my own save, for the friend to see
+  const host = friendSave(VISIT.fid).pets[VISIT.host], me = S.pets[VISIT.guest], v = S.visits = S.visits || [];
+  const last = v[v.length - 1], now = Date.now();
+  if (last && last.to === VISIT.fid && last.host === host.name && last.pet === me.name && now - last.at < 30 * 60e3) last.at = now;
+  else v.push({ to: VISIT.fid, host: host.name, pet: me.name, kind: me.kind, at: now });
+  if (v.length > 40) v.splice(0, v.length - 40);
+  save();
+}
+function visitPets() { const st = VISIT && friendSave(VISIT.fid); return st && st.pets[VISIT.host] && S.pets[VISIT.guest] ? [st.pets[VISIT.host], S.pets[VISIT.guest], st] : null; }
+function waveHello(quiet) { if (!VISIT) return; const t = performance.now(); VISIT.hearts = t + 2600; VISIT.hop = t + 900; hopUntil = 0; VISIT.hostHop = t + 900; if (!quiet) SFX.good(); else SFX.tap(); }
+function renderVisit() {
+  const vp = visitPets(); if (!vp) return route('friends');
+  const [host, guest, st] = vp, owner = (PROFILES.find(p => p.id === VISIT.fid) || {}).name || 'Friend';
+  $('#visitTitle').textContent = `${guest.name} is visiting!`;
+  let h = `<p class="vline"><b>${esc(guest.name)}</b> came to <b>${esc(owner)}</b>'s house to play with <b>${petLabel(host)}</b>.</p>
+    <p class="center"><button class="btn go" id="visitWave">Wave hello</button></p>`;
+  if (S.pets.length > 1) h += `<h3>Who goes on the visit?</h3><div class="chips">${S.pets.map((p, i) => chip(p.name, i === VISIT.guest, `data-vguest="${i}"`)).join('')}</div>`;
+  if (st.pets.length > 1) h += `<h3>Whose home?</h3><div class="chips">${st.pets.map((p, i) => chip(p.name, i === VISIT.host, `data-vhost="${i}"`)).join('')}</div>`;
+  $('#visitPanel').innerHTML = h;
+}
+function visitClick(e) {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'visitWave') return waveHello();
+  if (b.dataset.vguest != null) { VISIT.guest = +b.dataset.vguest; noteVisit(); renderVisit(); return waveHello(true); }
+  if (b.dataset.vhost != null) { VISIT.host = +b.dataset.vhost; noteVisit(); renderVisit(); return waveHello(true); }
+}
+// little hearts floating up over both pets while they say hello
+function drawHearts(c, t, until, spots) {
+  if (!until || t > until) return; const k = 1 - (until - t) / 2600;
+  spots.forEach((s, j) => { for (let i = 0; i < 3; i++) {
+    const p = (k + i * 0.28 + j * 0.13) % 1, x = s.x + Math.sin((p + i) * 6) * 18 + (i - 1) * 22, y = s.y - 40 - p * 90, r = 9 + i * 2;
+    c.save(); c.globalAlpha = Math.max(0, Math.min(1, 1.4 - p * 1.4)); c.fillStyle = '#ff5d8f'; c.strokeStyle = '#2a1d33'; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(x, y + r * 0.9); c.bezierCurveTo(x - r * 1.6, y - r * 0.2, x - r * 0.7, y - r * 1.4, x, y - r * 0.5); c.bezierCurveTo(x + r * 0.7, y - r * 1.4, x + r * 1.6, y - r * 0.2, x, y + r * 0.9);
+    c.fill(); c.stroke(); c.restore(); } });
+}
+
+(function initFriends() {
+  $('#friendsBody').addEventListener('click', friendsClick);
+  $('#visitPanel').addEventListener('click', visitClick);
+  $('#visitBack').addEventListener('click', () => { VISIT = null; route('home'); });
+  $('#goFriends').innerHTML = `${icon('heart')}<span>Friends</span>`;
+  $('#goFriends').addEventListener('click', () => route('friends'));
+  const cv = $('#sceneVisit'), cx = cv.getContext('2d'); let last = 0;
+  (function loop(t) {
+    if (cv.offsetParent && t - last > 50) { last = t; const vp = visitPets(); if (vp) drawRoom(cx, t, vp[0], { id: 'visit', guest: vp[1], hearts: VISIT.hearts, guestHop: VISIT.hop, hostHop: VISIT.hostHop }); }
+    requestAnimationFrame(loop);
+  })(0);
+  setInterval(() => { if (currentScreen === 'home') refreshFriendsBadge(); }, 5000);
+})();
 </script>
