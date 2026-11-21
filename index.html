@@ -489,6 +489,7 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .fpets { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .fpet { font: inherit; display: grid; justify-items: center; gap: 2px; padding: 6px 10px; border: 3px solid var(--ink); background: #fff7d6; color: var(--ink); cursor: pointer; box-shadow: 0 3px 0 var(--ink); }
 .fpet img { height: 84px; width: auto; } .fpet small { color: #1d7a3a; font-weight: 700; } .fpet:hover { background: #ffefb0; }
+.townwho { justify-content: center; margin: 0 0 10px; } .townwho .pxi.tiny { height: 14px; width: auto; }
 .vline { font-size: 19px; text-align: center; margin: 4px 0 10px; }
 .hf-nav button { background: var(--cream); border: 3px solid #6b3f1f; border-radius: 10px; box-shadow: inset 0 -4px 0 #ead2a6; color: #4d2c14; font: inherit; font-weight: 700; font-size: 17px; padding: 6px 4px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; min-width: 0; }
 .hf-nav button img { height: 34px; width: auto; } .hf-nav button:hover { background: #fffaf0; } .hf-nav button:active { transform: translateY(2px); box-shadow: inset 0 -1px 0 #ead2a6; }
@@ -658,7 +659,8 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
   </section>
 
   <section id="scr-town" class="wrap" hidden>
-    <div class="screenhead"><button class="btn small" data-back>Back</button><h1>Pet Town</h1><span></span></div>
+    <div class="screenhead"><button class="btn small" data-back>Back</button><h1 id="townTitle">Pet Town</h1><span></span></div>
+    <div class="chips townwho" id="townWho"></div>
     <div class="panel townpanel"><div class="townscroll"><div class="townbox"><canvas id="townMap" class="townmap" width="1536" height="1204" aria-label="Map of Pet Town"></canvas><div id="townPlots"></div></div></div>
       <p class="muted" id="townNote"></p></div>
   </section>
@@ -9475,6 +9477,10 @@ function signImg(kind) {
   return SIGN_C[kind] = c;
 }
 const lotOf = pet => LOTS[pet.kind];
+// whose town is on screen: mine, or a friend's (Nov 2026: tap a friend to see their Pet Town)
+let TOWN_OF = null;
+const townPets = () => { const st = TOWN_OF && typeof friendSave === 'function' && friendSave(TOWN_OF); return TOWN_OF ? (st ? st.pets : []) : S.pets; };
+function showTownOf(id) { if (TOWN_OF !== id) { TOWN_OF = id; Object.keys(WALKERS).forEach(k => delete WALKERS[k]); townLast = 0; } }
 const SHELTER_C = {};
 function shelterCanvas(key) {
   if (SHELTER_C[key]) return SHELTER_C[key];
@@ -9512,9 +9518,9 @@ function walkPath(from, to) {
   return pts;
 }
 function updateWalkers(dt) {
-  const n = S.pets.length;
+  const PETS_T = townPets(), n = PETS_T.length;
   for (let i = 0; i < n; i++) {
-    const pet = S.pets[i], L = lotOf(pet); if (!L) continue;
+    const pet = PETS_T[i], L = lotOf(pet); if (!L) continue;
     let w = WALKERS[i];
     if (!w || w.kind !== pet.kind) { const h = homeSpot(pet); w = WALKERS[i] = { kind: pet.kind, x: h.x, y: h.y, wp: [], wait: 1 + hash(i * 7) * 4, mode: 'home', dir: -1, guest: -1 }; }
     if (w.wp.length) {
@@ -9530,7 +9536,7 @@ function updateWalkers(dt) {
     if (w.mode === 'visit') { w.mode = 'home'; w.guest = -1; w.wp = walkPath(here, { ...home, row: L.row, inLot: true, gx: L.lx }); continue; }
     if (n > 1 && Math.random() < 0.6) {
       let j = Math.floor(Math.random() * (n - 1)); if (j >= i) j++;
-      const L2 = lotOf(S.pets[j]); if (!L2) continue;
+      const L2 = lotOf(PETS_T[j]); if (!L2) continue;
       const spot = { x: L2.lx + (Math.random() < .5 ? -70 : 70), row: L2.row };
       w.mode = 'visit'; w.guest = j; w.row = L2.row; w.wp = walkPath(here, spot);
     } else { w.wp = [{ x: home.x + Math.round((Math.random() - .5) * 40), y: home.y - Math.round(Math.random() * 30) }]; }
@@ -9544,9 +9550,10 @@ function drawTown(c, t) {
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
   if (SPR.town4) c.drawImage(SPR.town4, 0, 0, TOWN_W, TOWN_H);
   for (const k in LOTS) { const sg = signImg(k), L = LOTS[k]; if (!sg) continue; const sc = Math.min(40 / sg.width, 30 / sg.height); c.drawImage(sg, L.sign[0] - sg.width * sc / 2, L.sign[1] - sg.height * sc / 2, sg.width * sc, sg.height * sc); }
-  S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
+  const PETS_T = townPets();
+  PETS_T.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
   const PH = 92;
-  const order = S.pets.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
+  const order = PETS_T.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
   order.forEach(({ pet, i, w }) => {
     const moving = w.wp && w.wp.length;
     const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 }), PW = PH * img.width / PET_CH;
@@ -12050,15 +12057,21 @@ function roomClick(e) {
 // ================= TOWN =================
 function renderTown() {
   const pct = (v, tot) => (v / tot * 100).toFixed(2) + '%';
-  const lots = S.pets.map((pet, i) => {
+  if (TOWN_OF && !(typeof isFriend === 'function' && isFriend(TOWN_OF) && friendSave(TOWN_OF))) showTownOf(null);   // no longer friends, or not on this device
+  const mates = typeof friendPeople === 'function' ? friendPeople().filter(p => isFriend(p.id)) : [], owner = TOWN_OF && (PROFILES.find(p => p.id === TOWN_OF) || {}).name;
+  const pets = townPets();
+  $('#townTitle').textContent = TOWN_OF ? `${owner}'s Pet Town` : 'Pet Town';
+  $('#townWho').innerHTML = mates.length ? chip('My town', !TOWN_OF, 'data-townof=""') + mates.map(p => chip(`${p.name}'s town`, TOWN_OF === p.id, `data-townof="${esc(p.id)}"`, icon('heart', 'tiny'))).join('') : '';
+  const lots = pets.map((pet, i) => {
     const L = lotOf(pet); if (!L) return '';
     const st = `left:${pct(L.x0, TOWN_W)};top:${pct(L.ly - 185, TOWN_H)};width:${pct(L.x1 - L.x0, TOWN_W)};height:${pct(205, TOWN_H)}`;
-    return `<button class="plot" data-house="${i}" style="${st}" aria-label="Go into ${esc(pet.name)}'s house"><span class="plotname">${esc(pet.name)}</span></button>`;
+    return TOWN_OF ? `<button class="plot" data-fvisit="${esc(TOWN_OF)}" data-fpi="${i}" style="${st}" aria-label="Visit ${esc(pet.name)}'s house"><span class="plotname">${esc(pet.name)}</span></button>`
+      : `<button class="plot" data-house="${i}" style="${st}" aria-label="Go into ${esc(pet.name)}'s house"><span class="plotname">${esc(pet.name)}</span></button>`;
   }).join('');
-  const shops = TOWN_SHOPS.map(b => `<button class="plot shopspot" data-townshop="${b.id}" style="left:${pct(b.x0, TOWN_W)};top:${pct(b.y0, TOWN_H)};width:${pct(b.x1 - b.x0, TOWN_W)};height:${pct(b.y1 - b.y0, TOWN_H)}" aria-label="${b.label}"><span class="plotname">${b.label}</span></button>`).join('');
+  const shops = TOWN_OF ? '' : TOWN_SHOPS.map(b => `<button class="plot shopspot" data-townshop="${b.id}" style="left:${pct(b.x0, TOWN_W)};top:${pct(b.y0, TOWN_H)};width:${pct(b.x1 - b.x0, TOWN_W)};height:${pct(b.y1 - b.y0, TOWN_H)}" aria-label="${b.label}"><span class="plotname">${b.label}</span></button>`).join('');
   $('#townPlots').innerHTML = lots + shops;
-  $('#townNote').innerHTML = (S.pets.length > 1 ? 'Tap a house to go inside, or a shop to go shopping. Watch your pets visit each other!' : 'Tap your house to go inside, or a shop to go shopping. The locked lots are waiting for new friends\u2026') + '<span class="swipehint"> Swipe the map sideways to see all of Pet Town.</span>';
-  const sc = $('.townscroll'), me = S.pets[S.active] && lotOf(S.pets[S.active]);
+  $('#townNote').innerHTML = TOWN_OF ? `Tap one of ${esc(owner)}'s houses and your ${esc((S.pets[S.active] || {}).name || 'pet')} will go and visit!` + '<span class="swipehint"> Swipe the map sideways to see all of it.</span>' : (S.pets.length > 1 ? 'Tap a house to go inside, or a shop to go shopping. Watch your pets visit each other!' : 'Tap your house to go inside, or a shop to go shopping. The locked lots are waiting for new friends\u2026') + '<span class="swipehint"> Swipe the map sideways to see all of Pet Town.</span>';
+  const sc = $('.townscroll'), me = TOWN_OF ? (pets[0] && lotOf(pets[0])) : S.pets[S.active] && lotOf(S.pets[S.active]);
   if (sc && me) requestAnimationFrame(() => { sc.scrollLeft = Math.max(0, me.lx / TOWN_W * sc.scrollWidth - sc.clientWidth / 2); });
 }
 // ================= CHALLENGES =================
@@ -12106,13 +12119,14 @@ function boot() {
   });
   $('#btnPlay').addEventListener('click', startSession);
   $('#goShop').addEventListener('click', () => route('shop'));
-  $('#goRoom').addEventListener('click', () => route('town'));
-  $('#hfTown').addEventListener('click', () => route('town'));
+  $('#goRoom').addEventListener('click', () => { showTownOf(null); route('town'); });
+  $('#hfTown').addEventListener('click', () => { showTownOf(null); route('town'); });
   $('#goDeco').addEventListener('click', () => { if (S.pets.length) openDeco(S.active); });
   $('#goPets').addEventListener('click', () => { if (S.pets.length) openRoom(S.active); });
   document.querySelectorAll('img[data-spr]').forEach(im => { im.src = imgSrc(im.dataset.spr); });
   wireDeco();
-  $('#townPlots').addEventListener('click', e => { const b = e.target.closest('[data-house]'); if (b) return openRoom(+b.dataset.house); const sh = e.target.closest('[data-townshop]'); if (sh) { shopTab = sh.dataset.townshop === 'shelter' ? 'homes' : sh.dataset.townshop; route('shop'); } });
+  $('#townWho').addEventListener('click', e => { const b = e.target.closest('[data-townof]'); if (!b) return; showTownOf(b.dataset.townof || null); SFX.tap(); renderTown(); });
+  $('#townPlots').addEventListener('click', e => { const fv = e.target.closest('[data-fvisit]'); if (fv) return openVisit(fv.dataset.fvisit, +fv.dataset.fpi); const b = e.target.closest('[data-house]'); if (b) return openRoom(+b.dataset.house); const sh = e.target.closest('[data-townshop]'); if (sh) { shopTab = sh.dataset.townshop === 'shelter' ? 'homes' : sh.dataset.townshop; route('shop'); } });
   $('#challenges').addEventListener('click', e => { const b = e.target.closest('[data-chal]'); if (b) { chalId = b.dataset.chal; route('chal'); } });
   $('#chalBody').addEventListener('click', e => { if (e.target.closest('[data-back-home]')) return route('home'); if (chalId === 'lab' && labClick(e)) return; const cp = e.target.closest('[data-chpart]'); if (chalId === 'en' && cp) return startChal(+cp.dataset.chpart); zhHubClick(e); });
   $('#chalBody').addEventListener('change', e => { if (e.target.id === 'zhVoicePick') { S.zhVoice = e.target.value; save(); ZHVOICE = zhVoices().find(v => v.name === S.zhVoice) || ZHVOICE; zhVoiceDemo(); } });
@@ -12421,7 +12435,7 @@ function renderFriends() {
   if (!mutual.length) h += `<p class="muted">No friends yet. Ask someone below! When they say yes, your pets can visit each other's homes.</p>`;
   mutual.forEach(p => {
     const st = friendSave(p.id), pets = (st && st.pets) || [];
-    h += `<div class="fcard"><div class="fhead"><b>${esc(p.name)}</b>${isTester() ? '' : `<button class="linkbtn small" data-funf="${esc(p.id)}">Remove friend</button>`}</div>
+    h += `<div class="fcard"><div class="fhead"><b>${esc(p.name)}</b><span>${st ? `<button class="btn small" data-ftown="${esc(p.id)}">${esc(p.name)}'s Pet Town</button> ` : ''}${isTester() ? '' : `<button class="linkbtn small" data-funf="${esc(p.id)}">Remove friend</button>`}</span></div>
       ${!st ? `<p class="muted small">${esc(p.name)}'s pets aren't on this device yet. Try again in a moment.</p>`
         : !pets.length ? `<p class="muted small">${esc(p.name)} doesn't have a pet yet.</p>`
         : `<div class="fpets">${pets.map((pet, i) => `<button class="fpet" data-fvisit="${esc(p.id)}" data-fpi="${i}"><img class="pxi" src="${petURL(pet)}" alt=""><span>${esc(pet.name)}</span><small>Visit</small></button>`).join('')}</div>`}</div>`;
@@ -12442,6 +12456,7 @@ function friendsClick(e) {
   if (d.fyes) { if (!fl.includes(d.fyes)) fl.push(d.fyes); save(); SFX.coin(); toast(`You and ${(PROFILES.find(p => p.id === d.fyes) || {}).name} are friends now!`); return renderFriends(); }
   if (d.fno) { S.friendNo = [...new Set([...(S.friendNo || []), d.fno])]; save(); SFX.tap(); return renderFriends(); }
   if (d.fcancel || d.funf) { const id = d.fcancel || d.funf; S.friends = fl.filter(x => x !== id); if (d.funf) S.friendNo = [...new Set([...(S.friendNo || []), id])]; save(); SFX.tap(); return renderFriends(); }
+  if (d.ftown) { showTownOf(d.ftown); return route('town'); }
   if (d.fvisit) return openVisit(d.fvisit, +d.fpi);
 }
 

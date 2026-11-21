@@ -1295,15 +1295,21 @@ function roomClick(e) {
 // ================= TOWN =================
 function renderTown() {
   const pct = (v, tot) => (v / tot * 100).toFixed(2) + '%';
-  const lots = S.pets.map((pet, i) => {
+  if (TOWN_OF && !(typeof isFriend === 'function' && isFriend(TOWN_OF) && friendSave(TOWN_OF))) showTownOf(null);   // no longer friends, or not on this device
+  const mates = typeof friendPeople === 'function' ? friendPeople().filter(p => isFriend(p.id)) : [], owner = TOWN_OF && (PROFILES.find(p => p.id === TOWN_OF) || {}).name;
+  const pets = townPets();
+  $('#townTitle').textContent = TOWN_OF ? `${owner}'s Pet Town` : 'Pet Town';
+  $('#townWho').innerHTML = mates.length ? chip('My town', !TOWN_OF, 'data-townof=""') + mates.map(p => chip(`${p.name}'s town`, TOWN_OF === p.id, `data-townof="${esc(p.id)}"`, icon('heart', 'tiny'))).join('') : '';
+  const lots = pets.map((pet, i) => {
     const L = lotOf(pet); if (!L) return '';
     const st = `left:${pct(L.x0, TOWN_W)};top:${pct(L.ly - 185, TOWN_H)};width:${pct(L.x1 - L.x0, TOWN_W)};height:${pct(205, TOWN_H)}`;
-    return `<button class="plot" data-house="${i}" style="${st}" aria-label="Go into ${esc(pet.name)}'s house"><span class="plotname">${esc(pet.name)}</span></button>`;
+    return TOWN_OF ? `<button class="plot" data-fvisit="${esc(TOWN_OF)}" data-fpi="${i}" style="${st}" aria-label="Visit ${esc(pet.name)}'s house"><span class="plotname">${esc(pet.name)}</span></button>`
+      : `<button class="plot" data-house="${i}" style="${st}" aria-label="Go into ${esc(pet.name)}'s house"><span class="plotname">${esc(pet.name)}</span></button>`;
   }).join('');
-  const shops = TOWN_SHOPS.map(b => `<button class="plot shopspot" data-townshop="${b.id}" style="left:${pct(b.x0, TOWN_W)};top:${pct(b.y0, TOWN_H)};width:${pct(b.x1 - b.x0, TOWN_W)};height:${pct(b.y1 - b.y0, TOWN_H)}" aria-label="${b.label}"><span class="plotname">${b.label}</span></button>`).join('');
+  const shops = TOWN_OF ? '' : TOWN_SHOPS.map(b => `<button class="plot shopspot" data-townshop="${b.id}" style="left:${pct(b.x0, TOWN_W)};top:${pct(b.y0, TOWN_H)};width:${pct(b.x1 - b.x0, TOWN_W)};height:${pct(b.y1 - b.y0, TOWN_H)}" aria-label="${b.label}"><span class="plotname">${b.label}</span></button>`).join('');
   $('#townPlots').innerHTML = lots + shops;
-  $('#townNote').innerHTML = (S.pets.length > 1 ? 'Tap a house to go inside, or a shop to go shopping. Watch your pets visit each other!' : 'Tap your house to go inside, or a shop to go shopping. The locked lots are waiting for new friends\u2026') + '<span class="swipehint"> Swipe the map sideways to see all of Pet Town.</span>';
-  const sc = $('.townscroll'), me = S.pets[S.active] && lotOf(S.pets[S.active]);
+  $('#townNote').innerHTML = TOWN_OF ? `Tap one of ${esc(owner)}'s houses and your ${esc((S.pets[S.active] || {}).name || 'pet')} will go and visit!` + '<span class="swipehint"> Swipe the map sideways to see all of it.</span>' : (S.pets.length > 1 ? 'Tap a house to go inside, or a shop to go shopping. Watch your pets visit each other!' : 'Tap your house to go inside, or a shop to go shopping. The locked lots are waiting for new friends\u2026') + '<span class="swipehint"> Swipe the map sideways to see all of Pet Town.</span>';
+  const sc = $('.townscroll'), me = TOWN_OF ? (pets[0] && lotOf(pets[0])) : S.pets[S.active] && lotOf(S.pets[S.active]);
   if (sc && me) requestAnimationFrame(() => { sc.scrollLeft = Math.max(0, me.lx / TOWN_W * sc.scrollWidth - sc.clientWidth / 2); });
 }
 // ================= CHALLENGES =================
@@ -1351,13 +1357,14 @@ function boot() {
   });
   $('#btnPlay').addEventListener('click', startSession);
   $('#goShop').addEventListener('click', () => route('shop'));
-  $('#goRoom').addEventListener('click', () => route('town'));
-  $('#hfTown').addEventListener('click', () => route('town'));
+  $('#goRoom').addEventListener('click', () => { showTownOf(null); route('town'); });
+  $('#hfTown').addEventListener('click', () => { showTownOf(null); route('town'); });
   $('#goDeco').addEventListener('click', () => { if (S.pets.length) openDeco(S.active); });
   $('#goPets').addEventListener('click', () => { if (S.pets.length) openRoom(S.active); });
   document.querySelectorAll('img[data-spr]').forEach(im => { im.src = imgSrc(im.dataset.spr); });
   wireDeco();
-  $('#townPlots').addEventListener('click', e => { const b = e.target.closest('[data-house]'); if (b) return openRoom(+b.dataset.house); const sh = e.target.closest('[data-townshop]'); if (sh) { shopTab = sh.dataset.townshop === 'shelter' ? 'homes' : sh.dataset.townshop; route('shop'); } });
+  $('#townWho').addEventListener('click', e => { const b = e.target.closest('[data-townof]'); if (!b) return; showTownOf(b.dataset.townof || null); SFX.tap(); renderTown(); });
+  $('#townPlots').addEventListener('click', e => { const fv = e.target.closest('[data-fvisit]'); if (fv) return openVisit(fv.dataset.fvisit, +fv.dataset.fpi); const b = e.target.closest('[data-house]'); if (b) return openRoom(+b.dataset.house); const sh = e.target.closest('[data-townshop]'); if (sh) { shopTab = sh.dataset.townshop === 'shelter' ? 'homes' : sh.dataset.townshop; route('shop'); } });
   $('#challenges').addEventListener('click', e => { const b = e.target.closest('[data-chal]'); if (b) { chalId = b.dataset.chal; route('chal'); } });
   $('#chalBody').addEventListener('click', e => { if (e.target.closest('[data-back-home]')) return route('home'); if (chalId === 'lab' && labClick(e)) return; const cp = e.target.closest('[data-chpart]'); if (chalId === 'en' && cp) return startChal(+cp.dataset.chpart); zhHubClick(e); });
   $('#chalBody').addEventListener('change', e => { if (e.target.id === 'zhVoicePick') { S.zhVoice = e.target.value; save(); ZHVOICE = zhVoices().find(v => v.name === S.zhVoice) || ZHVOICE; zhVoiceDemo(); } });

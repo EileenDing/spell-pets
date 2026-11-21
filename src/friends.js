@@ -43,7 +43,7 @@ function renderFriends() {
   if (!mutual.length) h += `<p class="muted">No friends yet. Ask someone below! When they say yes, your pets can visit each other's homes.</p>`;
   mutual.forEach(p => {
     const st = friendSave(p.id), pets = (st && st.pets) || [];
-    h += `<div class="fcard"><div class="fhead"><b>${esc(p.name)}</b>${isTester() ? '' : `<button class="linkbtn small" data-funf="${esc(p.id)}">Remove friend</button>`}</div>
+    h += `<div class="fcard"><div class="fhead"><b>${esc(p.name)}</b><span>${st ? `<button class="btn small" data-ftown="${esc(p.id)}">${esc(p.name)}'s Pet Town</button> ` : ''}${isTester() ? '' : `<button class="linkbtn small" data-funf="${esc(p.id)}">Remove friend</button>`}</span></div>
       ${!st ? `<p class="muted small">${esc(p.name)}'s pets aren't on this device yet. Try again in a moment.</p>`
         : !pets.length ? `<p class="muted small">${esc(p.name)} doesn't have a pet yet.</p>`
         : `<div class="fpets">${pets.map((pet, i) => `<button class="fpet" data-fvisit="${esc(p.id)}" data-fpi="${i}"><img class="pxi" src="${petURL(pet)}" alt=""><span>${esc(pet.name)}</span><small>Visit</small></button>`).join('')}</div>`}</div>`;
@@ -64,6 +64,7 @@ function friendsClick(e) {
   if (d.fyes) { if (!fl.includes(d.fyes)) fl.push(d.fyes); save(); SFX.coin(); toast(`You and ${(PROFILES.find(p => p.id === d.fyes) || {}).name} are friends now!`); return renderFriends(); }
   if (d.fno) { S.friendNo = [...new Set([...(S.friendNo || []), d.fno])]; save(); SFX.tap(); return renderFriends(); }
   if (d.fcancel || d.funf) { const id = d.fcancel || d.funf; S.friends = fl.filter(x => x !== id); if (d.funf) S.friendNo = [...new Set([...(S.friendNo || []), id])]; save(); SFX.tap(); return renderFriends(); }
+  if (d.ftown) { showTownOf(d.ftown); return route('town'); }
   if (d.fvisit) return openVisit(d.fvisit, +d.fpi);
 }
 

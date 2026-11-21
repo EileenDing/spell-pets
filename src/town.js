@@ -19,6 +19,10 @@ function signImg(kind) {
   return SIGN_C[kind] = c;
 }
 const lotOf = pet => LOTS[pet.kind];
+// whose town is on screen: mine, or a friend's (Nov 2026: tap a friend to see their Pet Town)
+let TOWN_OF = null;
+const townPets = () => { const st = TOWN_OF && typeof friendSave === 'function' && friendSave(TOWN_OF); return TOWN_OF ? (st ? st.pets : []) : S.pets; };
+function showTownOf(id) { if (TOWN_OF !== id) { TOWN_OF = id; Object.keys(WALKERS).forEach(k => delete WALKERS[k]); townLast = 0; } }
 const SHELTER_C = {};
 function shelterCanvas(key) {
   if (SHELTER_C[key]) return SHELTER_C[key];
@@ -56,9 +60,9 @@ function walkPath(from, to) {
   return pts;
 }
 function updateWalkers(dt) {
-  const n = S.pets.length;
+  const PETS_T = townPets(), n = PETS_T.length;
   for (let i = 0; i < n; i++) {
-    const pet = S.pets[i], L = lotOf(pet); if (!L) continue;
+    const pet = PETS_T[i], L = lotOf(pet); if (!L) continue;
     let w = WALKERS[i];
     if (!w || w.kind !== pet.kind) { const h = homeSpot(pet); w = WALKERS[i] = { kind: pet.kind, x: h.x, y: h.y, wp: [], wait: 1 + hash(i * 7) * 4, mode: 'home', dir: -1, guest: -1 }; }
     if (w.wp.length) {
@@ -74,7 +78,7 @@ function updateWalkers(dt) {
     if (w.mode === 'visit') { w.mode = 'home'; w.guest = -1; w.wp = walkPath(here, { ...home, row: L.row, inLot: true, gx: L.lx }); continue; }
     if (n > 1 && Math.random() < 0.6) {
       let j = Math.floor(Math.random() * (n - 1)); if (j >= i) j++;
-      const L2 = lotOf(S.pets[j]); if (!L2) continue;
+      const L2 = lotOf(PETS_T[j]); if (!L2) continue;
       const spot = { x: L2.lx + (Math.random() < .5 ? -70 : 70), row: L2.row };
       w.mode = 'visit'; w.guest = j; w.row = L2.row; w.wp = walkPath(here, spot);
     } else { w.wp = [{ x: home.x + Math.round((Math.random() - .5) * 40), y: home.y - Math.round(Math.random() * 30) }]; }
@@ -88,9 +92,10 @@ function drawTown(c, t) {
   c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
   if (SPR.town4) c.drawImage(SPR.town4, 0, 0, TOWN_W, TOWN_H);
   for (const k in LOTS) { const sg = signImg(k), L = LOTS[k]; if (!sg) continue; const sc = Math.min(40 / sg.width, 30 / sg.height); c.drawImage(sg, L.sign[0] - sg.width * sc / 2, L.sign[1] - sg.height * sc / 2, sg.width * sc, sg.height * sc); }
-  S.pets.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
+  const PETS_T = townPets();
+  PETS_T.forEach(pet => { const L = lotOf(pet); if (L) drawLotHome(c, L, pet); });
   const PH = 92;
-  const order = S.pets.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
+  const order = PETS_T.map((pet, i) => ({ pet, i })).filter(o => lotOf(o.pet)).map(o => ({ ...o, w: WALKERS[o.i] || { ...homeSpot(o.pet), dir: -1, wp: [] } })).sort((a, b) => a.w.y - b.w.y);
   order.forEach(({ pet, i, w }) => {
     const moving = w.wp && w.wp.length;
     const img = petCanvas(pet, { blink: !moving && (t + i * 900) % 4200 < 160 }), PW = PH * img.width / PET_CH;
