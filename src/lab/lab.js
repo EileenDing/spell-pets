@@ -1,5 +1,5 @@
 // ================= EDDIE'S BRAINPOWER LAB (only in a profile named Eddie) =================
-const LAB_PARTS = [{ k: 'A', name: 'Mission A', units: [1, 2, 3, 4] }, { k: 'B', name: 'Mission B', units: [5, 6, 7, 8] }];
+const LAB_PARTS = [{ k: 'A', name: 'Mission A', units: [1, 2, 3, 4] }, { k: 'B', name: 'Mission B', units: [5, 6, 7, 8] }, { k: 'C', name: 'Mission C', units: [9, 10, 11, 12] }];
 const LAB_SESS = 12;
 const POS_FULL = { n: 'noun', v: 'verb', adj: 'adjective', adv: 'adverb', prep: 'preposition', conj: 'conjunction' };
 const LAB = LAB_RAW.trim().split('\n').filter(l => l.trim() && !l.startsWith('#')).map((line, i) => {
