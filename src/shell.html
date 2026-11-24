@@ -413,7 +413,10 @@ select, input { font: inherit; border: 3px solid var(--ink); padding: 4px 8px; b
 .questbtn:focus-visible, .hf-nav button:focus-visible, .hf-plaque:focus-visible, .decocard:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
 .hf-nav { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 @media (max-width: 900px) { .hf-nav { gap: 5px; } .hf-nav button { flex-direction: column; gap: 2px; font-size: 15px; padding: 4px 2px; } .hf-nav button img { height: 30px; } }
-.hf-nav button.dot { position: relative; } .hf-nav button.dot::after { content: ''; position: absolute; top: -6px; right: -4px; width: 16px; height: 16px; border-radius: 50%; background: #ff5d73; border: 2px solid #fff; }
+.hf-nav button { position: relative; overflow: hidden; } .hf-nav button img { flex: none; display: block; max-width: 100%; object-fit: contain; } .hf-nav button img.navheart { width: auto; aspect-ratio: 7 / 6; image-rendering: pixelated; }
+.hf-nav button span { min-width: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.hf-nav button.dot::after { content: ''; position: absolute; top: 3px; right: 3px; width: 12px; height: 12px; border-radius: 50%; background: #ff5d73; border: 2px solid #fff; pointer-events: none; }
 .frow { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-bottom: 2px dashed #e6d3b0; } .frow:last-child { border-bottom: 0; }
 .fcard { border: 3px solid var(--ink); background: #fff; padding: 10px 12px; margin: 8px 0; } .fhead { display: flex; justify-content: space-between; align-items: center; font-size: 20px; }
 .fpets { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
@@ -496,6 +499,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
 .btn.zh, .btn .zh, h1.zh, h2.zh, .round-label.zh, .rt.zh, .opt.zh, .zhplaque, .zhres, .zhres * { font-family: "WenKai", "Kaiti SC", "STKaiti", "KaiTi", serif; font-weight: 400; }
 .btn.opt.zh { font-size: 34px; }
 .round-label.zh { font-size: 20px; }
+@media (max-width: 440px) { .hf-nav button { font-size: 11px; padding: 4px 1px; } } @media (max-width: 370px) { .hf-nav button { font-size: 9px; } }
 </style>
 
 <div class="skylayer" aria-hidden="true"><img class="pxi sky" id="skyA" alt=""><img class="pxi sky" id="skyB" alt=""></div>
@@ -524,7 +528,7 @@ html, body, button, input, select { font-variant-ligatures: none; font-feature-s
         <button id="goShop"><img data-spr="ui-shop" alt=""><span>Shop</span></button>
         <button id="goDeco"><img data-spr="ui-deco" alt=""><span>Decorate</span></button>
         <button id="goPets"><img data-spr="it-pawrug" alt=""><span>Pets</span></button>
-        <button id="goFriends"><span>Friends</span></button>
+        <button id="goFriends"><img class="navheart" alt=""><span>Friends</span></button>
       </nav>
     </div>
     <div class="panel petstrip">

@@ -116,7 +116,7 @@ function drawHearts(c, t, until, spots) {
   $('#friendsBody').addEventListener('click', friendsClick);
   $('#visitPanel').addEventListener('click', visitClick);
   $('#visitBack').addEventListener('click', () => { VISIT = null; route('home'); });
-  $('#goFriends').innerHTML = `${icon('heart')}<span>Friends</span>`;
+  $('#goFriends img').src = spriteURL('i-heart', ICONS.heart, BASEPAL);
   $('#goFriends').addEventListener('click', () => route('friends'));
   const cv = $('#sceneVisit'), cx = cv.getContext('2d'); let last = 0;
   (function loop(t) {
